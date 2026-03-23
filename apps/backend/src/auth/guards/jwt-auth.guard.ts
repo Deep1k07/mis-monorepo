@@ -1,47 +1,46 @@
 import {
-    CanActivate,
-    ExecutionContext,
-    Injectable,
-    UnauthorizedException,
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-    constructor(private jwtService: JwtService) { }
+  constructor(private jwtService: JwtService) {}
 
-    async canActivate(context: ExecutionContext): Promise<boolean> {
-        const request = context.switchToHttp().getRequest();
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
 
-        const token = this.extractTokenFromHeader(request);
+    const token = this.extractTokenFromHeader(request);
 
-        if (!token) {
-            throw new UnauthorizedException('No token provided');
-        }
-
-        try {
-            const payload = await this.jwtService.verifyAsync(token);
-
-            // attach user to request
-            request.user = payload;
-
-        } catch (err) {
-            throw new UnauthorizedException('Invalid token');
-        }
-
-        return true;
+    if (!token) {
+      throw new UnauthorizedException('No token provided');
     }
 
-    private extractTokenFromHeader(request: any): string | null {
-        // Try extracting from cookies first
-        if (request.cookies && request.cookies.access_token) {
-            return request.cookies.access_token;
-        }
+    try {
+      const payload = await this.jwtService.verifyAsync(token);
 
-        // Fallback to Authorization header
-        const authHeader = request.headers.authorization;
-        if (!authHeader) return null;
-        const [type, token] = authHeader.split(' ');
-        return type === 'Bearer' ? token : null;
+      // attach user to request
+      request.user = payload;
+    } catch (err) {
+      throw new UnauthorizedException('Invalid token');
     }
+
+    return true;
+  }
+
+  private extractTokenFromHeader(request: any): string | null {
+    // Try extracting from cookies first
+    if (request.cookies && request.cookies.access_token) {
+      return request.cookies.access_token;
+    }
+
+    // Fallback to Authorization header
+    const authHeader = request.headers.authorization;
+    if (!authHeader) return null;
+    const [type, token] = authHeader.split(' ');
+    return type === 'Bearer' ? token : null;
+  }
 }

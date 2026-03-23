@@ -1,137 +1,136 @@
 import {
-    IsString,
-    IsNotEmpty,
-    IsOptional,
-    IsEmail,
-    ValidateNested,
-    IsArray,
-    IsMongoId,
-    IsBoolean,
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEmail,
+  ValidateNested,
+  IsArray,
+  IsMongoId,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 // 🔹 Main Site Address DTO
 class MainSiteAddressDto {
-    @IsNotEmpty()
-    @IsString()
-    street: string;
+  @IsNotEmpty()
+  @IsString()
+  street: string;
 
-    @IsOptional()
-    @IsString()
-    city: string;
+  @IsOptional()
+  @IsString()
+  city: string;
 
-    @IsOptional()
-    @IsString()
-    state: string;
+  @IsOptional()
+  @IsString()
+  state: string;
 
-    @IsNotEmpty()
-    @IsString()
-    country: string;
+  @IsNotEmpty()
+  @IsString()
+  country: string;
 
-    @IsOptional()
-    @IsString()
-    postal_code: string;
+  @IsOptional()
+  @IsString()
+  postal_code: string;
 }
 
 // 🔹 Additional Site Address DTO
 class AdditionalSiteAddressDto {
-    @IsNotEmpty()
-    @IsString()
-    street: string;
+  @IsNotEmpty()
+  @IsString()
+  street: string;
 
-    @IsOptional()
-    @IsString()
-    city: string;
+  @IsOptional()
+  @IsString()
+  city: string;
 
-    @IsOptional()
-    @IsString()
-    state: string;
+  @IsOptional()
+  @IsString()
+  state: string;
 
-    @IsNotEmpty()
-    @IsString()
-    country: string;
+  @IsNotEmpty()
+  @IsString()
+  country: string;
 
-    @IsOptional()
-    @IsString()
-    postal_code: string;
+  @IsOptional()
+  @IsString()
+  postal_code: string;
 
-    @IsOptional()
-    @IsString()
-    legal_entity_management: string;
+  @IsOptional()
+  @IsString()
+  legal_entity_management: string;
 
-    @IsOptional()
-    @IsString()
-    site_type: string;
+  @IsOptional()
+  @IsString()
+  site_type: string;
 
-    @IsOptional()
-    @IsString()
-    site_category: string;
+  @IsOptional()
+  @IsString()
+  site_category: string;
 }
 
 export class CreateEntityDto {
+  @IsOptional()
+  @IsString()
+  entity_id: string;
 
-    @IsOptional()
-    @IsString()
-    entity_id: string;
+  @IsNotEmpty()
+  @IsString()
+  entity_name: string;
 
-    @IsNotEmpty()
-    @IsString()
-    entity_name: string;
+  @IsMongoId()
+  @IsOptional()
+  busuness_associate: string;
 
-    @IsMongoId()
-    @IsOptional()
-    busuness_associate: string;
+  @IsNotEmpty()
+  @IsString()
+  entity_name_english: string;
 
-    @IsNotEmpty()
-    @IsString()
-    entity_name_english: string;
+  @IsNotEmpty()
+  @IsString()
+  entity_trading_name: string;
 
-    @IsNotEmpty()
-    @IsString()
-    entity_trading_name: string;
+  // ✅ main_site_address (array)
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MainSiteAddressDto)
+  main_site_address: MainSiteAddressDto[];
 
-    // ✅ main_site_address (array)
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => MainSiteAddressDto)
-    main_site_address: MainSiteAddressDto[];
+  // ✅ additional_site_address (array)
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AdditionalSiteAddressDto)
+  additional_site_address?: AdditionalSiteAddressDto[];
 
-    // ✅ additional_site_address (array)
-    @IsOptional()
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => AdditionalSiteAddressDto)
-    additional_site_address?: AdditionalSiteAddressDto[];
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
 
-    @IsNotEmpty()
-    @IsEmail()
-    email: string;
+  @IsOptional()
+  @IsString()
+  website?: string;
 
-    @IsOptional()
-    @IsString()
-    website?: string;
+  @IsOptional()
+  @IsString()
+  drive_link?: string;
 
-    @IsOptional()
-    @IsString()
-    drive_link?: string;
+  @IsOptional()
+  @IsString()
+  name_slug: string;
 
-    @IsOptional()
-    @IsString()
-    name_slug: string;
+  @IsOptional()
+  @IsBoolean()
+  isDirectClient: boolean;
 
-    @IsOptional()
-    @IsBoolean()
-    isDirectClient: boolean;
+  @IsOptional()
+  @IsBoolean()
+  direct_price: string;
 
-    @IsOptional()
-    @IsBoolean()
-    direct_price: string;
+  @IsOptional()
+  @IsString()
+  email_cab_code: string;
 
-    @IsOptional()
-    @IsString()
-    email_cab_code: string;
-
-    @IsOptional()
-    @IsString()
-    by_pass: string;
+  @IsOptional()
+  @IsString()
+  by_pass: string;
 }

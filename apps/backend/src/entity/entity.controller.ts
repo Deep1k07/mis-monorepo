@@ -6,11 +6,11 @@ import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
 @Controller('entity')
 export class EntityController {
-    constructor(private readonly entityService: EntityService) { }
+  constructor(private readonly entityService: EntityService) {}
 
-    @Post('create')
-    @UseGuards(JwtAuthGuard)
-    async create(@Body() body: CreateEntityDto, @Req() req: AuthRequest) {
-        return this.entityService.create(body, req);
-    }
+  @Post('create')
+  @UseGuards(JwtAuthGuard)
+  async create(@Body() body: CreateEntityDto, @Req() req: AuthRequest) {
+    return this.entityService.create(body, req);
+  }
 }

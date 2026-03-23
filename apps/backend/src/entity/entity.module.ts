@@ -6,11 +6,9 @@ import { Entity, EntitySchema } from './schema/entity.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Entity.name, schema: EntitySchema },
-    ]),
+    MongooseModule.forFeature([{ name: Entity.name, schema: EntitySchema }]),
   ],
   controllers: [EntityController],
-  providers: [EntityService]
+  providers: [EntityService],
 })
-export class EntityModule { }
+export class EntityModule {}

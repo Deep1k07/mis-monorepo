@@ -15,8 +15,8 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,              // removes unknown fields
-      forbidNonWhitelisted: true,  // throws error for extra fields
+      whitelist: true, // removes unknown fields
+      forbidNonWhitelisted: true, // throws error for extra fields
     }),
   );
   await app.listen(process.env.PORT ?? 3003);

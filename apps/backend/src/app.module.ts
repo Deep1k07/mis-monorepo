@@ -43,4 +43,4 @@ import { EntityModule } from './entity/entity.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
