@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -9,8 +10,21 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('login')
-    login(@Body() body: LoginDto) {
-        return this.authService.login(body)
+    async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response) {
+        const result = await this.authService.login(body);
+        
+        if (result.success && result.token?.access_token) {
+            res.cookie('access_token', result.token.access_token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 24 * 60 * 60 * 1000 // 1 day
+            });
+            // Return response without the token in body for security
+            return { success: true };
+        }
+
+        return result;
     }
 
     @Get('me')
