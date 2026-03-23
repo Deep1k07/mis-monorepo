@@ -4,12 +4,12 @@ import type { NextRequest } from 'next/server';
 // Define public paths that don't require authentication
 const publicPaths = ['/login', '/forgot'];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Get the access token from the cookies
   const token = request.cookies.get('access_token')?.value;
-  
+
   const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
 
   // 1. If user is logged in and trying to access a public path (like /login), redirect to dashboard

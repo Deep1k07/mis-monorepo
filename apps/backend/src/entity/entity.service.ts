@@ -10,7 +10,7 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
 @Injectable()
 export class EntityService {
-  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) {}
+  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) { }
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
       const id = generateAlphanumericCode();
@@ -68,5 +68,10 @@ export class EntityService {
     return newPayload;
 
     // return this.entityModel.create(newPayload);
+  }
+
+
+  async getAll(req: AuthRequest) {
+    return this.entityModel.find();
   }
 }
