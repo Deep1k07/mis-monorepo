@@ -43,6 +43,7 @@ export function EntityActions({ entity }: { entity: EntityDef }) {
     main_site_address: entity.main_site_address?.length
       ? entity.main_site_address
       : [{ street: "", city: "", state: "", country: "", postal_code: "" }],
+    additional_site_address: entity.additional_site_address || [],
   };
 
   return (

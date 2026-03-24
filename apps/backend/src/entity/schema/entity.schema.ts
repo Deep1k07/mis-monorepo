@@ -18,16 +18,16 @@ export class Entity {
   @Prop({ default: '' })
   old_entity_id: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true, maxLength: 100 })
   entity_name: string;
 
-  @Prop({ unique: true })
+  @Prop({ unique: true, maxLength: 100 })
   name_slug: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, maxLength: 100 })
   entity_name_english: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, maxLength: 100 })
   entity_trading_name: string;
 
   // ✅ Main Site Address

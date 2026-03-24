@@ -1,9 +1,10 @@
 "use client";
 
 import * as z from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -36,6 +37,17 @@ const mainSiteAddressSchema = z.object({
   postal_code: z.string().optional(),
 });
 
+const additionalSiteAddressSchema = z.object({
+  street: z.string().min(1, "Street is required"),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z
+    .string()
+    .length(3, "Must be 3-letter code (e.g. USA, IND)")
+    .toUpperCase(),
+  postal_code: z.string().optional(),
+});
+
 const entitySchema = z
   .object({
     type: z.enum(["client", "bam"] as const),
@@ -53,6 +65,7 @@ const entitySchema = z
     direct_price: z.string().optional(),
     business_associate: z.string().optional(),
     main_site_address: z.array(mainSiteAddressSchema).min(1),
+    additional_site_address: z.array(additionalSiteAddressSchema).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.type === "bam" && !data.business_associate) {
@@ -95,7 +108,13 @@ export function EntityForm({
       main_site_address: [
         { street: "", city: "", state: "", country: "", postal_code: "" },
       ],
+      additional_site_address: [],
     },
+  });
+
+  const { fields: additionalAddresses, append, remove } = useFieldArray({
+    control: form.control,
+    name: "additional_site_address",
   });
 
   const type = form.watch("type");
@@ -123,6 +142,7 @@ export function EntityForm({
       isDirectClient: data.type === "client" ? true : false,
       busuness_associate: data.business_associate, // Match backend schema spelling
     };
+    delete mappedDto.business_associate;
     console.log("Mapped for backend:", mappedDto);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     if (onSuccess) onSuccess();
@@ -448,6 +468,145 @@ export function EntityForm({
               />
             </div>
           </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium leading-none">
+                Additional Site Addresses
+              </h3>
+              {!disabled && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    append({
+                      street: "",
+                      city: "",
+                      state: "",
+                      country: "",
+                      postal_code: "",
+                    })
+                  }
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Address
+                </Button>
+              )}
+            </div>
+
+            {additionalAddresses.map((field, index) => (
+              <div
+                key={field.id}
+                className="p-4 border rounded-md relative space-y-4 mt-4"
+              >
+                {!disabled && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name={`additional_site_address.${index}.street`}
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Street Address</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="123 Expansion Blvd"
+                            {...field}
+                            disabled={disabled}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`additional_site_address.${index}.city`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City (Optional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="New York"
+                            {...field}
+                            disabled={disabled}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`additional_site_address.${index}.state`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>State (Optional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="NY"
+                            {...field}
+                            disabled={disabled}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`additional_site_address.${index}.postal_code`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Postal Code (Optional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="10001"
+                            {...field}
+                            disabled={disabled}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`additional_site_address.${index}.country`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country (3-letter Code)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="USA"
+                            {...field}
+                            disabled={disabled}
+                            maxLength={3}
+                            className="uppercase"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
 
         {!disabled && (

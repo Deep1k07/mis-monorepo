@@ -25,6 +25,13 @@ export type EntityDef = {
     country: string;
     postal_code?: string;
   }[];
+  additional_site_address?: {
+    street: string;
+    city?: string;
+    state?: string;
+    country: string;
+    postal_code?: string;
+  }[];
 };
 
 export const columns: ColumnDef<EntityDef>[] = [
