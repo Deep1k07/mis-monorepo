@@ -1,14 +1,16 @@
-import * as React from "react";
+"use client";
 
-import { SearchForm } from "@/components/search-form";
-import { VersionSwitcher } from "@/components/version-switcher";
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { LayoutDashboard, Database, LogOut, User } from "lucide-react";
+
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
+  SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -17,179 +19,84 @@ import {
 
 // This is sample data.
 const data = {
-  // versions: ["1.0.1", "1.1.0-alpha", "2.0.0-beta1"],
   navMain: [
     {
       title: "Dashboard",
       url: "/dashboard",
-      items: [
-        {
-          title: "Dashboard",
-          url: "/dashboard",
-          isActive: true,
-        },
-      ],
+      icon: LayoutDashboard,
+      isActive: true,
     },
     {
       title: "Entities",
       url: "/entity",
-      items: [
-        {
-          title: "Entity List",
-          url: "/entity",
-          isActive: false,
-        },
-      ],
+      icon: Database,
+      isActive: false,
     },
-    // {
-    //     title: "Build Your Application",
-    //     url: "#",
-    //     items: [
-    //         {
-    //             title: "Routing",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Data Fetching",
-    //             url: "#",
-    //             isActive: true,
-    //         },
-    //         {
-    //             title: "Rendering",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Caching",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Styling",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Optimizing",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Configuring",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Testing",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Authentication",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Deploying",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Upgrading",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Examples",
-    //             url: "#",
-    //         },
-    //     ],
-    // },
-    // {
-    //     title: "API Reference",
-    //     url: "#",
-    //     items: [
-    //         {
-    //             title: "Components",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "File Conventions",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Functions",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "next.config.js Options",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "CLI",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Edge Runtime",
-    //             url: "#",
-    //         },
-    //     ],
-    // },
-    // {
-    //     title: "Architecture",
-    //     url: "#",
-    //     items: [
-    //         {
-    //             title: "Accessibility",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Fast Refresh",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Next.js Compiler",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Supported Browsers",
-    //             url: "#",
-    //         },
-    //         {
-    //             title: "Turbopack",
-    //             url: "#",
-    //         },
-    //     ],
-    // },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+      router.push("/login");
+    } catch (e) {
+      console.error(e);
+      router.push("/login");
+    }
+  };
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <div className="flex items-center px-2 py-2">
           <img src="/logo1.png" alt="Logo" className="h-8 w-auto" />
         </div>
-        {/* <VersionSwitcher
-                    versions={data.versions}
-                    defaultVersion={data.versions[0] ?? ""}
-                /> */}
-        {/* <SearchForm /> */}
       </SidebarHeader>
       <SidebarContent>
-        {/* We create a SidebarGroup for each parent. */}
-        {data.navMain.map((item) => (
-          <SidebarGroup key={item.title}>
-            <SidebarGroupLabel>{item.title}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {item.items.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      render={<a href={item.url} />}
-                      isActive={item?.isActive}
-                    >
-                      {item.title}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {data.navMain.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    render={<a href={item.url} />}
+                    isActive={item.isActive}
+                  >
+                    <div className="flex items-center gap-2">
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span>{item.title}</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              onClick={handleLogout} 
+              className="w-full flex items-center justify-between text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 py-6"
+            >
+              <div className="flex flex-row items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 shrink-0">
+                  <User className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                </div>
+                <span className="font-medium text-sm">Logout</span>
+              </div>
+              <LogOut className="h-4 w-4 shrink-0" />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

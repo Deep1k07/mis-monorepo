@@ -3,8 +3,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { EntityActions } from "./entity-actions";
 
-import { Button } from "@/components/ui/button";
-
 export type EntityDef = {
   _id: string;
   entity_id: string;
