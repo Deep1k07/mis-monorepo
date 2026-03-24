@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PermissionModule } from './permission/permission.module';
 import { EntityModule } from './entity/entity.module';
+import { CountryModule } from './country/country.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -39,6 +40,7 @@ import { EntityModule } from './entity/entity.module';
     }),
     PermissionModule,
     EntityModule,
+    CountryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
