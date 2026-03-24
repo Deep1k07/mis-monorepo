@@ -143,6 +143,7 @@ export class Entity {
 
   @Prop({
     enum: ['not-verified', 'verified', 'by-pass', 'pending'],
+    default: 'pending',
   })
   isEntityEmailVerifiedStatus: string;
 

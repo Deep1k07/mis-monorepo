@@ -7,6 +7,7 @@ import {
   IsArray,
   IsMongoId,
   IsBoolean,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -26,6 +27,9 @@ class MainSiteAddressDto {
 
   @IsNotEmpty()
   @IsString()
+  @Matches(/^[A-Z]{3}$/, {
+    message: 'Country must be a 3-letter uppercase code (e.g., IND, USA)',
+  })
   country: string;
 
   @IsOptional()
@@ -49,6 +53,9 @@ class AdditionalSiteAddressDto {
 
   @IsNotEmpty()
   @IsString()
+  @Matches(/^[A-Z]{3}$/, {
+    message: 'Country must be a 3-letter uppercase code (e.g., IND, USA)',
+  })
   country: string;
 
   @IsOptional()
@@ -133,4 +140,8 @@ export class CreateEntityDto {
   @IsOptional()
   @IsString()
   by_pass: string;
+
+  @IsOptional()
+  @IsString()
+  isEntityEmailVerifiedStatus: string;
 }

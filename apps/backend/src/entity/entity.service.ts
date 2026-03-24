@@ -21,12 +21,12 @@ export class EntityService {
   }
 
   async create(body: CreateEntityDto, req: AuthRequest) {
-    // ------------------- ENTITY ID GENERATION -------------------
 
     if (!body?.isDirectClient && !body?.busuness_associate) {
       throw new BadRequestException('Business Associate is required');
     }
 
+    // ------------------- ENTITY ID GENERATION -------------------
     body.entity_id = await this.getUniqueEntityId(this.entityModel); // generate unique entity id
 
     body.entity_name = cleanString(body?.entity_name); // clean the entity name
@@ -43,15 +43,18 @@ export class EntityService {
 
     body.name_slug = nameSlug;
 
+    const { direct_price, ...restBody } = body;
+
     const newPayload = {
-      ...body,
-      main_site_address: body?.main_site_address?.map((address: any) => ({
+      ...restBody,
+      ...(direct_price ? { direct_price: Number(direct_price) } : {}),
+      main_site_address: restBody?.main_site_address?.map((address: any) => ({
         street: cleanString(address?.street),
         city: cleanString(address?.city),
         country: address?.country,
         postal_code: cleanString(address?.postal_code),
       })),
-      additional_site_address: body?.additional_site_address?.map(
+      additional_site_address: restBody?.additional_site_address?.map(
         (address: any) => ({
           street: cleanString(address?.street),
           city: cleanString(address?.city),
@@ -59,19 +62,25 @@ export class EntityService {
           postal_code: cleanString(address?.postal_code),
         }),
       ),
-      isEntityEmailVerifiedStatus: body?.by_pass ? 'by-pass' : 'pending',
+      isEntityEmailVerifiedStatus: restBody?.by_pass ? 'by-pass' : 'pending',
       createdBy: req?.user?.userId,
     };
 
     console.log(newPayload, req?.user?.userId);
 
-    return newPayload;
+    // return newPayload;
 
-    // return this.entityModel.create(newPayload);
+    return this.entityModel.create(newPayload);
   }
 
 
   async getAll(req: AuthRequest) {
-    return this.entityModel.find();
+    let { permisssions } = req?.body;
+
+    if (permisssions.includes('entity:read:all')) {
+      return this.entityModel.find();
+    }
+
+    return this.entityModel.find({ createdBy: req?.user?.userId });
   }
 }
