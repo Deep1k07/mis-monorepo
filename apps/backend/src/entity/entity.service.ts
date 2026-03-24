@@ -10,7 +10,7 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
 @Injectable()
 export class EntityService {
-  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) { }
+  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) {}
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
       const id = generateAlphanumericCode();
@@ -21,7 +21,6 @@ export class EntityService {
   }
 
   async create(body: CreateEntityDto, req: AuthRequest) {
-
     if (!body?.isDirectClient && !body?.busuness_associate) {
       throw new BadRequestException('Business Associate is required');
     }
@@ -73,9 +72,8 @@ export class EntityService {
     return this.entityModel.create(newPayload);
   }
 
-
   async getAll(req: AuthRequest) {
-    let { permisssions } = req?.body;
+    let permisssions = req?.body?.permisssions || [];
 
     if (permisssions.includes('entity:read:all')) {
       return this.entityModel.find();
