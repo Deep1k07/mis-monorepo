@@ -7,6 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PermissionModule } from './permission/permission.module';
 import { EntityModule } from './entity/entity.module';
 import { CountryModule } from './country/country.module';
+import { RoleModule } from './role/role.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -41,6 +42,7 @@ import { CountryModule } from './country/country.module';
     PermissionModule,
     EntityModule,
     CountryModule,
+    RoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
