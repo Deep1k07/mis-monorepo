@@ -74,7 +74,7 @@ export function EntityActions({ entity }: { entity: EntityDef }) {
       </DropdownMenu>
 
       <Dialog open={openView} onOpenChange={setOpenView}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>View Entity Details</DialogTitle>
             <DialogDescription>
@@ -86,7 +86,7 @@ export function EntityActions({ entity }: { entity: EntityDef }) {
       </Dialog>
 
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>Edit Entity</DialogTitle>
             <DialogDescription>

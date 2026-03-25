@@ -48,34 +48,42 @@ const additionalSiteAddressSchema = z.object({
   postal_code: z.string().optional(),
 });
 
-const entitySchema = z
-  .object({
-    type: z.enum(["client", "bam"] as const),
-    entity_id: z.string().optional(),
-    entity_name: z.string().min(1, { message: "Entity Name is required" }),
-    entity_name_english: z
+const baseEntitySchema = z.object({
+  entity_id: z.string().optional(),
+  entity_name: z.string().min(1, { message: "Entity Name is required" }),
+  entity_name_english: z
+    .string()
+    .min(1, { message: "English Name is required" }),
+  entity_trading_name: z
+    .string()
+    .min(1, { message: "Trading Name is required" }),
+  email: z.string().email({ message: "Invalid email" }),
+  website: z.string().optional(),
+  drive_link: z.string().optional(),
+  main_site_address: z.array(mainSiteAddressSchema).min(1),
+  additional_site_address: z.array(additionalSiteAddressSchema).optional(),
+});
+
+const entitySchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("client"),
+    direct_price: z
       .string()
-      .min(1, { message: "English Name is required" }),
-    entity_trading_name: z
-      .string()
-      .min(1, { message: "Trading Name is required" }),
-    email: z.string().email({ message: "Invalid email" }),
-    website: z.string().optional(),
-    drive_link: z.string().optional(),
-    direct_price: z.string().optional(),
+      .min(1, { message: "Direct Price is required" })
+      .refine(
+        (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 1,
+        { message: "Direct Price must be greater than 1" }
+      ),
     business_associate: z.string().optional(),
-    main_site_address: z.array(mainSiteAddressSchema).min(1),
-    additional_site_address: z.array(additionalSiteAddressSchema).optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.type === "bam" && !data.business_associate) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Business Associate is required for BAM",
-        path: ["business_associate"],
-      });
-    }
-  });
+  }),
+  z.object({
+    type: z.literal("bam"),
+    direct_price: z.string().optional(),
+    business_associate: z
+      .string()
+      .min(1, { message: "Business Associate is required for BAM" }),
+  }),
+]).and(baseEntitySchema);
 
 export type EntityFormValues = z.infer<typeof entitySchema>;
 
@@ -91,6 +99,26 @@ export function EntityForm({
   const disabled = mode === "view";
   const [loadingBAMs, setLoadingBAMs] = useState(false);
   const [bams, setBams] = useState<{ _id: string; name: string }[]>([]);
+  const [loadingCountries, setLoadingCountries] = useState(false);
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
+
+  useEffect(() => {
+    async function fetchCountries() {
+      setLoadingCountries(true);
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/country`);
+        if (res.ok) {
+          const data = await res.json();
+          setCountries(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch countries", error);
+      } finally {
+        setLoadingCountries(false);
+      }
+    }
+    fetchCountries();
+  }, []);
 
   const form = useForm<EntityFormValues>({
     resolver: zodResolver(entitySchema),
@@ -143,7 +171,7 @@ export function EntityForm({
       busuness_associate: data.business_associate, // Match backend schema spelling
     };
     delete mappedDto.business_associate;
-    console.log("Mapped for backend:", mappedDto);
+    console.log("create entity data", mappedDto);
     await new Promise((resolve) => setTimeout(resolve, 1000));
     if (onSuccess) onSuccess();
   }
@@ -360,7 +388,7 @@ export function EntityForm({
                   name="direct_price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Direct Price (Optional)</FormLabel>
+                      <FormLabel>Direct Price</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="e.g. 500.00"
@@ -452,16 +480,29 @@ export function EntityForm({
                 name="main_site_address.0.country"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Country (3-letter Code)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="USA"
-                        {...field}
-                        disabled={disabled}
-                        maxLength={3}
-                        className="uppercase"
-                      />
-                    </FormControl>
+                    <FormLabel>Country</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={loadingCountries || disabled}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              loadingCountries ? "Fetching..." : "Select Country"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {countries.map((country) => (
+                          <SelectItem key={country.code} value={country.code}>
+                            {country.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -588,16 +629,29 @@ export function EntityForm({
                     name={`additional_site_address.${index}.country`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Country (3-letter Code)</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="USA"
-                            {...field}
-                            disabled={disabled}
-                            maxLength={3}
-                            className="uppercase"
-                          />
-                        </FormControl>
+                        <FormLabel>Country</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={loadingCountries || disabled}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue
+                                placeholder={
+                                  loadingCountries ? "Fetching..." : "Select Country"
+                                }
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {countries.map((country) => (
+                              <SelectItem key={country.code} value={country.code}>
+                                {country.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

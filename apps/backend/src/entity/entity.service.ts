@@ -10,7 +10,7 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
 @Injectable()
 export class EntityService {
-  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) {}
+  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) { }
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
       const id = generateAlphanumericCode();
@@ -23,6 +23,10 @@ export class EntityService {
   async create(body: CreateEntityDto, req: AuthRequest) {
     if (!body?.isDirectClient && !body?.busuness_associate) {
       throw new BadRequestException('Business Associate is required');
+    }
+
+    if (body?.isDirectClient && !body?.direct_price) {
+      throw new BadRequestException('Direct Price is required');
     }
 
     // ------------------- ENTITY ID GENERATION -------------------
