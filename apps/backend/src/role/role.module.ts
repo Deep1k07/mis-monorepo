@@ -11,6 +11,6 @@ import { UserRole, UserRoleSchema } from './schema/role.schema';
     ]),
   ],
   providers: [RoleService],
-  controllers: [RoleController]
+  controllers: [RoleController],
 })
-export class RoleModule { }
+export class RoleModule {}

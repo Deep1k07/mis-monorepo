@@ -5,12 +5,12 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class CountryService {
-    constructor(
-        @InjectModel(Country.name)
-        private countryModel: Model<CountryDocument>,
-    ) { }
+  constructor(
+    @InjectModel(Country.name)
+    private countryModel: Model<CountryDocument>,
+  ) {}
 
-    async findAll(): Promise<Country[]> {
-        return this.countryModel.find().exec();
-    }
+  async findAll(): Promise<Country[]> {
+    return this.countryModel.find().exec();
+  }
 }

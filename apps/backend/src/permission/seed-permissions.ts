@@ -9,7 +9,9 @@ const envPath = path.join(process.cwd(), '.env');
 let MONGO_URI = process.env.MONGO_URI;
 if (!MONGO_URI && fs.existsSync(envPath)) {
   const envFile = fs.readFileSync(envPath, 'utf8');
-  const uriLine = envFile.split('\n').find(line => line.startsWith('MONGO_URI='));
+  const uriLine = envFile
+    .split('\n')
+    .find((line) => line.startsWith('MONGO_URI='));
   if (uriLine) MONGO_URI = uriLine.substring(10).trim();
 }
 
@@ -40,7 +42,7 @@ async function seed() {
     const result = await PermissionModel.bulkWrite(bulkOps);
 
     console.log(
-      `✅ Seeding completed! (Inserted: ${result.upsertedCount}, Updated: ${result.modifiedCount})`
+      `✅ Seeding completed! (Inserted: ${result.upsertedCount}, Updated: ${result.modifiedCount})`,
     );
   } catch (error) {
     console.error('❌ Error during seeding:', error);

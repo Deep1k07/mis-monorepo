@@ -5,11 +5,11 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class RoleService {
-    constructor(
-        @InjectModel(UserRole.name) private userRoleModel: Model<UserRoleDocument>,
-    ) { }
+  constructor(
+    @InjectModel(UserRole.name) private userRoleModel: Model<UserRoleDocument>,
+  ) {}
 
-    async getAllRoles() {
-        return this.userRoleModel.find().exec();
-    }
+  async getAllRoles() {
+    return this.userRoleModel.find().exec();
+  }
 }

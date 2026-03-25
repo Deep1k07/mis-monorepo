@@ -3,10 +3,10 @@ import { RoleService } from './role.service';
 
 @Controller('role')
 export class RoleController {
-    constructor(private readonly roleService: RoleService) { }
+  constructor(private readonly roleService: RoleService) {}
 
-    @Get()
-    async getAllRoles() {
-        return this.roleService.getAllRoles();
-    }
+  @Get()
+  async getAllRoles() {
+    return this.roleService.getAllRoles();
+  }
 }

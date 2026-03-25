@@ -5,10 +5,17 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectModel } from '@nestjs/mongoose';
+import { UserAccount, UserAccountDocument } from '../schema/user.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    @InjectModel(UserAccount.name)
+    private userAccountModel: Model<UserAccountDocument>,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -21,9 +28,33 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const payload = await this.jwtService.verifyAsync(token);
+      if (!payload) {
+        throw new UnauthorizedException('Invalid token');
+      }
+      const user = await this.userAccountModel
+        .findById(payload.userId)
+        .populate({
+          path: 'role',
+          populate: {
+            path: 'permissions',
+            match: { status: 'active' },
+          },
+        });
+      let permissions;
+      if (user) {
+        permissions = Array.isArray((user?.role as any)?.permissions)
+          ? (user?.role as any)?.permissions?.map((p: any) => p.name)
+          : [];
+      }
 
       // attach user to request
-      request.user = payload;
+      let userPayload = {
+        userId: user?._id?.toString(),
+        email: user?.email,
+        role: (user?.role as any)?.role,
+        permissions: permissions,
+      };
+      request.user = userPayload;
     } catch (err) {
       throw new UnauthorizedException('Invalid token');
     }

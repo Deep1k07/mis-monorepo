@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 
+export type UserAccountDocument = UserAccount & Document;
+
 @Schema({ timestamps: true })
 export class UserAccount {
   @Prop({ required: true })

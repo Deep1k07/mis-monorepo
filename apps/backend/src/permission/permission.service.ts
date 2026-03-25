@@ -5,11 +5,12 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class PermissionService {
-    constructor(
-        @InjectModel(Permission.name) private permissionModel: Model<PermissionDocument>,
-    ) { }
+  constructor(
+    @InjectModel(Permission.name)
+    private permissionModel: Model<PermissionDocument>,
+  ) {}
 
-    async getAllPermissions() {
-        return this.permissionModel.find().exec();
-    }
+  async getAllPermissions() {
+    return this.permissionModel.find().exec();
+  }
 }

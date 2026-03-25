@@ -5,13 +5,10 @@ import { CountryService } from './country.service';
 import { CountryController } from './country.controller';
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([
-            { name: Country.name, schema: CountrySchema },
-        ]),
-    ],
-    providers: [CountryService],
-    controllers: [CountryController],
-
+  imports: [
+    MongooseModule.forFeature([{ name: Country.name, schema: CountrySchema }]),
+  ],
+  providers: [CountryService],
+  controllers: [CountryController],
 })
-export class CountryModule { }
+export class CountryModule {}

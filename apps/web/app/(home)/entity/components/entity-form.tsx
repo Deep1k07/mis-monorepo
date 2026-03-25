@@ -64,26 +64,27 @@ const baseEntitySchema = z.object({
   additional_site_address: z.array(additionalSiteAddressSchema).optional(),
 });
 
-const entitySchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("client"),
-    direct_price: z
-      .string()
-      .min(1, { message: "Direct Price is required" })
-      .refine(
-        (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 1,
-        { message: "Direct Price must be greater than 1" }
-      ),
-    business_associate: z.string().optional(),
-  }),
-  z.object({
-    type: z.literal("bam"),
-    direct_price: z.string().optional(),
-    business_associate: z
-      .string()
-      .min(1, { message: "Business Associate is required for BAM" }),
-  }),
-]).and(baseEntitySchema);
+const entitySchema = z
+  .discriminatedUnion("type", [
+    z.object({
+      type: z.literal("client"),
+      direct_price: z
+        .string()
+        .min(1, { message: "Direct Price is required" })
+        .refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 1, {
+          message: "Direct Price must be greater than 1",
+        }),
+      business_associate: z.string().optional(),
+    }),
+    z.object({
+      type: z.literal("bam"),
+      direct_price: z.string().optional(),
+      business_associate: z
+        .string()
+        .min(1, { message: "Business Associate is required for BAM" }),
+    }),
+  ])
+  .and(baseEntitySchema);
 
 export type EntityFormValues = z.infer<typeof entitySchema>;
 
@@ -100,13 +101,17 @@ export function EntityForm({
   const [loadingBAMs, setLoadingBAMs] = useState(false);
   const [bams, setBams] = useState<{ _id: string; name: string }[]>([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
-  const [countries, setCountries] = useState<{ code: string; name: string }[]>([]);
+  const [countries, setCountries] = useState<{ code: string; name: string }[]>(
+    [],
+  );
 
   useEffect(() => {
     async function fetchCountries() {
       setLoadingCountries(true);
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/country`);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/country`,
+        );
         if (res.ok) {
           const data = await res.json();
           setCountries(data);
@@ -140,7 +145,11 @@ export function EntityForm({
     },
   });
 
-  const { fields: additionalAddresses, append, remove } = useFieldArray({
+  const {
+    fields: additionalAddresses,
+    append,
+    remove,
+  } = useFieldArray({
     control: form.control,
     name: "additional_site_address",
   });
@@ -490,7 +499,9 @@ export function EntityForm({
                         <SelectTrigger>
                           <SelectValue
                             placeholder={
-                              loadingCountries ? "Fetching..." : "Select Country"
+                              loadingCountries
+                                ? "Fetching..."
+                                : "Select Country"
                             }
                           />
                         </SelectTrigger>
@@ -639,14 +650,19 @@ export function EntityForm({
                             <SelectTrigger>
                               <SelectValue
                                 placeholder={
-                                  loadingCountries ? "Fetching..." : "Select Country"
+                                  loadingCountries
+                                    ? "Fetching..."
+                                    : "Select Country"
                                 }
                               />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {countries.map((country) => (
-                              <SelectItem key={country.code} value={country.code}>
+                              <SelectItem
+                                key={country.code}
+                                value={country.code}
+                              >
                                 {country.name}
                               </SelectItem>
                             ))}
@@ -660,7 +676,6 @@ export function EntityForm({
               </div>
             ))}
           </div>
-
         </div>
 
         {!disabled && (

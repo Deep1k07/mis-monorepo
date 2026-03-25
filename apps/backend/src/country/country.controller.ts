@@ -4,10 +4,10 @@ import { Country } from './schema/country.schema';
 
 @Controller('country')
 export class CountryController {
-    constructor(private readonly countryService: CountryService) { }
+  constructor(private readonly countryService: CountryService) {}
 
-    @Get()
-    async findAll(): Promise<Country[]> {
-        return this.countryService.findAll();
-    }
+  @Get()
+  async findAll(): Promise<Country[]> {
+    return this.countryService.findAll();
+  }
 }
