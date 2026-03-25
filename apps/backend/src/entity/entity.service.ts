@@ -30,27 +30,28 @@ export class EntityService {
     }
 
     // ------------------- ENTITY ID GENERATION -------------------
-    body.entity_id = await this.getUniqueEntityId(this.entityModel); // generate unique entity id
+    const entityId = await this.getUniqueEntityId(this.entityModel);
 
-    body.entity_name = cleanString(body?.entity_name); // clean the entity name
+    let entityName = cleanString(body.entity_name);
 
-    let nameSlug = createSlug(body.entity_name); // create the slug
+    let nameSlug = createSlug(entityName);
 
     const existingSlug = await this.entityModel.findOne({
       name_slug: nameSlug,
     });
     if (existingSlug) {
-      body.entity_name = `${body.entity_name}-${body.entity_id}`;
-      nameSlug = `${nameSlug}-${body.entity_id}`;
+      entityName = `${entityName}-${entityId}`;
+      nameSlug = `${nameSlug}-${entityId}`;
     }
 
-    body.name_slug = nameSlug;
-
-    const { direct_price, ...restBody } = body;
+    const { direct_price, entity_name, entity_id, name_slug, ...restBody } = body;
 
     const newPayload = {
       ...restBody,
-      ...(direct_price ? { direct_price: Number(direct_price) } : {}),
+      entity_id: entityId,
+      entity_name: entityName,
+      name_slug: nameSlug,
+      ...(direct_price != null ? { direct_price } : {}),
       main_site_address: restBody?.main_site_address?.map((address: any) => ({
         street: cleanString(address?.street),
         city: cleanString(address?.city),
@@ -69,20 +70,32 @@ export class EntityService {
       createdBy: req?.user?.userId,
     };
 
-    console.log(newPayload, req?.user?.userId);
-
-    // return newPayload;
-
     return this.entityModel.create(newPayload);
   }
 
-  async getAll(req: AuthRequest) {
-    let permisssions = req?.body?.permisssions || [];
+  async getAll(
+    req: AuthRequest,
+    page: number = 1,
+    limit: number = 20,
+  ) {
+    const permissions = req.user.permissions || [];
+    const skip = (page - 1) * limit;
 
-    if (permisssions.includes('entity:read:all')) {
-      return this.entityModel.find();
-    }
+    const filter = permissions.includes('entity:read:all')
+      ? {}
+      : { createdBy: req.user.userId };
 
-    return this.entityModel.find({ createdBy: req?.user?.userId });
+    const [data, total] = await Promise.all([
+      this.entityModel.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
+      this.entityModel.countDocuments(filter),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

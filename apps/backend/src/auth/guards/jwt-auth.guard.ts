@@ -40,16 +40,17 @@ export class JwtAuthGuard implements CanActivate {
             match: { status: 'active' },
           },
         });
-      let permissions;
-      if (user) {
-        permissions = Array.isArray((user?.role as any)?.permissions)
-          ? (user?.role as any)?.permissions?.map((p: any) => p.name)
-          : [];
-      }
+      const permissions: string[] = Array.isArray(
+        (user?.role as any)?.permissions,
+      )
+        ? (user?.role as any)?.permissions?.map((p: any) => p.name)
+        : [];
 
       // attach user to request
       let userPayload = {
         userId: user?._id?.toString(),
+        firstName: user?.firstName,
+        lastName: user?.lastName,
         email: user?.email,
         role: (user?.role as any)?.role,
         permissions: permissions,

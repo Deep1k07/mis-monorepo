@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, Database, LogOut, User } from "lucide-react";
+import { useAuthStore } from "@/store/auth-store";
 
 import {
   Sidebar,
@@ -17,26 +18,29 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-// This is sample data.
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-      isActive: true,
-    },
-    {
-      title: "Entities",
-      url: "/entity",
-      icon: Database,
-      isActive: false,
-    },
-  ],
-};
+const navItems = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+    isActive: true,
+  },
+  {
+    title: "Entities",
+    url: "/entity",
+    icon: Database,
+    isActive: false,
+    permission: "entity:read",
+  },
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
+  const { user, hasPermission, logout: clearUser } = useAuthStore();
+
+  const filteredNav = navItems.filter(
+    (item) => !item.permission || hasPermission(item.permission),
+  );
 
   const handleLogout = async () => {
     try {
@@ -44,9 +48,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         method: "POST",
         credentials: "include",
       });
-      router.push("/login");
     } catch (e) {
       console.error(e);
+    } finally {
+      clearUser();
       router.push("/login");
     }
   };
@@ -62,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.navMain.map((item) => (
+              {filteredNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     render={<a href={item.url} />}
@@ -90,7 +95,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 shrink-0">
                   <User className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                 </div>
-                <span className="font-medium text-sm">Logout</span>
+                <div className="flex flex-col">
+                  {user && (
+                    <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
+                      {user.firstName} {user.lastName}
+                    </span>
+                  )}
+                  <span className="font-medium text-xs">Logout</span>
+                </div>
               </div>
               <LogOut className="h-4 w-4 shrink-0" />
             </SidebarMenuButton>

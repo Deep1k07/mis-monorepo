@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import { useAuthStore } from "@/store/auth-store";
 
 import {
   Dialog,
@@ -15,6 +16,11 @@ import { EntityForm } from "./entity-form";
 
 export function EntityDialog() {
   const [open, setOpen] = useState(false);
+  const hasPermission = useAuthStore((s) => s.hasPermission);
+
+  if (!hasPermission("entity:create")) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

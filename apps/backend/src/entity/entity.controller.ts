@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards, Get } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Get, Query, ParseIntPipe, DefaultValuePipe } from '@nestjs/common';
 import { EntityService } from './entity.service';
 import { CreateEntityDto } from './dto/entity.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -15,7 +15,11 @@ export class EntityController {
 
   @Get('get-all')
   @UseGuards(JwtAuthGuard)
-  async getAll(@Req() req: AuthRequest) {
-    return this.entityService.getAll(req);
+  async getAll(
+    @Req() req: AuthRequest,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.entityService.getAll(req, page, limit);
   }
 }

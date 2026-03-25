@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useAuthStore } from "@/store/auth-store";
 
 const loginSchema = z.object({
   email: z
@@ -21,6 +22,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const fetchUser = useAuthStore((s) => s.fetchUser);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -57,12 +59,8 @@ export default function LoginPage() {
         return;
       }
 
-      const result = await res.json();
-      console.log("Login result:", result);
-
-      // The backend now securely attaches an HttpOnly cookie with the JWT.
-      // There is no need to manually store the access_token in localStorage anymore.
-
+      await res.json();
+      await fetchUser();
       router.push("/dashboard");
     } catch {
       setServerError("Unable to connect. Please check your network.");

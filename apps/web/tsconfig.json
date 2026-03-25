@@ -4,7 +4,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@/components/*": ["./app/components/*"]
+      "@/components/*": ["./app/components/*"],
+      "@/store/*": ["./app/store/*"],
+      "@/providers/*": ["./app/providers/*"]
     },
     "plugins": [
       {

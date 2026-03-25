@@ -7,6 +7,7 @@ import {
   IsArray,
   IsMongoId,
   IsBoolean,
+  IsNumber,
   Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -130,8 +131,8 @@ export class CreateEntityDto {
   isDirectClient: boolean;
 
   @IsOptional()
-  @IsBoolean()
-  direct_price: string;
+  @IsNumber()
+  direct_price: number;
 
   @IsOptional()
   @IsString()
