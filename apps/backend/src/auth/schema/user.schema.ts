@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 export type UserAccountDocument = UserAccount & Document;
 
@@ -31,7 +31,7 @@ export class UserAccount {
   @Prop({ required: true })
   phone: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'UserRole' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserRole' })
   role: Types.ObjectId;
 
   @Prop({ select: false })
@@ -52,12 +52,12 @@ export class UserAccount {
   @Prop()
   dateOfJoining: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'UserAccount' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
   reportingManager: Types.ObjectId;
 
   @Prop([
     {
-      cab: [{ type: Types.ObjectId, ref: 'CertificationBody' }],
+      cab: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CertificationBody' }],
       ref: String,
     },
   ])
@@ -79,7 +79,7 @@ export class UserAccount {
     secret: string;
   };
 
-  @Prop({ type: Types.ObjectId, ref: 'UserAccount' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
   createdBy: Types.ObjectId;
 
   @Prop()

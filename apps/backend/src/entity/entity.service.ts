@@ -10,7 +10,7 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
 @Injectable()
 export class EntityService {
-  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) {}
+  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) { }
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
       const id = generateAlphanumericCode();
@@ -76,14 +76,17 @@ export class EntityService {
   async getAll(
     req: AuthRequest,
     page: number = 1,
-    limit: number = 20,
+    limit: number = 10,
   ) {
     const permissions = req.user.permissions || [];
     const skip = (page - 1) * limit;
 
     const filter = permissions.includes('entity:read:all')
       ? {}
-      : { createdBy: req.user.userId };
+      : { $or: [{ user: req.user.userId }, { createdBy: req.user.userId }] };
+
+
+    // console.log("hkbfsjkdf", filter)
 
     const [data, total] = await Promise.all([
       this.entityModel.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),

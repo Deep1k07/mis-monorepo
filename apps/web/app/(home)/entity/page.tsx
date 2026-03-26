@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
@@ -18,39 +17,7 @@ import {
 import { EntityClient } from "./components/entity-client";
 import { EntityDialog } from "./components/entity-dialog";
 
-async function getEntities() {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore
-    .getAll()
-    .map((c: any) => `${c.name}=${c.value}`)
-    .join("; ");
-
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/entity/get-all`,
-      {
-        headers: {
-          Cookie: cookieHeader,
-        },
-        cache: "no-store",
-      },
-    );
-
-    if (!res.ok) {
-      return [];
-    }
-
-    const json = await res.json();
-    return Array.isArray(json) ? json : json?.data || [];
-  } catch (error) {
-    console.error("Error fetching entities:", error);
-    return [];
-  }
-}
-
 export default async function EntityPage() {
-  const entities = await getEntities();
-
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -86,7 +53,7 @@ export default async function EntityPage() {
               entities.
             </p>
           </div>
-          <EntityClient data={entities} />
+          <EntityClient />
         </div>
       </SidebarInset>
     </SidebarProvider>

@@ -8,6 +8,8 @@ import { PermissionModule } from './permission/permission.module';
 import { EntityModule } from './entity/entity.module';
 import { CountryModule } from './country/country.module';
 import { RoleModule } from './role/role.module';
+import { ApplicationModule } from './application/application.module';
+import { BaModule } from './ba/ba.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,6 +45,8 @@ import { RoleModule } from './role/role.module';
     EntityModule,
     CountryModule,
     RoleModule,
+    ApplicationModule,
+    BaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

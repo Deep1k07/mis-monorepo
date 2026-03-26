@@ -28,12 +28,22 @@ import { Input } from "@/components/ui/input";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  pageCount?: number;
+  page?: number;
+  total?: number;
+  onPageChange?: (page: number) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  pageCount,
+  page,
+  total,
+  onPageChange,
 }: DataTableProps<TData, TValue>) {
+  const isServerPagination = pageCount !== undefined && onPageChange !== undefined;
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -46,7 +56,9 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    ...(isServerPagination
+      ? { manualPagination: true, pageCount }
+      : { getPaginationRowModel: getPaginationRowModel() }),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
@@ -54,8 +66,31 @@ export function DataTable<TData, TValue>({
       sorting,
       columnFilters,
       globalFilter,
+      ...(isServerPagination ? { pagination: { pageIndex: (page ?? 1) - 1, pageSize: 10 } } : {}),
     },
   });
+
+  const handlePrevious = () => {
+    if (isServerPagination) {
+      onPageChange((page ?? 1) - 1);
+    } else {
+      table.previousPage();
+    }
+  };
+
+  const handleNext = () => {
+    if (isServerPagination) {
+      onPageChange((page ?? 1) + 1);
+    } else {
+      table.nextPage();
+    }
+  };
+
+  const canPreviousPage = isServerPagination ? (page ?? 1) > 1 : table.getCanPreviousPage();
+  const canNextPage = isServerPagination ? (page ?? 1) < (pageCount ?? 1) : table.getCanNextPage();
+  const currentPage = isServerPagination ? (page ?? 1) : table.getState().pagination.pageIndex + 1;
+  const totalPages = isServerPagination ? (pageCount ?? 1) : (table.getPageCount() || 1);
+  const rowCount = isServerPagination ? (total ?? data.length) : table.getFilteredRowModel().rows.length;
 
   return (
     <div className="w-full space-y-4">
@@ -122,26 +157,25 @@ export function DataTable<TData, TValue>({
       </div>
       <div className="flex items-center justify-end space-x-2">
         <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredRowModel().rows.length} row(s) total.
+          {rowCount} row(s) total.
         </div>
         <div className="space-x-2 flex items-center">
           <div className="text-sm font-medium">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount() || 1}
+            Page {currentPage} of {totalPages}
           </div>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
+            onClick={handlePrevious}
+            disabled={!canPreviousPage}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
+            onClick={handleNext}
+            disabled={!canNextPage}
           >
             Next
           </Button>

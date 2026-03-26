@@ -6,7 +6,7 @@ import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
 @Controller('entity')
 export class EntityController {
-  constructor(private readonly entityService: EntityService) {}
+  constructor(private readonly entityService: EntityService) { }
   @Post('create')
   @UseGuards(JwtAuthGuard)
   async create(@Body() body: CreateEntityDto, @Req() req: AuthRequest) {
@@ -18,7 +18,7 @@ export class EntityController {
   async getAll(
     @Req() req: AuthRequest,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
     return this.entityService.getAll(req, page, limit);
   }

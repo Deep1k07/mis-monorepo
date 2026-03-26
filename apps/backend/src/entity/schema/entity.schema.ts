@@ -1,15 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Entity {
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
   user: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   busuness_associate: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
   createdBy: Types.ObjectId;
 
   @Prop({ required: true, unique: true })

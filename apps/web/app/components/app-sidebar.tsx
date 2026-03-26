@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, Database, LogOut, User } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
@@ -70,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               {filteredNav.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    render={<a href={item.url} />}
+                    render={<Link href={item.url} />}
                     isActive={item.isActive}
                   >
                     <div className="flex items-center gap-2">
