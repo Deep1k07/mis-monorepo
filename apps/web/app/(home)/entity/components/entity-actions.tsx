@@ -102,7 +102,9 @@ export function EntityViewModal({
     website: entity.website || "",
     drive_link: entity.drive_link || "",
     direct_price: entity.direct_price || "",
-    business_associate: entity.busuness_associate || "",
+    business_associate: typeof entity.busuness_associate === "object"
+      ? entity.busuness_associate?._id || ""
+      : entity.busuness_associate || "",
     main_site_address: entity.main_site_address?.length
       ? entity.main_site_address
       : [{ street: "", city: "", state: "", country: "", postal_code: "" }],
@@ -190,6 +192,18 @@ export function EntityViewModal({
                     {entity.entity_trading_name || "-"}
                   </span>
                 </div>
+                {!entity.isDirectClient && entity.busuness_associate && (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs text-muted-foreground">
+                      Business Associate
+                    </span>
+                    <span className="text-sm">
+                      {typeof entity.busuness_associate === "object"
+                        ? entity.busuness_associate.username
+                        : entity.busuness_associate}
+                    </span>
+                  </div>
+                )}
                 {entity.isDirectClient && entity.direct_price && (
                   <div className="flex flex-col gap-1">
                     <span className="text-xs text-muted-foreground">

@@ -13,7 +13,7 @@ export type EntityDef = {
   website?: string;
   drive_link?: string;
   direct_price?: string;
-  busuness_associate?: string;
+  busuness_associate?: { _id: string; username: string; email?: string; status?: string; phone?: string; userId?: string } | string;
   status: string;
   isDirectClient?: boolean;
   main_site_address?: {
@@ -84,6 +84,18 @@ export const createColumns = (
             {isDirect ? "Client" : "BAM"}
           </span>
         );
+      },
+    },
+    {
+      accessorKey: "busuness_associate",
+      header: "Business Associate",
+      cell: ({ row }) => {
+        const ba = row.getValue("busuness_associate") as
+          | { _id: string; username: string }
+          | string
+          | undefined;
+        if (!ba) return <span className="text-muted-foreground">-</span>;
+        return <span>{typeof ba === "object" ? ba.username : ba}</span>;
       },
     },
     {

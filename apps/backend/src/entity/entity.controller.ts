@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards, Get, Query, ParseIntPipe, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Get, Query, Param, ParseIntPipe, DefaultValuePipe } from '@nestjs/common';
 import { EntityService } from './entity.service';
 import { CreateEntityDto } from './dto/entity.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -19,7 +19,14 @@ export class EntityController {
     @Req() req: AuthRequest,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('busuness_associate') busuness_associate?: string,
   ) {
-    return this.entityService.getAll(req, page, limit);
+    return this.entityService.getAll(req, page, limit, busuness_associate);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getById(@Param('id') id: string) {
+    return this.entityService.getById(id);
   }
 }

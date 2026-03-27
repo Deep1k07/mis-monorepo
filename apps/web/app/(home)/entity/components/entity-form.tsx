@@ -24,6 +24,8 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import { createEntity, getAllBa, getCountry } from "@/utils/apis";
+import toast from "react-hot-toast";
 
 // Zod Schema
 const mainSiteAddressSchema = z.object({
@@ -99,7 +101,7 @@ export function EntityForm({
 }) {
   const disabled = mode === "view";
   const [loadingBAMs, setLoadingBAMs] = useState(false);
-  const [bams, setBams] = useState<{ _id: string; name: string }[]>([]);
+  const [bams, setBams] = useState<{ _id: string; username: string }[]>([]);
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [countries, setCountries] = useState<{ code: string; name: string }[]>(
     [],
@@ -109,9 +111,7 @@ export function EntityForm({
     async function fetchCountries() {
       setLoadingCountries(true);
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/country`,
-        );
+        const res = await getCountry()
         if (res.ok) {
           const data = await res.json();
           setCountries(data);
@@ -158,19 +158,28 @@ export function EntityForm({
 
   useEffect(() => {
     if (type === "bam") {
-      setLoadingBAMs(true);
-      const timer = setTimeout(() => {
-        setBams([
-          { _id: "6ub2i3b2", name: "Associate Alpha" },
-          { _id: "6ub2i3b3", name: "Associate Beta" },
-          { _id: "6ub2i3b4", name: "Global Partners LLC" },
-        ]);
-        setLoadingBAMs(false);
-      }, 800);
-      return () => clearTimeout(timer);
+      async function fetchBAMs() {
+        setLoadingBAMs(true);
+        try {
+          const res = await getAllBa()
+          if (res.ok) {
+            const data = await res.json();
+            setBams(
+              data.map((ba: { _id: string; username: string }) => ({
+                _id: ba._id,
+                username: ba.username,
+              })),
+            );
+          }
+        } catch (error) {
+          console.error("Failed to fetch business associates", error);
+        } finally {
+          setLoadingBAMs(false);
+        }
+      }
+      fetchBAMs();
     }
   }, [type]);
-
   async function onSubmit(data: EntityFormValues) {
     console.log("Form Submitted Payload:", data);
     // Map data to DTO properties specifically.
@@ -181,8 +190,17 @@ export function EntityForm({
     };
     delete mappedDto.business_associate;
     console.log("create entity data", mappedDto);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    if (onSuccess) onSuccess();
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+    // if (onSuccess) onSuccess();
+    try {
+      let res = await createEntity(mappedDto)
+      if (res.ok) {
+        toast.success("Entity created successfully");
+        // if (onSuccess) onSuccess();
+      }
+    } catch (error) {
+      console.error("Failed to create entity", error);
+    }
   }
 
   return (
@@ -249,13 +267,15 @@ export function EntityForm({
                                 ? "Fetching..."
                                 : "Select a business associate"
                             }
-                          />
+                          >
+                            {bams.find((b) => b._id === field.value)?.username}
+                          </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {bams.map((bam) => (
                           <SelectItem key={bam._id} value={bam._id}>
-                            {bam.name}
+                            {bam.username}
                           </SelectItem>
                         ))}
                       </SelectContent>

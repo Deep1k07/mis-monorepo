@@ -1,33 +1,69 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table";
 import { createColumns, EntityDef } from "./columns";
-import { EntityViewModal } from "./entity-actions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function EntityClient() {
-  const [selectedEntity, setSelectedEntity] = useState<EntityDef | null>(null);
-  const [viewOpen, setViewOpen] = useState(false);
+  const router = useRouter();
   const [data, setData] = useState<EntityDef[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [baFilter, setBaFilter] = useState("");
+  const [bams, setBams] = useState<{ _id: string; username: string }[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const columns = useMemo(
     () =>
       createColumns((entity) => {
-        setSelectedEntity(entity);
-        setViewOpen(true);
+        router.push(`/entity/view/${entity.entity_id}`);
       }),
-    [],
+    [router],
   );
 
-  const fetchEntities = useCallback(async (currentPage: number) => {
+  useEffect(() => {
+    async function fetchBAMs() {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/ba/get-all`,
+          { credentials: "include" },
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setBams(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch business associates", error);
+      }
+    }
+    fetchBAMs();
+  }, []);
+
+  const fetchEntities = useCallback(async (currentPage: number, ba: string) => {
     setLoading(true);
     try {
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: "10",
+      });
+      if (ba) params.set("busuness_associate", ba);
+
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/entity/get-all?page=${currentPage}&limit=10`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/entity/get-all?${params}`,
         { credentials: "include" },
       );
 
@@ -50,8 +86,8 @@ export function EntityClient() {
   }, []);
 
   useEffect(() => {
-    fetchEntities(page);
-  }, [page, fetchEntities]);
+    fetchEntities(page, baFilter);
+  }, [page, baFilter, fetchEntities]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -59,6 +95,33 @@ export function EntityClient() {
 
   return (
     <>
+      <div className="flex items-center gap-2 mb-4">
+        {mounted && (
+          <Select
+            value={baFilter}
+            onValueChange={(value) => {
+              setBaFilter(value === "all" ? "" : value ?? "");
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="Filter by Business Associate">
+                {baFilter
+                  ? bams.find((b) => b._id === baFilter)?.username ?? "All Business Associates"
+                  : null}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Business Associates</SelectItem>
+              {bams.map((ba) => (
+                <SelectItem key={ba._id} value={ba._id}>
+                  {ba.username}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
       {loading ? (
         <div className="flex items-center justify-center py-10 text-muted-foreground">
           Loading...
@@ -73,11 +136,6 @@ export function EntityClient() {
           onPageChange={handlePageChange}
         />
       )}
-      <EntityViewModal
-        entity={selectedEntity}
-        open={viewOpen}
-        onOpenChange={setViewOpen}
-      />
     </>
   );
 }

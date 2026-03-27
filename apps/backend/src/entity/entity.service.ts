@@ -73,23 +73,38 @@ export class EntityService {
     return this.entityModel.create(newPayload);
   }
 
+  async getById(id: string) {
+    const entity = await this.entityModel
+      .findOne({ entity_id: id })
+      .populate('busuness_associate', 'username email status phone userId');
+    if (!entity) {
+      throw new BadRequestException('Entity not found');
+    }
+    return entity;
+  }
+
   async getAll(
     req: AuthRequest,
     page: number = 1,
     limit: number = 10,
+    busuness_associate?: string,
   ) {
     const permissions = req.user.permissions || [];
     const skip = (page - 1) * limit;
 
-    const filter = permissions.includes('entity:read:all')
+    const filter: any = permissions.includes('entity:read:all')
       ? {}
       : { $or: [{ user: req.user.userId }, { createdBy: req.user.userId }] };
+
+    if (busuness_associate) {
+      filter.busuness_associate = busuness_associate;
+    }
 
 
     // console.log("hkbfsjkdf", filter)
 
     const [data, total] = await Promise.all([
-      this.entityModel.find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }),
+      this.entityModel.find(filter).populate('busuness_associate', 'username').skip(skip).limit(limit).sort({ createdAt: -1 }),
       this.entityModel.countDocuments(filter),
     ]);
 
