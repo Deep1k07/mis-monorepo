@@ -5,12 +5,14 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserAccount, UserAccountSchema } from './schema/user.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: UserAccount.name, schema: UserAccountSchema },
     ]),
+    EmailModule,
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],

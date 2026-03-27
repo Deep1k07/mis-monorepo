@@ -10,9 +10,16 @@ import { CountryModule } from './country/country.module';
 import { RoleModule } from './role/role.module';
 import { ApplicationModule } from './application/application.module';
 import { BaModule } from './ba/ba.module';
+import { EmailModule } from './email/email.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { CacheModule } from '@nestjs/cache-manager';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    EventEmitterModule.forRoot(),
+    CacheModule.register({
       isGlobal: true,
     }),
     AuthModule,
@@ -47,6 +54,7 @@ import { BaModule } from './ba/ba.module';
     RoleModule,
     ApplicationModule,
     BaModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
