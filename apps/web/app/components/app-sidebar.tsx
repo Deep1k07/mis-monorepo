@@ -100,9 +100,7 @@ function CollapsibleNavItem({
                 render={<Link href={child.url} />}
                 isActive={pathname === child.url}
               >
-                {child.icon && (
-                  <child.icon className="h-3.5 w-3.5 shrink-0" />
-                )}
+                {child.icon && <child.icon className="h-3.5 w-3.5 shrink-0" />}
                 <span>{child.title}</span>
               </SidebarMenuSubButton>
             </SidebarMenuSubItem>

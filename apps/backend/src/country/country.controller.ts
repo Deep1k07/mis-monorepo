@@ -5,7 +5,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('country')
 export class CountryController {
-  constructor(private readonly countryService: CountryService) { }
+  constructor(private readonly countryService: CountryService) {}
 
   @Get()
   @UseGuards(JwtAuthGuard)

@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Pencil,
-  FileCheck,
-  Copy,
-  MapPin,
-  Mail,
-  Globe,
-} from "lucide-react";
+import { Pencil, FileCheck, Copy, MapPin, Mail, Globe } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -88,9 +81,7 @@ export function EntityViewModal({
 
   if (!entity) return null;
 
-  const entityType: "client" | "bam" = entity.isDirectClient
-    ? "client"
-    : "bam";
+  const entityType: "client" | "bam" = entity.isDirectClient ? "client" : "bam";
 
   const defaultValues = {
     type: entityType,
@@ -102,9 +93,10 @@ export function EntityViewModal({
     website: entity.website || "",
     drive_link: entity.drive_link || "",
     direct_price: entity.direct_price || "",
-    business_associate: typeof entity.busuness_associate === "object"
-      ? entity.busuness_associate?._id || ""
-      : entity.busuness_associate || "",
+    business_associate:
+      typeof entity.busuness_associate === "object"
+        ? entity.busuness_associate?._id || ""
+        : entity.busuness_associate || "",
     main_site_address: entity.main_site_address?.length
       ? entity.main_site_address
       : [{ street: "", city: "", state: "", country: "", postal_code: "" }],
@@ -166,16 +158,8 @@ export function EntityViewModal({
                 General Information
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <InfoRow
-                  icon={Mail}
-                  label="Email"
-                  value={entity.email}
-                />
-                <InfoRow
-                  icon={Globe}
-                  label="Website"
-                  value={entity.website}
-                />
+                <InfoRow icon={Mail} label="Email" value={entity.email} />
+                <InfoRow icon={Globe} label="Website" value={entity.website} />
                 <div className="flex flex-col gap-1">
                   <span className="text-xs text-muted-foreground">
                     English Name

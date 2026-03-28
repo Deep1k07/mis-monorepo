@@ -29,9 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <SwrProvider>
-          {children}
-        </SwrProvider>
+        <SwrProvider>{children}</SwrProvider>
       </body>
     </html>
   );

@@ -13,7 +13,16 @@ export type EntityDef = {
   website?: string;
   drive_link?: string;
   direct_price?: string;
-  busuness_associate?: { _id: string; username: string; email?: string; status?: string; phone?: string; userId?: string } | string;
+  busuness_associate?:
+    | {
+        _id: string;
+        username: string;
+        email?: string;
+        status?: string;
+        phone?: string;
+        userId?: string;
+      }
+    | string;
   status: string;
   isDirectClient?: boolean;
   main_site_address?: {
@@ -36,90 +45,96 @@ export type EntityDef = {
 export const createColumns = (
   onView: (entity: EntityDef) => void,
 ): ColumnDef<EntityDef>[] => [
-    {
-      accessorKey: "entity_id",
-      header: "Entity ID",
+  {
+    accessorKey: "entity_id",
+    header: "Entity ID",
+  },
+  {
+    accessorKey: "entity_name",
+    header: "Name",
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+  },
+  {
+    accessorKey: "isEntityEmailVerifiedStatus",
+    header: "Email Status",
+    cell: ({ row }) => {
+      const status = row.getValue("isEntityEmailVerifiedStatus") as string;
+      return (
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+            status === "verified"
+              ? "bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20"
+              : status === "pending"
+                ? "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20"
+                : status === "by-pass"
+                  ? "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20"
+                  : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20"
+          }`}
+        >
+          {status}
+        </span>
+      );
     },
-    {
-      accessorKey: "entity_name",
-      header: "Name",
+  },
+  {
+    accessorKey: "isDirectClient",
+    header: "Type",
+    cell: ({ row }) => {
+      const isDirect = row.getValue("isDirectClient");
+      return (
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+            isDirect
+              ? "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20"
+              : "bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20"
+          }`}
+        >
+          {isDirect ? "Client" : "BAM"}
+        </span>
+      );
     },
-    {
-      accessorKey: "email",
-      header: "Email",
+  },
+  {
+    accessorKey: "busuness_associate",
+    header: "Business Associate",
+    cell: ({ row }) => {
+      const ba = row.getValue("busuness_associate") as
+        | { _id: string; username: string }
+        | string
+        | undefined;
+      if (!ba) return <span className="text-muted-foreground">-</span>;
+      return <span>{typeof ba === "object" ? ba.username : ba}</span>;
     },
-    {
-      accessorKey: "isEntityEmailVerifiedStatus",
-      header: "Email Status",
-      cell: ({ row }) => {
-        const status = row.getValue("isEntityEmailVerifiedStatus") as string;
-        return (
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ${status === "verified"
-                ? "bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20"
-                : status === "pending"
-                  ? "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20"
-                  : status === "by-pass"
-                    ? "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20"
-                    : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20"
-              }`}
-          >
-            {status}
-          </span>
-        );
-      },
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Created At",
+    cell: ({ row }) => {
+      const date = row.getValue("createdAt") as string | undefined;
+      return (
+        <div className="text-muted-foreground">
+          {date?.split("T")[0] ?? "-"}
+        </div>
+      );
     },
-    {
-      accessorKey: "isDirectClient",
-      header: "Type",
-      cell: ({ row }) => {
-        const isDirect = row.getValue("isDirectClient");
-        return (
-          <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${isDirect
-                ? "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-600/20"
-                : "bg-purple-50 text-purple-700 ring-1 ring-inset ring-purple-600/20"
-              }`}
-          >
-            {isDirect ? "Client" : "BAM"}
-          </span>
-        );
-      },
+  },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row }) => {
+      const entity = row.original;
+      return (
+        <button
+          onClick={() => onView(entity)}
+          className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          title="View details"
+        >
+          <Eye className="h-4 w-4" />
+        </button>
+      );
     },
-    {
-      accessorKey: "busuness_associate",
-      header: "Business Associate",
-      cell: ({ row }) => {
-        const ba = row.getValue("busuness_associate") as
-          | { _id: string; username: string }
-          | string
-          | undefined;
-        if (!ba) return <span className="text-muted-foreground">-</span>;
-        return <span>{typeof ba === "object" ? ba.username : ba}</span>;
-      },
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Created At",
-      cell: ({ row }) => {
-        const date = row.getValue("createdAt") as string | undefined;
-        return <div className="text-muted-foreground">{date?.split("T")[0] ?? "-"}</div>;
-      },
-    },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => {
-        const entity = row.original;
-        return (
-          <button
-            onClick={() => onView(entity)}
-            className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            title="View details"
-          >
-            <Eye className="h-4 w-4" />
-          </button>
-        );
-      },
-    },
-  ];
+  },
+];

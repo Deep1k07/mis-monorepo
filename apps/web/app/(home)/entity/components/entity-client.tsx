@@ -32,9 +32,14 @@ export function EntityClient() {
   );
 
   const { bams } = useAllBa();
-  const { data, totalPages, total, isLoading: loading } = useEntities(page, baFilter);
+  const {
+    data,
+    totalPages,
+    total,
+    isLoading: loading,
+  } = useEntities(page, baFilter);
 
-  console.log("hjasfvhjsdbf", data)
+  console.log("hjasfvhjsdbf", data);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -47,14 +52,15 @@ export function EntityClient() {
           <Select
             value={baFilter}
             onValueChange={(value) => {
-              setBaFilter(value === "all" ? "" : value ?? "");
+              setBaFilter(value === "all" ? "" : (value ?? ""));
               setPage(1);
             }}
           >
             <SelectTrigger className="w-[250px]">
               <SelectValue placeholder="Filter by Business Associate">
                 {baFilter
-                  ? bams?.find((b) => b._id === baFilter)?.username ?? "All Business Associates"
+                  ? (bams?.find((b) => b._id === baFilter)?.username ??
+                    "All Business Associates")
                   : null}
               </SelectValue>
             </SelectTrigger>

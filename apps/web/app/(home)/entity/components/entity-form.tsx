@@ -144,7 +144,7 @@ export function EntityForm({
     delete mappedDto.business_associate;
     console.log("create entity data", mappedDto);
     try {
-      let res = await createEntity(mappedDto)
+      let res = await createEntity(mappedDto);
       if (res.ok) {
         toast.success("Entity created successfully");
         // if (onSuccess) onSuccess();

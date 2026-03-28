@@ -105,9 +105,7 @@ export function EntityViewClient() {
     );
   }
 
-  const entityType: "client" | "bam" = entity.isDirectClient
-    ? "client"
-    : "bam";
+  const entityType: "client" | "bam" = entity.isDirectClient ? "client" : "bam";
 
   const defaultValues = {
     type: entityType,

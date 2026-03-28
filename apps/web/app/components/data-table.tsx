@@ -42,7 +42,8 @@ export function DataTable<TData, TValue>({
   total,
   onPageChange,
 }: DataTableProps<TData, TValue>) {
-  const isServerPagination = pageCount !== undefined && onPageChange !== undefined;
+  const isServerPagination =
+    pageCount !== undefined && onPageChange !== undefined;
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -66,7 +67,9 @@ export function DataTable<TData, TValue>({
       sorting,
       columnFilters,
       globalFilter,
-      ...(isServerPagination ? { pagination: { pageIndex: (page ?? 1) - 1, pageSize: 10 } } : {}),
+      ...(isServerPagination
+        ? { pagination: { pageIndex: (page ?? 1) - 1, pageSize: 10 } }
+        : {}),
     },
   });
 
@@ -86,11 +89,21 @@ export function DataTable<TData, TValue>({
     }
   };
 
-  const canPreviousPage = isServerPagination ? (page ?? 1) > 1 : table.getCanPreviousPage();
-  const canNextPage = isServerPagination ? (page ?? 1) < (pageCount ?? 1) : table.getCanNextPage();
-  const currentPage = isServerPagination ? (page ?? 1) : table.getState().pagination.pageIndex + 1;
-  const totalPages = isServerPagination ? (pageCount ?? 1) : (table.getPageCount() || 1);
-  const rowCount = isServerPagination ? (total ?? data.length) : table.getFilteredRowModel().rows.length;
+  const canPreviousPage = isServerPagination
+    ? (page ?? 1) > 1
+    : table.getCanPreviousPage();
+  const canNextPage = isServerPagination
+    ? (page ?? 1) < (pageCount ?? 1)
+    : table.getCanNextPage();
+  const currentPage = isServerPagination
+    ? (page ?? 1)
+    : table.getState().pagination.pageIndex + 1;
+  const totalPages = isServerPagination
+    ? (pageCount ?? 1)
+    : table.getPageCount() || 1;
+  const rowCount = isServerPagination
+    ? (total ?? data.length)
+    : table.getFilteredRowModel().rows.length;
 
   return (
     <div className="w-full space-y-4">

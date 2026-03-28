@@ -10,7 +10,7 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
 @Injectable()
 export class EntityService {
-  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) { }
+  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) {}
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
       const id = generateAlphanumericCode();
@@ -44,7 +44,8 @@ export class EntityService {
       nameSlug = `${nameSlug}-${entityId}`;
     }
 
-    const { direct_price, entity_name, entity_id, name_slug, ...restBody } = body;
+    const { direct_price, entity_name, entity_id, name_slug, ...restBody } =
+      body;
 
     const newPayload = {
       ...restBody,
@@ -100,11 +101,15 @@ export class EntityService {
       filter.busuness_associate = busuness_associate;
     }
 
-
     // console.log("hkbfsjkdf", filter)
 
     const [data, total] = await Promise.all([
-      this.entityModel.find(filter).populate('busuness_associate', 'username').skip(skip).limit(limit).sort({ createdAt: -1 }),
+      this.entityModel
+        .find(filter)
+        .populate('busuness_associate', 'username')
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
       this.entityModel.countDocuments(filter),
     ]);
 

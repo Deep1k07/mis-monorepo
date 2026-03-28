@@ -117,7 +117,10 @@ export default function LoginPage() {
 
   const handleOtpPaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     if (!pasted) return;
     const newOtp = [...otp];
     for (let i = 0; i < 6; i++) {
@@ -171,15 +174,12 @@ export default function LoginPage() {
     if (resendCooldown > 0) return;
 
     try {
-      await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/resend-otp`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ userId }),
-        },
-      );
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/resend-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userId }),
+      });
       setResendCooldown(15);
       setOtp(["", "", "", "", "", ""]);
       setOtpError(null);
@@ -390,7 +390,9 @@ export default function LoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
                       className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-200 transition-colors"
                     >
                       {showPassword ? (
