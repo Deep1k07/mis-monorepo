@@ -38,5 +38,4 @@ export class CertificationStandard {
     certificationBody: Types.ObjectId;
 }
 
-export const CertificationStandardSchema =
-    SchemaFactory.createForClass(CertificationStandard);
+export const CertificationStandardSchema = SchemaFactory.createForClass(CertificationStandard);

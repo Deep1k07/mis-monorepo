@@ -2,8 +2,16 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { LayoutDashboard, Database, LogOut, User } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Database,
+  LogOut,
+  User,
+  FileText,
+  ChevronRight,
+  List,
+} from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 
 import {
@@ -16,10 +24,22 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarRail,
 } from "@/components/ui/sidebar";
 
-const navItems = [
+type NavItem = {
+  title: string;
+  url: string;
+  icon: React.ElementType;
+  isActive?: boolean;
+  permission?: string;
+  children?: { title: string; url: string; icon?: React.ElementType }[];
+};
+
+const navItems: NavItem[] = [
   {
     title: "Dashboard",
     url: "/dashboard",
@@ -33,10 +53,69 @@ const navItems = [
     isActive: false,
     permission: "entity:read",
   },
+  {
+    title: "Initial Application",
+    url: "/application",
+    icon: FileText,
+    isActive: false,
+    permission: "application:read",
+    children: [
+      {
+        title: "All Application",
+        url: "/application",
+        icon: List,
+      },
+    ],
+  },
 ];
+
+function CollapsibleNavItem({
+  item,
+  pathname,
+}: {
+  item: NavItem;
+  pathname: string;
+}) {
+  const [open, setOpen] = React.useState(pathname.startsWith(item.url));
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        onClick={() => setOpen((prev) => !prev)}
+        isActive={pathname.startsWith(item.url)}
+      >
+        <div className="flex items-center gap-2 w-full">
+          <item.icon className="h-4 w-4 shrink-0" />
+          <span className="flex-1">{item.title}</span>
+          <ChevronRight
+            className={`h-4 w-4 shrink-0 transition-transform duration-200 ${open ? "rotate-90" : ""}`}
+          />
+        </div>
+      </SidebarMenuButton>
+      {open && (
+        <SidebarMenuSub>
+          {item.children!.map((child) => (
+            <SidebarMenuSubItem key={child.title}>
+              <SidebarMenuSubButton
+                render={<Link href={child.url} />}
+                isActive={pathname === child.url}
+              >
+                {child.icon && (
+                  <child.icon className="h-3.5 w-3.5 shrink-0" />
+                )}
+                <span>{child.title}</span>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      )}
+    </SidebarMenuItem>
+  );
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, hasPermission, logout: clearUser } = useAuthStore();
 
   const filteredNav = navItems.filter(
@@ -68,19 +147,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {filteredNav.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    render={<Link href={item.url} />}
-                    isActive={item.isActive}
-                  >
-                    <div className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      <span>{item.title}</span>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {filteredNav.map((item) =>
+                item.children ? (
+                  <CollapsibleNavItem
+                    key={item.title}
+                    item={item}
+                    pathname={pathname}
+                  />
+                ) : (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      render={<Link href={item.url} />}
+                      isActive={pathname === item.url}
+                    >
+                      <div className="flex items-center gap-2">
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        <span>{item.title}</span>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ),
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

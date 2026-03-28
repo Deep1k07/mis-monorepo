@@ -44,6 +44,19 @@ export function useEntities(page: number, ba: string) {
     };
 }
 
+export function useApplications(page: number) {
+    const params = new URLSearchParams({ page: String(page), limit: "10" });
+    const { data, error, isLoading } = useSWR(`${BASE_URL}/application?${params}`);
+    return {
+        data: data?.data ?? [],
+        totalPages: data?.totalPages ?? 1,
+        total: data?.total ?? 0,
+        currentPage: data?.page ?? page,
+        isLoading,
+        isError: error
+    };
+}
+
 export const createEntity = async (data: any) => {
     const response = await fetch(
         `${BASE_URL}/entity`,
