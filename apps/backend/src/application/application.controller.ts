@@ -1,13 +1,16 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApplicationService } from './application.service';
 import { Application } from './schema/application.schema';
+import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('application')
 export class ApplicationController {
     constructor(private readonly applicationService: ApplicationService) { }
 
     @Get()
-    async findAll(): Promise<Application[]> {
-        return this.applicationService.findAll();
+    @UseGuards(JwtAuthGuard)
+    async findAll(@Req() req: AuthRequest): Promise<Application[]> {
+        return this.applicationService.findAll(req);
     }
 }

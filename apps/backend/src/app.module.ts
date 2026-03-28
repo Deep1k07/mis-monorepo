@@ -13,6 +13,7 @@ import { BaModule } from './ba/ba.module';
 import { EmailModule } from './email/email.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { CacheModule } from '@nestjs/cache-manager';
+import { CetificationbodyModule } from './cetificationbody/cetificationbody.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -55,6 +56,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     ApplicationModule,
     BaModule,
     EmailModule,
+    CetificationbodyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
