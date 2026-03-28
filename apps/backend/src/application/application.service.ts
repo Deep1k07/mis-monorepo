@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { Application, ApplicationDocument } from './schema/application.schema';
 import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
@@ -19,7 +19,7 @@ export class ApplicationService {
   async findAll(req: AuthRequest, page: number = 1, limit: number = 10) {
     const { user } = req;
 
-    const filter: FilterQuery<ApplicationDocument> = {};
+    const filter: Record<string, string> = {};
     if (!user.permissions.includes('application:read:all')) {
       filter.user = user.userId;
     }
