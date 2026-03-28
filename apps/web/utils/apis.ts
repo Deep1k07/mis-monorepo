@@ -1,33 +1,52 @@
+import useSWR from 'swr';
 
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-// apis
-
-export const getAllBa = async () => {
-    const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/ba/get-all`,
-        { credentials: "include" });
-    return response;
+export function useAllBa() {
+    const { data, error, isLoading } = useSWR(`${BASE_URL}/ba/get-all`);
+    return {
+        bams: data as { _id: string; username: string }[] | undefined,
+        isLoading,
+        isError: error
+    };
 }
 
-export const getEntityById = async (id: string) => {
-    const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/entity/${id}`,
-        { credentials: "include" });
-    return response;
+export function useCountries() {
+    const { data, error, isLoading } = useSWR(`${BASE_URL}/country`);
+    return {
+        countries: data as { code: string; name: string }[] | undefined,
+        isLoading,
+        isError: error
+    };
 }
 
-export const getCountry = async () => {
-    const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/country`,
-        { credentials: 'include' }
-    );
+export function useEntityById(id: string | undefined) {
+    const { data, error, isLoading } = useSWR(id ? `${BASE_URL}/entity/${id}` : null);
+    return {
+        entity: data,
+        isLoading,
+        isError: error
+    };
+}
 
-    return response;
+export function useEntities(page: number, ba: string) {
+    const params = new URLSearchParams({ page: String(page), limit: "10" });
+    if (ba) params.set("busuness_associate", ba);
+
+    const { data, error, isLoading } = useSWR(`${BASE_URL}/entity/get-all?${params}`);
+    return {
+        data: data?.data ?? [],
+        totalPages: data?.totalPages ?? 1,
+        total: data?.total ?? 0,
+        currentPage: data?.page ?? page,
+        isLoading,
+        isError: error
+    };
 }
 
 export const createEntity = async (data: any) => {
     const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/entity`,
+        `${BASE_URL}/entity`,
         {
             credentials: 'include',
             method: 'POST',

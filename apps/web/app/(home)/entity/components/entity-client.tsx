@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table";
-import { createColumns, EntityDef } from "./columns";
+import { createColumns } from "./columns";
 import {
   Select,
   SelectContent,
@@ -11,16 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAllBa, useEntities } from "@/utils/apis";
 
 export function EntityClient() {
   const router = useRouter();
-  const [data, setData] = useState<EntityDef[]>([]);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [baFilter, setBaFilter] = useState("");
-  const [bams, setBams] = useState<{ _id: string; username: string }[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -35,59 +31,10 @@ export function EntityClient() {
     [router],
   );
 
-  useEffect(() => {
-    async function fetchBAMs() {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/ba/get-all`,
-          { credentials: "include" },
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setBams(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch business associates", error);
-      }
-    }
-    fetchBAMs();
-  }, []);
+  const { bams } = useAllBa();
+  const { data, totalPages, total, isLoading: loading } = useEntities(page, baFilter);
 
-  const fetchEntities = useCallback(async (currentPage: number, ba: string) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: String(currentPage),
-        limit: "10",
-      });
-      if (ba) params.set("busuness_associate", ba);
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/entity/get-all?${params}`,
-        { credentials: "include" },
-      );
-
-      if (!res.ok) {
-        setData([]);
-        return;
-      }
-
-      const json = await res.json();
-      setData(json.data ?? []);
-      setTotalPages(json.totalPages ?? 1);
-      setTotal(json.total ?? 0);
-      setPage(json.page ?? currentPage);
-    } catch (error) {
-      console.error("Error fetching entities:", error);
-      setData([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchEntities(page, baFilter);
-  }, [page, baFilter, fetchEntities]);
+  console.log("hjasfvhjsdbf", data)
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -107,13 +54,13 @@ export function EntityClient() {
             <SelectTrigger className="w-[250px]">
               <SelectValue placeholder="Filter by Business Associate">
                 {baFilter
-                  ? bams.find((b) => b._id === baFilter)?.username ?? "All Business Associates"
+                  ? bams?.find((b) => b._id === baFilter)?.username ?? "All Business Associates"
                   : null}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Business Associates</SelectItem>
-              {bams.map((ba) => (
+              {bams?.map((ba) => (
                 <SelectItem key={ba._id} value={ba._id}>
                   {ba.username}
                 </SelectItem>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   Pencil,
@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { EntityForm } from "../../components/entity-form";
 import { EntityDef } from "../../components/columns";
-import { getEntityById } from "@/utils/apis";
+import { useEntityById } from "@/utils/apis";
 
 function StatusBadge({
   label,
@@ -81,26 +81,9 @@ function InfoRow({
 export function EntityViewClient() {
   const params = useParams();
   const router = useRouter();
-  const [entity, setEntity] = useState<EntityDef | null>(null);
-  const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
 
-  useEffect(() => {
-    async function fetchEntity() {
-      try {
-        const res = await getEntityById(params.id as string);
-        if (res.ok) {
-          const data = await res.json();
-          setEntity(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch entity", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (params.id) fetchEntity();
-  }, [params.id]);
+  const { entity, isLoading: loading } = useEntityById(params.id as string);
 
   if (loading) {
     return (
@@ -279,7 +262,7 @@ export function EntityViewClient() {
                 Additional Sites ({entity.additional_site_address.length})
               </h4>
               <div className="space-y-2">
-                {entity.additional_site_address.map((addr, i) => (
+                {entity.additional_site_address.map((addr: any, i: number) => (
                   <div
                     key={i}
                     className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg"

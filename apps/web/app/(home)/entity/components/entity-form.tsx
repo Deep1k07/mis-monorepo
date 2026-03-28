@@ -3,7 +3,6 @@
 import * as z from "zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import {
   Form,
@@ -24,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { createEntity, getAllBa, getCountry } from "@/utils/apis";
+import { createEntity, useAllBa, useCountries } from "@/utils/apis";
 import toast from "react-hot-toast";
 
 // Zod Schema
@@ -100,30 +99,8 @@ export function EntityForm({
   mode?: "create" | "edit" | "view";
 }) {
   const disabled = mode === "view";
-  const [loadingBAMs, setLoadingBAMs] = useState(false);
-  const [bams, setBams] = useState<{ _id: string; username: string }[]>([]);
-  const [loadingCountries, setLoadingCountries] = useState(false);
-  const [countries, setCountries] = useState<{ code: string; name: string }[]>(
-    [],
-  );
-
-  useEffect(() => {
-    async function fetchCountries() {
-      setLoadingCountries(true);
-      try {
-        const res = await getCountry()
-        if (res.ok) {
-          const data = await res.json();
-          setCountries(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch countries", error);
-      } finally {
-        setLoadingCountries(false);
-      }
-    }
-    fetchCountries();
-  }, []);
+  const { bams, isLoading: loadingBAMs } = useAllBa();
+  const { countries, isLoading: loadingCountries } = useCountries();
 
   const form = useForm<EntityFormValues>({
     resolver: zodResolver(entitySchema),
@@ -156,30 +133,6 @@ export function EntityForm({
 
   const type = form.watch("type");
 
-  useEffect(() => {
-    if (type === "bam") {
-      async function fetchBAMs() {
-        setLoadingBAMs(true);
-        try {
-          const res = await getAllBa()
-          if (res.ok) {
-            const data = await res.json();
-            setBams(
-              data.map((ba: { _id: string; username: string }) => ({
-                _id: ba._id,
-                username: ba.username,
-              })),
-            );
-          }
-        } catch (error) {
-          console.error("Failed to fetch business associates", error);
-        } finally {
-          setLoadingBAMs(false);
-        }
-      }
-      fetchBAMs();
-    }
-  }, [type]);
   async function onSubmit(data: EntityFormValues) {
     console.log("Form Submitted Payload:", data);
     // Map data to DTO properties specifically.
@@ -190,8 +143,6 @@ export function EntityForm({
     };
     delete mappedDto.business_associate;
     console.log("create entity data", mappedDto);
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
-    // if (onSuccess) onSuccess();
     try {
       let res = await createEntity(mappedDto)
       if (res.ok) {
@@ -268,12 +219,12 @@ export function EntityForm({
                                 : "Select a business associate"
                             }
                           >
-                            {bams.find((b) => b._id === field.value)?.username}
+                            {bams?.find((b) => b._id === field.value)?.username}
                           </SelectValue>
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {bams.map((bam) => (
+                        {bams?.map((bam) => (
                           <SelectItem key={bam._id} value={bam._id}>
                             {bam.username}
                           </SelectItem>
@@ -527,7 +478,7 @@ export function EntityForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {countries.map((country) => (
+                        {countries?.map((country) => (
                           <SelectItem key={country.code} value={country.code}>
                             {country.name}
                           </SelectItem>
@@ -678,7 +629,7 @@ export function EntityForm({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {countries.map((country) => (
+                            {countries?.map((country) => (
                               <SelectItem
                                 key={country.code}
                                 value={country.code}
