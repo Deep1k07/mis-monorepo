@@ -3,8 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LoginDto } from './dto/user.dto';
-import { UserAccount, UserAccountSchema } from './schema/user.schema';
+import { LoginDto, UpdateProfileDto, ChangePasswordDto } from './dto/user.dto';
+import { UserAccount } from './schema/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
@@ -101,6 +101,50 @@ export class AuthService {
     });
 
     return { success: true, msg: 'OTP sent successfully' };
+  }
+
+  async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (dto.firstName !== undefined) user.firstName = dto.firstName;
+    if (dto.lastName !== undefined) user.lastName = dto.lastName;
+    if (dto.phone !== undefined) user.phone = dto.phone;
+
+    await user.save();
+
+    return {
+      success: true,
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+      },
+    };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.userModel
+      .findById(userId)
+      .select('+password');
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isMatch = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!isMatch) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(dto.newPassword, salt);
+    await user.save();
+
+    return { success: true, msg: 'Password updated successfully' };
   }
 
   async generateToken(user: any) {

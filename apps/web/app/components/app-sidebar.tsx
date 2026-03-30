@@ -13,6 +13,7 @@ import {
   List,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
+import { ProfileModal } from "@/components/profile-modal";
 
 import {
   Sidebar,
@@ -115,6 +116,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const pathname = usePathname();
   const { user, hasPermission, logout: clearUser } = useAuthStore();
+  const [profileOpen, setProfileOpen] = React.useState(false);
 
   const filteredNav = navItems.filter(
     (item) => !item.permission || hasPermission(item.permission),
@@ -135,67 +137,78 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar {...props}>
-      <SidebarHeader>
-        <div className="flex items-center px-2 py-2">
-          <img src="/logo1.png" alt="Logo" className="h-8 w-auto" />
-        </div>
-      </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {filteredNav.map((item) =>
-                item.children ? (
-                  <CollapsibleNavItem
-                    key={item.title}
-                    item={item}
-                    pathname={pathname}
-                  />
-                ) : (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      render={<Link href={item.url} />}
-                      isActive={pathname === item.url}
-                    >
-                      <div className="flex items-center gap-2">
-                        <item.icon className="h-4 w-4 shrink-0" />
-                        <span>{item.title}</span>
-                      </div>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ),
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={handleLogout}
-              className="w-full flex items-center justify-between text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 py-6"
-            >
-              <div className="flex flex-row items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 shrink-0">
-                  <User className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-                </div>
-                <div className="flex flex-col">
-                  {user && (
-                    <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
-                      {user.firstName} {user.lastName}
+    <>
+      <ProfileModal open={profileOpen} onOpenChange={setProfileOpen} />
+      <Sidebar {...props}>
+        <SidebarHeader>
+          <div className="flex items-center px-2 py-2">
+            <img src="/logo1.png" alt="Logo" className="h-8 w-auto" />
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {filteredNav.map((item) =>
+                  item.children ? (
+                    <CollapsibleNavItem
+                      key={item.title}
+                      item={item}
+                      pathname={pathname}
+                    />
+                  ) : (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        render={<Link href={item.url} />}
+                        isActive={pathname === item.url}
+                      >
+                        <div className="flex items-center gap-2">
+                          <item.icon className="h-4 w-4 shrink-0" />
+                          <span>{item.title}</span>
+                        </div>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ),
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <div className="flex items-center justify-between py-2 px-2">
+                <button
+                  onClick={() => setProfileOpen(true)}
+                  className="flex flex-row items-center gap-3 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 p-1.5 pr-3 transition-colors"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 shrink-0">
+                    <User className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                  </div>
+                  <div className="flex flex-col text-left">
+                    {user && (
+                      <span className="font-medium text-sm text-slate-700 dark:text-slate-300">
+                        {user.firstName} {user.lastName}
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {user?.role}
                     </span>
-                  )}
-                  <span className="font-medium text-xs">Logout</span>
-                </div>
+                  </div>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex h-8 w-8 items-center justify-center rounded-md text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 transition-colors"
+                  title="Logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
               </div>
-              <LogOut className="h-4 w-4 shrink-0" />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+    </>
   );
 }
