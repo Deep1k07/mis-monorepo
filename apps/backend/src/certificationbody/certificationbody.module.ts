@@ -4,11 +4,12 @@ import {
   CertificationBody,
   CertificationBodySchema,
 } from './schema/certificationBody.schema';
-import { CetificationbodyService } from './cetificationbody.service';
+import { CetificationbodyService } from './certificationbody.service';
 import {
   CertificationStandard,
   CertificationStandardSchema,
 } from './schema/certificationStandards.schema';
+import { CertificationbodyController } from './certificationbody.controller';
 
 @Module({
   imports: [
@@ -18,5 +19,6 @@ import {
     ]),
   ],
   providers: [CetificationbodyService],
+  controllers: [CertificationbodyController],
 })
-export class CetificationbodyModule {}
+export class CertificationbodyModule { }
