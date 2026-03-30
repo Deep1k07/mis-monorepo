@@ -3,6 +3,7 @@
 import React, { ReactNode } from "react";
 import { SWRConfig } from "swr";
 import axios from "axios";
+import { handleUnauthorized } from "@/store/auth-store";
 
 interface SwrProviderProps {
   children: ReactNode;
@@ -22,6 +23,9 @@ export const SwrProvider: React.FC<SwrProviderProps> = ({ children }) => {
           })
             .then((res) => res?.data)
             .catch((err) => {
+              if (err?.response?.status === 401) {
+                handleUnauthorized();
+              }
               throw err;
             });
         },

@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import { apiFetch } from "@/lib/api-fetch";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -64,8 +65,7 @@ export function useApplications(page: number) {
 }
 
 export const createEntity = async (data: any) => {
-  const response = await fetch(`${BASE_URL}/entity`, {
-    credentials: "include",
+  const response = await apiFetch(`${BASE_URL}/entity`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

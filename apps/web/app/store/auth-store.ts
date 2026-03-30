@@ -44,6 +44,12 @@ export const useAuthStore = create<AuthState>()(
             set({ user, isLoading: false });
           } else {
             set({ user: null, isLoading: false });
+            if (res.status === 401) {
+              // token expired or invalid — redirect to login
+              if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+                window.location.href = "/login";
+              }
+            }
           }
         } catch {
           set({ user: null, isLoading: false });
@@ -58,3 +64,13 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 );
+
+/** Call from anywhere (outside React) when a 401 is received */
+export function handleUnauthorized() {
+  const { user, logout } = useAuthStore.getState();
+  if (!user) return; // already logged out
+  logout();
+  if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+    window.location.href = "/login";
+  }
+}

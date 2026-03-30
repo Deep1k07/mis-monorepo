@@ -4,6 +4,7 @@ import * as React from "react";
 import { useState } from "react";
 import { User, Mail, Phone, Shield, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
+import { apiFetch } from "@/lib/api-fetch";
 import {
   Dialog,
   DialogContent,
@@ -63,12 +64,11 @@ export function ProfileModal({
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/profile`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({ firstName, lastName, phone }),
         },
       );
@@ -105,12 +105,11 @@ export function ProfileModal({
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/change-password`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({ currentPassword, newPassword }),
         },
       );

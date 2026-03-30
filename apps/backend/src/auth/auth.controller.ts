@@ -19,8 +19,24 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() body: LoginDto) {
-    return this.authService.login(body);
+  async login(
+    @Body() body: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.login(body);
+
+    // In non-production, token is returned directly — set the cookie
+    if (result.success && result.token?.access_token) {
+      res.cookie('access_token', result.token.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+      return { success: true, otpRequired: false };
+    }
+
+    return result;
   }
 
   @Post('verify-otp')

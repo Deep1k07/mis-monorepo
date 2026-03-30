@@ -62,6 +62,16 @@ export class AuthService {
       if (!verified) throw new NotFoundException('Invalid 2FA code');
     }
 
+    // Skip OTP in non-production environments — login directly
+    if (process.env.NODE_ENV !== 'production') {
+      const token = await this.generateToken(user);
+      return {
+        success: true,
+        otpRequired: false,
+        token,
+      };
+    }
+
     this.eventEmitter.emit('user-login', {
       email: user.email,
       userId: user._id.toString(),
