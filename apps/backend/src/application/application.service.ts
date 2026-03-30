@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Application, ApplicationDocument } from './schema/application.schema';
@@ -9,7 +9,7 @@ export class ApplicationService {
   constructor(
     @InjectModel(Application.name)
     private readonly applicationModel: Model<ApplicationDocument>,
-  ) {}
+  ) { }
 
   async create(application: Application): Promise<Application> {
     const createdApplication = new this.applicationModel(application);
@@ -42,5 +42,32 @@ export class ApplicationService {
       page,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async findById(id: string) {
+    const application = await this.applicationModel
+      .findById(id)
+      .populate('busuness_associate', 'username email userId')
+      .populate('appliedBy', 'firstName lastName email')
+      .exec();
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    return application;
+  }
+
+  async update(id: string, updateData: Partial<Application>) {
+    const application = await this.applicationModel
+      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .populate('busuness_associate', 'username email userId')
+      .exec();
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    return application;
   }
 }

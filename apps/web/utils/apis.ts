@@ -64,6 +64,18 @@ export function useApplications(page: number) {
   };
 }
 
+export function useApplicationById(id: string | undefined) {
+  const { data, error, isLoading, mutate } = useSWR(
+    id ? `${BASE_URL}/application/${id}` : null,
+  );
+  return {
+    application: data as any | undefined,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
 export const createEntity = async (data: any) => {
   const response = await apiFetch(`${BASE_URL}/entity`, {
     method: "POST",

@@ -1,4 +1,13 @@
-import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApplicationService } from './application.service';
 import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -15,5 +24,17 @@ export class ApplicationController {
     @Query('limit') limit: string = '10',
   ) {
     return this.applicationService.findAll(req, +page, +limit);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findById(@Param('id') id: string) {
+    return this.applicationService.findById(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  async update(@Param('id') id: string, @Body() body: any) {
+    return this.applicationService.update(id, body);
   }
 }
