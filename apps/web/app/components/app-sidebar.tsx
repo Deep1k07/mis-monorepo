@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { ProfileModal } from "@/components/profile-modal";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import {
   Sidebar,
@@ -142,7 +143,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <Sidebar {...props}>
         <SidebarHeader>
           <div className="flex items-center px-2 py-2">
-            <img src="/logo1.png" alt="Logo" className="h-8 w-auto" />
+            <img src="/logo1.png" alt="Logo" className="h-8 w-auto dark:hidden" />
+            <img src="/logo.png" alt="Logo" className="h-8 w-auto hidden dark:block" />
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -196,13 +198,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </span>
                   </div>
                 </button>
-                <button
-                  onClick={handleLogout}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 transition-colors"
-                  title="Logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1">
+                  <ThemeToggle />
+                  <button
+                    onClick={handleLogout}
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 transition-colors"
+                    title="Logout"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </SidebarMenuItem>
           </SidebarMenu>

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { SwrProvider } from "@/providers/swr-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -27,9 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", geist.variable)}>
+    <html lang="en" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <SwrProvider>{children}</SwrProvider>
+        <ThemeProvider>
+          <SwrProvider>{children}</SwrProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
