@@ -9,4 +9,9 @@ export class CertificationbodyController {
     async getAllCertificationBodies() {
         return this.certificationbodyService.getAllCertificationBodies();
     }
+
+    @Get('standards')
+    async getAllStandards() {
+        return this.certificationbodyService.getAllStandards();
+    }
 }

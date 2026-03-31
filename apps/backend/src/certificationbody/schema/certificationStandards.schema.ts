@@ -31,7 +31,7 @@ export class CertificationStandard {
   })
   status: Status;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: Types.ObjectId, ref: 'UserAccount' })
   user: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'CertificationBody' })

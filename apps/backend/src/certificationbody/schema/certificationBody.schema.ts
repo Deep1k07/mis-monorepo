@@ -50,7 +50,7 @@ export class CertificationBody {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User' })
+  @Prop({ type: Types.ObjectId, ref: 'UserAccount' })
   user: Types.ObjectId;
 
   @Prop({
