@@ -10,7 +10,7 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
 @Injectable()
 export class EntityService {
-  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) {}
+  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) { }
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
       const id = generateAlphanumericCode();
@@ -52,7 +52,7 @@ export class EntityService {
       entity_id: entityId,
       entity_name: entityName,
       name_slug: nameSlug,
-      ...(direct_price != null ? { direct_price } : {}),
+      ...(direct_price != null ? { direct_price: Number(direct_price) } : {}),
       main_site_address: restBody?.main_site_address?.map((address: any) => ({
         street: cleanString(address?.street),
         city: cleanString(address?.city),
@@ -72,6 +72,71 @@ export class EntityService {
     };
 
     return this.entityModel.create(newPayload);
+  }
+
+  async update(entityId: string, body: CreateEntityDto, req: AuthRequest) {
+    const entity = await this.entityModel.findOne({ entity_id: entityId });
+    if (!entity) {
+      throw new BadRequestException('Entity not found');
+    }
+
+    if (!body?.isDirectClient && !body?.busuness_associate) {
+      throw new BadRequestException('Business Associate is required');
+    }
+
+    if (body?.isDirectClient && !body?.direct_price) {
+      throw new BadRequestException('Direct Price is required');
+    }
+
+    const {
+      entity_id,
+      name_slug,
+      isEntityEmailVerifiedStatus,
+      ...updateData
+    } = body;
+
+    if (body.entity_name) {
+      updateData.entity_name = cleanString(body.entity_name);
+
+      let newSlug = createSlug(updateData.entity_name);
+      const existingSlug = await this.entityModel.findOne({
+        name_slug: newSlug,
+        entity_id: { $ne: entityId },
+      });
+      if (existingSlug) {
+        newSlug = `${newSlug}-${entityId}`;
+      }
+      (updateData as any).name_slug = newSlug;
+    }
+
+    if (updateData.main_site_address) {
+      updateData.main_site_address = updateData.main_site_address.map(
+        (address: any) => ({
+          street: cleanString(address?.street),
+          city: cleanString(address?.city),
+          state: address?.state,
+          country: address?.country,
+          postal_code: cleanString(address?.postal_code),
+        }),
+      );
+    }
+
+    if (updateData.additional_site_address) {
+      updateData.additional_site_address =
+        updateData.additional_site_address.map((address: any) => ({
+          ...address,
+          street: cleanString(address?.street),
+          city: cleanString(address?.city),
+          state: address?.state,
+          country: address?.country,
+          postal_code: cleanString(address?.postal_code),
+        }));
+    }
+    return this.entityModel.findOneAndUpdate(
+      { entity_id: entityId },
+      { $set: updateData },
+      { new: true },
+    );
   }
 
   async getById(id: string) {

@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Patch,
   Body,
   Req,
   UseGuards,
@@ -40,6 +41,16 @@ export class EntityController {
     totalPages: number;
   }> {
     return this.entityService.getAll(req, page, limit, busuness_associate);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  async update(
+    @Param('id') id: string,
+    @Body() body: CreateEntityDto,
+    @Req() req: AuthRequest,
+  ) {
+    return this.entityService.update(id, body, req);
   }
 
   @Get(':id')

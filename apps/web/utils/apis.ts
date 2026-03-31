@@ -22,13 +22,14 @@ export function useCountries() {
 }
 
 export function useEntityById(id: string | undefined) {
-  const { data, error, isLoading } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR(
     id ? `${BASE_URL}/entity/${id}` : null,
   );
   return {
-    entity: data,
+    entity: data as any | undefined,
     isLoading,
     isError: error,
+    mutate: mutate as () => Promise<any>,
   };
 }
 
@@ -77,8 +78,19 @@ export function useApplicationById(id: string | undefined) {
 }
 
 export const createEntity = async (data: any) => {
-  const response = await apiFetch(`${BASE_URL}/entity`, {
+  const response = await apiFetch(`${BASE_URL}/entity/create`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+export const updateEntity = async (entityId: string, data: any) => {
+  const response = await apiFetch(`${BASE_URL}/entity/${entityId}`, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },

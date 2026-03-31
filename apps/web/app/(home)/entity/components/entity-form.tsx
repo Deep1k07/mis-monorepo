@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { createEntity, useAllBa, useCountries } from "@/utils/apis";
+import { createEntity, updateEntity, useAllBa, useCountries } from "@/utils/apis";
 import toast from "react-hot-toast";
 
 // Zod Schema
@@ -93,10 +93,12 @@ export function EntityForm({
   onSuccess,
   defaultValues,
   mode = "create",
+  entityId,
 }: {
   onSuccess?: () => void;
   defaultValues?: Partial<EntityFormValues>;
   mode?: "create" | "edit" | "view";
+  entityId?: string;
 }) {
   const disabled = mode === "view";
   const { bams, isLoading: loadingBAMs } = useAllBa();
@@ -134,25 +136,34 @@ export function EntityForm({
   const type = form.watch("type");
 
   async function onSubmit(data: EntityFormValues) {
-    console.log("Form Submitted Payload:", data);
-    // Map data to DTO properties specifically.
-    const mappedDto = {
-      ...data,
-      isDirectClient: data.type === "client" ? true : false,
-      busuness_associate: data.business_associate, // Match backend schema spelling
+    const { type: _type, business_associate, ...rest } = data;
+    const mappedDto: any = {
+      ...rest,
+      isDirectClient: _type === "client",
+      busuness_associate: _type === "bam" ? business_associate : null,
     };
-    delete mappedDto.business_associate;
-    console.log("create entity data", mappedDto);
-    // try {
-    //   let res = await createEntity(mappedDto);
-    //   if (res.ok) {
-    //     toast.success("Entity created successfully", { id: 'entity-view' });
-    //     // if (onSuccess) onSuccess();
-    //   }
-    // } catch (error) {
-    //   console.error("Failed to create entity", error);
-    //   toast.error("Failed to create entity", { id: 'entity-view' });
-    // }
+
+    try {
+      if (mode === "edit" && entityId) {
+        const res = await updateEntity(entityId, mappedDto);
+        if (res.ok) {
+          toast.success("Entity updated successfully", { id: "entity-view" });
+          if (onSuccess) onSuccess();
+        }
+      } else {
+        const res = await createEntity(mappedDto);
+        if (res.ok) {
+          toast.success("Entity created successfully", { id: "entity-view" });
+          if (onSuccess) onSuccess();
+        }
+      }
+    } catch (error) {
+      console.error("Failed to save entity", error);
+      toast.error(
+        mode === "edit" ? "Failed to update entity" : "Failed to create entity",
+        { id: "entity-view" }
+      );
+    }
   }
 
   return (

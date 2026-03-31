@@ -84,7 +84,7 @@ export function EntityViewClient() {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
 
-  const { entity, isLoading: loading } = useEntityById(params.id as string);
+  const { entity, isLoading: loading, mutate } = useEntityById(params.id as string);
 
   if (loading) {
     return (
@@ -137,6 +137,7 @@ export function EntityViewClient() {
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
             <Button
+              className="cursor-pointer"
               variant="outline"
               size="icon"
               onClick={() => router.push("/entity")}
@@ -154,7 +155,7 @@ export function EntityViewClient() {
                     await navigator.clipboard.writeText(entity.entity_id);
                     toast.success("Entity ID copied to clipboard", { id: 'entity-view' });
                   }}
-                  className="hover:text-foreground transition-colors"
+                  className="hover:text-foreground transition-colors cursor-pointer"
                   title="Copy ID"
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -293,7 +294,11 @@ export function EntityViewClient() {
           </DialogHeader>
           <EntityForm
             mode="edit"
-            onSuccess={() => setEditOpen(false)}
+            entityId={entity.entity_id}
+            onSuccess={() => {
+              mutate();
+              setEditOpen(false);
+            }}
             defaultValues={defaultValues}
           />
         </DialogContent>

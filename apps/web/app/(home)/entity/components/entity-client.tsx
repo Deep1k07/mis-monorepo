@@ -39,8 +39,6 @@ export function EntityClient() {
     isLoading: loading,
   } = useEntities(page, baFilter);
 
-  console.log("hjasfvhjsdbf", data);
-
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };

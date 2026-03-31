@@ -131,7 +131,7 @@ export class CreateEntityDto {
   isDirectClient: boolean;
 
   @IsOptional()
-  @IsNumber()
+  // @IsString()
   direct_price: number;
 
   @IsOptional()
