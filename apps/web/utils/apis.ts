@@ -88,6 +88,103 @@ export const createEntity = async (data: any) => {
   return response;
 };
 
+// ─── CAB & Standard APIs ───
+
+export function useCabs(page: number) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  const { data, error, isLoading, mutate } = useSWR(
+    `${BASE_URL}/certificationbody?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    currentPage: data?.page ?? page,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
+export function useCabById(id: string | undefined) {
+  const { data, error, isLoading, mutate } = useSWR(
+    id ? `${BASE_URL}/certificationbody/${id}` : null,
+  );
+  return {
+    cab: data as any | undefined,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
+export const createCab = async (data: any) => {
+  const response = await apiFetch(`${BASE_URL}/certificationbody`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+export const updateCab = async (id: string, data: any) => {
+  const response = await apiFetch(`${BASE_URL}/certificationbody/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+export function useStandards(page: number, certificationBody?: string) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (certificationBody) params.set("certificationBody", certificationBody);
+  const { data, error, isLoading, mutate } = useSWR(
+    `${BASE_URL}/certificationbody/standard/all?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    currentPage: data?.page ?? page,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
+export function useAllCabsList() {
+  const { data, error, isLoading } = useSWR(
+    `${BASE_URL}/certificationbody?limit=100`,
+  );
+  return {
+    cabs: (data?.data ?? []) as any[],
+    isLoading,
+    isError: error,
+  };
+}
+
+export const createStandard = async (data: any) => {
+  const response = await apiFetch(`${BASE_URL}/certificationbody/standard`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+export const updateStandard = async (id: string, data: any) => {
+  const response = await apiFetch(
+    `${BASE_URL}/certificationbody/standard/${id}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+  return response;
+};
+
 export const updateEntity = async (entityId: string, data: any) => {
   const response = await apiFetch(`${BASE_URL}/entity/${entityId}`, {
     method: "PATCH",

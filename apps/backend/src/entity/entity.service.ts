@@ -135,7 +135,7 @@ export class EntityService {
     return this.entityModel.findOneAndUpdate(
       { entity_id: entityId },
       { $set: updateData },
-      { new: true },
+      { returnDocument: 'after' },
     );
   }
 

@@ -11,6 +11,7 @@ import {
   FileText,
   ChevronRight,
   List,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { ProfileModal } from "@/components/profile-modal";
@@ -68,6 +69,13 @@ const navItems: NavItem[] = [
         icon: List,
       },
     ],
+  },
+  {
+    title: "Manage CAB & Standard",
+    url: "/manage-cab",
+    icon: ShieldCheck,
+    isActive: false,
+    permission: "cab:read",
   },
 ];
 

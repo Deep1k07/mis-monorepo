@@ -60,7 +60,7 @@ export class ApplicationService {
 
   async update(id: string, updateData: Partial<Application>) {
     const application = await this.applicationModel
-      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .findByIdAndUpdate(id, { $set: updateData }, { returnDocument: 'after' })
       .populate('busuness_associate', 'username email userId')
       .exec();
 

@@ -10,6 +10,7 @@ import {
   CertificationStandardSchema,
 } from './schema/certificationStandards.schema';
 import { CertificationbodyController } from './certificationbody.controller';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -17,8 +18,9 @@ import { CertificationbodyController } from './certificationbody.controller';
       { name: CertificationBody.name, schema: CertificationBodySchema },
       { name: CertificationStandard.name, schema: CertificationStandardSchema },
     ]),
+    AuthModule,
   ],
   providers: [CetificationbodyService],
   controllers: [CertificationbodyController],
 })
-export class CertificationbodyModule { }
+export class CertificationbodyModule {}

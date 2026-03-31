@@ -58,6 +58,12 @@ export class CertificationBody {
     default: [],
   })
   cabJurisdictions: Types.ObjectId[];
+
+  @Prop({
+    type: [{ type: Types.ObjectId, ref: 'CertificationStandard' }],
+    default: [],
+  })
+  standards: Types.ObjectId[];
 }
 
 export const CertificationBodySchema =
