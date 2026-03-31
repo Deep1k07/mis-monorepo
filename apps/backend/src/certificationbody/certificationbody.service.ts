@@ -11,5 +11,9 @@ export class CetificationbodyService {
   constructor(
     @InjectModel(CertificationBody.name)
     private certificationBodyModel: Model<CertificationBodyDocument>,
-  ) {}
+  ) { }
+
+  async getAllCertificationBodies() {
+    return this.certificationBodyModel.find().exec();
+  }
 }

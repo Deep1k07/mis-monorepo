@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { EntityForm } from "../../components/entity-form";
 import { EntityDef } from "../../components/columns";
 import { useEntityById } from "@/utils/apis";
+import toast from "react-hot-toast";
 
 function StatusBadge({
   label,
@@ -149,9 +150,10 @@ export function EntityViewClient() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="font-mono">{entity.entity_id}</span>
                 <button
-                  onClick={() =>
-                    navigator.clipboard.writeText(entity.entity_id)
-                  }
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(entity.entity_id);
+                    toast.success("Entity ID copied to clipboard", { id: 'entity-view' });
+                  }}
                   className="hover:text-foreground transition-colors"
                   title="Copy ID"
                 >
@@ -159,11 +161,10 @@ export function EntityViewClient() {
                 </button>
                 <span className="mx-1">-</span>
                 <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-                    entity.isDirectClient
-                      ? "bg-blue-50 text-blue-700 ring-blue-600/20"
-                      : "bg-purple-50 text-purple-700 ring-purple-600/20"
-                  }`}
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${entity.isDirectClient
+                    ? "bg-blue-50 text-blue-700 ring-blue-600/20"
+                    : "bg-purple-50 text-purple-700 ring-purple-600/20"
+                    }`}
                 >
                   {entity.isDirectClient ? "Direct Client" : "BAM"}
                 </span>

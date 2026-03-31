@@ -1,4 +1,12 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
+import { CetificationbodyService } from './certificationbody.service';
 
 @Controller('certificationbody')
-export class CertificationbodyController {}
+export class CertificationbodyController {
+    constructor(private readonly certificationbodyService: CetificationbodyService) { }
+
+    @Get()
+    async getAllCertificationBodies() {
+        return this.certificationbodyService.getAllCertificationBodies();
+    }
+}

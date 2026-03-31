@@ -143,15 +143,16 @@ export function EntityForm({
     };
     delete mappedDto.business_associate;
     console.log("create entity data", mappedDto);
-    try {
-      let res = await createEntity(mappedDto);
-      if (res.ok) {
-        toast.success("Entity created successfully");
-        // if (onSuccess) onSuccess();
-      }
-    } catch (error) {
-      console.error("Failed to create entity", error);
-    }
+    // try {
+    //   let res = await createEntity(mappedDto);
+    //   if (res.ok) {
+    //     toast.success("Entity created successfully", { id: 'entity-view' });
+    //     // if (onSuccess) onSuccess();
+    //   }
+    // } catch (error) {
+    //   console.error("Failed to create entity", error);
+    //   toast.error("Failed to create entity", { id: 'entity-view' });
+    // }
   }
 
   return (
