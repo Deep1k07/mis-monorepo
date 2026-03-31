@@ -1,8 +1,10 @@
 "use client";
 
 import * as z from "zod";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { X, ChevronsUpDown, Check } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -21,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { createCab, updateCab } from "@/utils/apis";
+import { createCab, updateCab, useAllStandardsList } from "@/utils/apis";
 import toast from "react-hot-toast";
 
 const cabSchema = z.object({
@@ -44,9 +46,107 @@ const cabSchema = z.object({
   abName: z.string().min(1, "AB Name is required"),
   description: z.string().min(1, "Description is required"),
   status: z.string().optional(),
+  standards: z.array(z.string()).optional(),
 });
 
 export type CabFormValues = z.infer<typeof cabSchema>;
+
+function MultiSelectStandards({
+  value,
+  onChange,
+  options,
+  loading,
+}: {
+  value: string[];
+  onChange: (val: string[]) => void;
+  options: any[];
+  loading: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const toggle = (id: string) => {
+    if (value.includes(id)) {
+      onChange(value.filter((v) => v !== id));
+    } else {
+      onChange([...value, id]);
+    }
+  };
+
+  const selectedItems = options.filter((o) => value.includes(o._id));
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex min-h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs cursor-pointer hover:bg-accent"
+      >
+        <div className="flex flex-wrap gap-1 flex-1">
+          {selectedItems.length === 0 && (
+            <span className="text-muted-foreground">
+              {loading ? "Loading..." : "Select standards..."}
+            </span>
+          )}
+          {selectedItems.map((item) => (
+            <span
+              key={item._id}
+              className="inline-flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-xs font-medium"
+            >
+              {item.mssCode} - {item.schemeName}
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(item._id);
+                }}
+              />
+            </span>
+          ))}
+        </div>
+        <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+      </button>
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md max-h-60 overflow-y-auto">
+          {options.length === 0 ? (
+            <div className="px-3 py-2 text-sm text-muted-foreground">
+              No standards available
+            </div>
+          ) : (
+            options.map((item) => (
+              <button
+                key={item._id}
+                type="button"
+                onClick={() => toggle(item._id)}
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent cursor-pointer"
+              >
+                <div className="flex h-4 w-4 items-center justify-center">
+                  {value.includes(item._id) && (
+                    <Check className="h-3.5 w-3.5" />
+                  )}
+                </div>
+                <span className="font-mono text-xs">{item.mssCode}</span>
+                <span>
+                  {item.schemeName} ({item.standardCode})
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function CabForm({
   onSuccess,
@@ -59,6 +159,8 @@ export function CabForm({
   mode?: "create" | "edit";
   cabId?: string;
 }) {
+  const { standards, isLoading: loadingStandards } = useAllStandardsList();
+
   const form = useForm<CabFormValues>({
     resolver: zodResolver(cabSchema),
     defaultValues: defaultValues || {
@@ -69,6 +171,7 @@ export function CabForm({
       abName: "",
       description: "",
       status: "active",
+      standards: [],
     },
   });
 
@@ -81,7 +184,9 @@ export function CabForm({
           if (onSuccess) onSuccess();
         } else {
           const err = await res.json();
-          toast.error(err.message || "Failed to update CAB", { id: "cab-form" });
+          toast.error(err.message || "Failed to update CAB", {
+            id: "cab-form",
+          });
         }
       } else {
         const res = await createCab(data);
@@ -90,7 +195,9 @@ export function CabForm({
           if (onSuccess) onSuccess();
         } else {
           const err = await res.json();
-          toast.error(err.message || "Failed to create CAB", { id: "cab-form" });
+          toast.error(err.message || "Failed to create CAB", {
+            id: "cab-form",
+          });
         }
       }
     } catch (error) {
@@ -188,10 +295,7 @@ export function CabForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
@@ -218,6 +322,24 @@ export function CabForm({
                 <Textarea
                   placeholder="Description of the certification body"
                   {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="standards"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Standards</FormLabel>
+              <FormControl>
+                <MultiSelectStandards
+                  value={field.value || []}
+                  onChange={field.onChange}
+                  options={standards}
+                  loading={loadingStandards}
                 />
               </FormControl>
               <FormMessage />

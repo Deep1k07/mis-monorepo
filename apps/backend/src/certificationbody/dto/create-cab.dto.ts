@@ -48,4 +48,9 @@ export class CreateCabDto {
   @IsArray()
   @IsMongoId({ each: true })
   cabJurisdictions?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsMongoId({ each: true })
+  standards?: string[];
 }

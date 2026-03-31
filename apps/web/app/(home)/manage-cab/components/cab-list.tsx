@@ -100,6 +100,9 @@ export function CabList() {
                 abName: editCab.abName,
                 description: editCab.description,
                 status: editCab.status,
+                standards: editCab.standards?.map((s: any) =>
+                  typeof s === "object" ? s._id : s,
+                ) || [],
               }}
               onSuccess={() => {
                 setEditCab(null);

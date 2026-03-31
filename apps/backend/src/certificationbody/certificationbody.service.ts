@@ -94,6 +94,34 @@ export class CetificationbodyService {
       }
     }
 
+    // Sync certificationBody ref on standards when standards array changes
+    if (body.standards) {
+      const oldStandardIds = cab.standards?.map((s) => s.toString()) || [];
+      const newStandardIds = body.standards;
+
+      // Standards removed from this CAB — unset their certificationBody
+      const removed = oldStandardIds.filter(
+        (s) => !newStandardIds.includes(s),
+      );
+      if (removed.length) {
+        await this.certificationStandardModel.updateMany(
+          { _id: { $in: removed } },
+          { $unset: { certificationBody: '' } },
+        );
+      }
+
+      // Standards added to this CAB — set their certificationBody
+      const added = newStandardIds.filter(
+        (s) => !oldStandardIds.includes(s),
+      );
+      if (added.length) {
+        await this.certificationStandardModel.updateMany(
+          { _id: { $in: added } },
+          { $set: { certificationBody: id } },
+        );
+      }
+    }
+
     return this.certificationBodyModel.findByIdAndUpdate(
       id,
       { $set: body },

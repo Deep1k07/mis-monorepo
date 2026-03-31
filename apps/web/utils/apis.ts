@@ -153,6 +153,17 @@ export function useStandards(page: number, certificationBody?: string) {
   };
 }
 
+export function useAllStandardsList() {
+  const { data, error, isLoading } = useSWR(
+    `${BASE_URL}/certificationbody/standard/all?limit=200`,
+  );
+  return {
+    standards: (data?.data ?? []) as any[],
+    isLoading,
+    isError: error,
+  };
+}
+
 export function useAllCabsList() {
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/certificationbody?limit=100`,
