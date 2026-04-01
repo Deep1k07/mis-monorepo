@@ -75,7 +75,7 @@ const navItems: NavItem[] = [
     url: "/manage-cab",
     icon: ShieldCheck,
     isActive: false,
-    permission: "cab:read",
+    permission: "cab-standard:read",
   },
 ];
 

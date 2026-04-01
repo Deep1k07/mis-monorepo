@@ -35,6 +35,11 @@ export const createCabColumns = (
   {
     accessorKey: "cbName",
     header: "CB Name",
+    cell: ({ row }) => (
+      <span className="block max-w-[200px] truncate" title={row.getValue("cbName")}>
+        {row.getValue("cbName")}
+      </span>
+    ),
   },
   {
     accessorKey: "abCode",
@@ -43,6 +48,11 @@ export const createCabColumns = (
   {
     accessorKey: "abName",
     header: "AB Name",
+    cell: ({ row }) => (
+      <span className="block max-w-[200px] truncate" title={row.getValue("abName")}>
+        {row.getValue("abName")}
+      </span>
+    ),
   },
   {
     accessorKey: "status",

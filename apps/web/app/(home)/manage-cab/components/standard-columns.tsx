@@ -33,10 +33,20 @@ export const createStandardColumns = (
   {
     accessorKey: "schemeName",
     header: "Scheme Name",
+    cell: ({ row }) => (
+      <span className="block max-w-[200px] truncate" title={row.getValue("schemeName")}>
+        {row.getValue("schemeName")}
+      </span>
+    ),
   },
   {
     accessorKey: "standardCode",
     header: "Standard Code",
+    cell: ({ row }) => (
+      <span className="block max-w-[200px] truncate" title={row.getValue("standardCode")}>
+        {row.getValue("standardCode")}
+      </span>
+    ),
   },
   {
     accessorKey: "certificationBody",
@@ -44,9 +54,10 @@ export const createStandardColumns = (
     cell: ({ row }) => {
       const cb = row.getValue("certificationBody") as any;
       if (!cb) return <span className="text-muted-foreground">-</span>;
+      const label = `${cb.cabCode} - ${cb.cbName}`;
       return (
-        <span>
-          {cb.cabCode} - {cb.cbName}
+        <span className="block max-w-[200px] truncate" title={label}>
+          {label}
         </span>
       );
     },

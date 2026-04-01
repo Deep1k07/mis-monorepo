@@ -81,7 +81,7 @@ export function CabList() {
 
       {/* Edit Dialog */}
       <Dialog open={!!editCab} onOpenChange={(open) => !open && setEditCab(null)}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>Edit Certification Body</DialogTitle>
             <DialogDescription>

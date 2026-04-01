@@ -119,7 +119,7 @@ export function StandardList() {
         open={!!editStandard}
         onOpenChange={(open) => !open && setEditStandard(null)}
       >
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>Edit Standard</DialogTitle>
             <DialogDescription>Update standard details.</DialogDescription>

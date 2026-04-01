@@ -16,12 +16,28 @@ export const defaultPermissions = [
     type: PermissionType.DEFAULT,
   },
   {
+    name: 'entity:read:all',
+    description: 'Can view all entities',
+    category: 'Entity',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'entity:approve',
+    description: 'Can approve entities',
+    category: 'Entity',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
     name: 'entity:update',
     description: 'Can update existing entities',
     category: 'Entity',
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
   },
+
+  //Country permission
   {
     name: 'country:read',
     description: 'Can view countries',
@@ -29,4 +45,22 @@ export const defaultPermissions = [
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
   },
+
+  // Application permissions
+  {
+    name: 'application:read',
+    description: 'Can view own applications',
+    category: 'Application',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+
+  // Cab and Standards permissions
+  {
+    name: 'cab-standard:read',
+    description: 'Can view cab and standards',
+    category: 'Cab',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  }
 ];
