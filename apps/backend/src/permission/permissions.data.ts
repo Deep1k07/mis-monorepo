@@ -59,7 +59,21 @@ export const defaultPermissions = [
   {
     name: 'cab-standard:read',
     description: 'Can view cab and standards',
-    category: 'Cab',
+    category: 'CertificationBody',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'cab:create',
+    description: 'Can create cab',
+    category: 'CertificationBody',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'standard:create',
+    description: 'Can create standard',
+    category: 'CertificationBody',
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
   }

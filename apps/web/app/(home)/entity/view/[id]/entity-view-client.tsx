@@ -20,7 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { EntityForm } from "../../components/entity-form";
-import { EntityDef } from "../../components/columns";
 import { useEntityById } from "@/utils/apis";
 import toast from "react-hot-toast";
 
