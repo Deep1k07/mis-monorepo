@@ -11,11 +11,11 @@ import {
 import { ApplicationService } from './application.service';
 import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { PaginatedQueryDto } from 'src/common/dto/paginated-query.dto';
 import { Application } from './schema/application.schema';
 import {
   ApiCookieAuth,
   ApiOperation,
-  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -29,22 +29,22 @@ export class ApplicationController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all applications with pagination' })
-  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
-  @ApiQuery({ name: 'search', required: false, type: String })
   @ApiResponse({ status: 200, description: 'Paginated list of applications' })
   async findAll(
     @Req() req: AuthRequest,
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10',
-    @Query('search') search?: string,
+    @Query() query: PaginatedQueryDto,
   ): Promise<{
     data: Application[];
     total: number;
     page: number;
     totalPages: number;
   }> {
-    return this.applicationService.findAll(req, +page, +limit, search);
+    return this.applicationService.findAll(
+      req,
+      query.page,
+      query.limit,
+      query.search,
+    );
   }
 
   @Get(':id')

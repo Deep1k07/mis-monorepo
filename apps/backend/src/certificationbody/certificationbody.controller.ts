@@ -8,20 +8,19 @@ import {
   Req,
   UseGuards,
   Query,
-  DefaultValuePipe,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { CetificationbodyService } from './certificationbody.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
+import { PaginatedQueryDto } from 'src/common/dto/paginated-query.dto';
 import { CreateCabDto } from './dto/create-cab.dto';
 import { CreateStandardDto } from './dto/create-standard.dto';
+import { GetAllStandardsQueryDto } from './dto/get-all-standards-query.dto';
 import { CertificationBody } from './schema/certificationBody.schema';
 import { CertificationStandard } from './schema/certificationStandards.schema';
 import {
   ApiCookieAuth,
   ApiOperation,
-  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -51,14 +50,9 @@ export class CertificationbodyController {
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all CABs with pagination' })
-  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
-  @ApiQuery({ name: 'search', required: false, type: String })
   @ApiResponse({ status: 200, description: 'Paginated list of CABs' })
   async getAllCabs(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('search') search?: string,
+    @Query() query: PaginatedQueryDto,
   ): Promise<{
     data: CertificationBody[];
     total: number;
@@ -66,7 +60,11 @@ export class CertificationbodyController {
     limit: number;
     totalPages: number;
   }> {
-    return this.certificationbodyService.getAllCabs(page, limit, search);
+    return this.certificationbodyService.getAllCabs(
+      query.page,
+      query.limit,
+      query.search,
+    );
   }
 
   // ─── Standard Endpoints (must be before :id to avoid route conflict) ───
@@ -86,16 +84,9 @@ export class CertificationbodyController {
   @Get('standard/all')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all standards with pagination' })
-  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
-  @ApiQuery({ name: 'certificationBody', required: false, type: String, description: 'Filter by certification body ID' })
-  @ApiQuery({ name: 'search', required: false, type: String })
   @ApiResponse({ status: 200, description: 'Paginated list of standards' })
   async getAllStandards(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('certificationBody') certificationBody?: string,
-    @Query('search') search?: string,
+    @Query() query: GetAllStandardsQueryDto,
   ): Promise<{
     data: CertificationStandard[];
     total: number;
@@ -104,10 +95,10 @@ export class CertificationbodyController {
     totalPages: number;
   }> {
     return this.certificationbodyService.getAllStandards(
-      page,
-      limit,
-      certificationBody,
-      search,
+      query.page,
+      query.limit,
+      query.certificationBody,
+      query.search,
     );
   }
 
