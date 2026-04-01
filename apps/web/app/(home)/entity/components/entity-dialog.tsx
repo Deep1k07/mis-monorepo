@@ -11,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { EntityForm } from "./entity-form";
 
@@ -24,19 +23,21 @@ export function EntityDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="lg" />}>
+    <>
+      <Button size="lg" onClick={() => setOpen(true)}>
         <Plus className="h-4 w-4" /> Create Entity
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>Create Entity</DialogTitle>
-          <DialogDescription>
-            Add a new direct client or business associate managed entity.
-          </DialogDescription>
-        </DialogHeader>
-        <EntityForm onSuccess={() => setOpen(false)} />
-      </DialogContent>
-    </Dialog>
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Create Entity</DialogTitle>
+            <DialogDescription>
+              Add a new direct client or business associate managed entity.
+            </DialogDescription>
+          </DialogHeader>
+          <EntityForm onSuccess={() => setOpen(false)} />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
