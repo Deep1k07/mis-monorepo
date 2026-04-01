@@ -8,8 +8,12 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+  const port = process.env.PORT ?? 3003;
   app.enableCors({
-    origin: [configService.get<string>('CLIENT_URL')],
+    origin: [
+      configService.get<string>('CLIENT_URL'),
+      `http://localhost:${port}`,
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -25,11 +29,15 @@ async function bootstrap() {
     .setTitle('MIS API')
     .setDescription('MIS Backend API Documentation')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addCookieAuth('access_token')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup('api-docs', app, document, {
+    swaggerOptions: {
+      withCredentials: true,
+    },
+  });
 
-  await app.listen(process.env.PORT ?? 3003);
+  await app.listen(port);
 }
 bootstrap();
