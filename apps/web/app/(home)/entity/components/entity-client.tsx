@@ -51,52 +51,48 @@ export function EntityClient() {
     setPage(newPage);
   };
 
-  return (
-    <>
-      <div className="flex items-center gap-2 mb-4">
-        {mounted && (
-          <Select
-            value={baFilter}
-            onValueChange={(value) => {
-              setBaFilter(value === "all" ? "" : (value ?? ""));
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="Filter by Business Associate">
-                {baFilter
-                  ? (bams?.find((b) => b._id === baFilter)?.username ??
-                    "All Business Associates")
-                  : null}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Business Associates</SelectItem>
-              {bams?.map((ba) => (
-                <SelectItem key={ba._id} value={ba._id}>
-                  {ba.username}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-      {loading ? (
-        <div className="flex items-center justify-center py-10 text-muted-foreground">
-          Loading...
-        </div>
-      ) : (
-        <DataTable
-          columns={columns}
-          data={data}
-          pageCount={totalPages}
-          page={page}
-          total={total}
-          onPageChange={handlePageChange}
-          searchValue={searchInput}
-          onSearchChange={handleSearchChange}
-        />
-      )}
-    </>
+  const filterSlot = mounted ? (
+    <Select
+      value={baFilter}
+      onValueChange={(value) => {
+        setBaFilter(value === "all" ? "" : (value ?? ""));
+        setPage(1);
+      }}
+    >
+      <SelectTrigger className="w-[220px]">
+        <SelectValue placeholder="All Business Associates">
+          {baFilter
+            ? (bams?.find((b) => b._id === baFilter)?.username ??
+              "All Business Associates")
+            : null}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All Business Associates</SelectItem>
+        {bams?.map((ba) => (
+          <SelectItem key={ba._id} value={ba._id}>
+            {ba.username}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  ) : null;
+
+  return loading ? (
+    <div className="flex items-center justify-center py-10 text-muted-foreground">
+      Loading...
+    </div>
+  ) : (
+    <DataTable
+      columns={columns}
+      data={data}
+      pageCount={totalPages}
+      page={page}
+      total={total}
+      onPageChange={handlePageChange}
+      searchValue={searchInput}
+      onSearchChange={handleSearchChange}
+      filterSlot={filterSlot}
+    />
   );
 }

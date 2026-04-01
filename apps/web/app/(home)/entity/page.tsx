@@ -22,7 +22,7 @@ export default async function EntityPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4">
+        <header className="flex h-16 shrink-0 items-center border-b px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator
@@ -41,17 +41,19 @@ export default async function EntityPage() {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <div className="flex items-center space-x-2">
-            <EntityDialog />
-          </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 lg:p-8">
-          <div className="flex flex-col space-y-4">
-            <h2 className="text-3xl font-bold tracking-tight">Entities</h2>
-            <p className="text-muted-foreground">
-              Manage your direct clients and business associate managed
-              entities.
-            </p>
+        <div className="flex flex-1 flex-col gap-6 p-4 lg:p-8">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                Entities
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Manage your direct clients and business associate managed
+                entities.
+              </p>
+            </div>
+            <EntityDialog />
           </div>
           <EntityClient />
         </div>

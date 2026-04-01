@@ -53,43 +53,40 @@ export function StandardList() {
     [],
   );
 
+  const filterSlot = (
+    <Select
+      value={cabFilter}
+      onValueChange={(value) => {
+        setCabFilter(value === "all" ? "" : (value ?? ""));
+        setPage(1);
+      }}
+    >
+      <SelectTrigger className="w-[220px]">
+        <SelectValue placeholder="All CABs">
+          {cabFilter
+            ? cabs?.find((c: any) => c._id === cabFilter)?.cbName
+            : null}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="all">All CABs</SelectItem>
+        {cabs?.map((cab: any) => (
+          <SelectItem key={cab._id} value={cab._id}>
+            {cab.cabCode} - {cab.cbName}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+
+  const actionSlot = hasPermission("standard:create") ? (
+    <Button onClick={() => setCreateOpen(true)} className="cursor-pointer">
+      <Plus className="h-4 w-4" /> Create Standard
+    </Button>
+  ) : null;
+
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <Select
-          value={cabFilter}
-          onValueChange={(value) => {
-            setCabFilter(value === "all" ? "" : (value ?? ""));
-            setPage(1);
-          }}
-        >
-          <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder="Filter by CAB">
-              {cabFilter
-                ? cabs?.find((c: any) => c._id === cabFilter)?.cbName
-                : null}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All CABs</SelectItem>
-            {cabs?.map((cab: any) => (
-              <SelectItem key={cab._id} value={cab._id}>
-                {cab.cabCode} - {cab.cbName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {hasPermission("standard:create") && (
-          <Button
-            onClick={() => setCreateOpen(true)}
-            className="cursor-pointer"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Create Standard
-          </Button>
-        )}
-      </div>
-
       {isLoading ? (
         <div className="flex items-center justify-center py-10 text-muted-foreground">
           Loading...
@@ -104,6 +101,8 @@ export function StandardList() {
           onPageChange={setPage}
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
+          filterSlot={filterSlot}
+          actionSlot={actionSlot}
         />
       )}
 

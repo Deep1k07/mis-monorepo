@@ -34,6 +34,8 @@ interface DataTableProps<TData, TValue> {
   onPageChange?: (page: number) => void;
   searchValue?: string;
   onSearchChange?: (value: string) => void;
+  filterSlot?: React.ReactNode;
+  actionSlot?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -45,6 +47,8 @@ export function DataTable<TData, TValue>({
   onPageChange,
   searchValue,
   onSearchChange,
+  filterSlot,
+  actionSlot,
 }: DataTableProps<TData, TValue>) {
   const isServerPagination =
     pageCount !== undefined && onPageChange !== undefined;
@@ -111,24 +115,28 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="relative w-full max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search..."
-            value={onSearchChange ? (searchValue ?? "") : (globalFilter ?? "")}
-            onChange={(event) => {
-              if (onSearchChange) {
-                onSearchChange(event.target.value);
-              } else {
-                setGlobalFilter(event.target.value);
-              }
-            }}
-            className="pl-8"
-          />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative w-full sm:w-[300px]">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search..."
+              value={onSearchChange ? (searchValue ?? "") : (globalFilter ?? "")}
+              onChange={(event) => {
+                if (onSearchChange) {
+                  onSearchChange(event.target.value);
+                } else {
+                  setGlobalFilter(event.target.value);
+                }
+              }}
+              className="pl-8"
+            />
+          </div>
+          {filterSlot}
         </div>
+        {actionSlot}
       </div>
-      <div className="rounded-md border bg-card">
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -178,14 +186,14 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {rowCount} row(s) total.
-        </div>
-        <div className="space-x-2 flex items-center">
-          <div className="text-sm font-medium">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {rowCount} row(s) total
+        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium">
             Page {currentPage} of {totalPages}
-          </div>
+          </p>
           <Button
             variant="outline"
             size="sm"

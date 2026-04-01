@@ -40,20 +40,14 @@ export function CabList() {
     [],
   );
 
+  const actionSlot = hasPermission("cab:create") ? (
+    <Button onClick={() => setCreateOpen(true)} className="cursor-pointer">
+      <Plus className="h-4 w-4" /> Create CAB
+    </Button>
+  ) : null;
+
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <div />
-        {hasPermission("cab:create") && (
-          <Button
-            onClick={() => setCreateOpen(true)}
-            className="cursor-pointer"
-          >
-            <Plus className="mr-2 h-4 w-4" /> Create CAB
-          </Button>
-        )}
-      </div>
-
       {isLoading ? (
         <div className="flex items-center justify-center py-10 text-muted-foreground">
           Loading...
@@ -68,6 +62,7 @@ export function CabList() {
           onPageChange={setPage}
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
+          actionSlot={actionSlot}
         />
       )}
 

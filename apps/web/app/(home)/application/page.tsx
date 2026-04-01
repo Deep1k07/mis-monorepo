@@ -21,7 +21,7 @@ export default async function ApplicationPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center justify-between border-b px-4">
+        <header className="flex h-16 shrink-0 items-center border-b px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator
@@ -41,12 +41,12 @@ export default async function ApplicationPage() {
             </Breadcrumb>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 lg:p-8">
-          <div className="flex flex-col space-y-4">
-            <h2 className="text-3xl font-bold tracking-tight">
+        <div className="flex flex-1 flex-col gap-6 p-4 lg:p-8">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">
               All Applications
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               View and manage all initial applications.
             </p>
           </div>
