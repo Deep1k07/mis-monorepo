@@ -12,16 +12,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAllBa, useEntities } from "@/utils/apis";
+import { useDebounce } from "@/utils/useDebounce";
 
 export function EntityClient() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [baFilter, setBaFilter] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    setPage(1);
+  };
 
   const columns = useMemo(
     () =>
@@ -37,7 +45,7 @@ export function EntityClient() {
     totalPages,
     total,
     isLoading: loading,
-  } = useEntities(page, baFilter);
+  } = useEntities(page, baFilter, search);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -85,6 +93,8 @@ export function EntityClient() {
           page={page}
           total={total}
           onPageChange={handlePageChange}
+          searchValue={searchInput}
+          onSearchChange={handleSearchChange}
         />
       )}
     </>

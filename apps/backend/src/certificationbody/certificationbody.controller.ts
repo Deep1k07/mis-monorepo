@@ -36,8 +36,9 @@ export class CertificationbodyController {
   async getAllCabs(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('search') search?: string,
   ) {
-    return this.certificationbodyService.getAllCabs(page, limit);
+    return this.certificationbodyService.getAllCabs(page, limit, search);
   }
 
   // ─── Standard Endpoints (must be before :id to avoid route conflict) ───
@@ -57,11 +58,13 @@ export class CertificationbodyController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('certificationBody') certificationBody?: string,
+    @Query('search') search?: string,
   ) {
     return this.certificationbodyService.getAllStandards(
       page,
       limit,
       certificationBody,
+      search,
     );
   }
 

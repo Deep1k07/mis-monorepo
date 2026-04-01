@@ -16,12 +16,32 @@ export class ApplicationService {
     return createdApplication.save();
   }
 
-  async findAll(req: AuthRequest, page: number = 1, limit: number = 10) {
+  async findAll(
+    req: AuthRequest,
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ) {
     const { user } = req;
 
-    const filter: Record<string, string> = {};
+    const filter: any = {};
     if (!user.permissions.includes('application:read:all')) {
       filter.user = user.userId;
+    }
+
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filter.$and = [
+        ...(filter.$and || []),
+        {
+          $or: [
+            { entity_name: regex },
+            { entity_id: regex },
+            { cab_code: regex },
+            { 'standards.code': regex },
+          ],
+        },
+      ];
     }
 
     const skip = (page - 1) * limit;

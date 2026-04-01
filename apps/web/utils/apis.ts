@@ -33,9 +33,10 @@ export function useEntityById(id: string | undefined) {
   };
 }
 
-export function useEntities(page: number, ba: string) {
+export function useEntities(page: number, ba: string, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (ba) params.set("busuness_associate", ba);
+  if (search) params.set("search", search);
 
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/entity/get-all?${params}`,
@@ -50,8 +51,9 @@ export function useEntities(page: number, ba: string) {
   };
 }
 
-export function useApplications(page: number) {
+export function useApplications(page: number, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/application?${params}`,
   );
@@ -90,8 +92,9 @@ export const createEntity = async (data: any) => {
 
 // ─── CAB & Standard APIs ───
 
-export function useCabs(page: number) {
+export function useCabs(page: number, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
   const { data, error, isLoading, mutate } = useSWR(
     `${BASE_URL}/certificationbody?${params}`,
   );
@@ -136,9 +139,10 @@ export const updateCab = async (id: string, data: any) => {
   return response;
 };
 
-export function useStandards(page: number, certificationBody?: string) {
+export function useStandards(page: number, certificationBody?: string, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (certificationBody) params.set("certificationBody", certificationBody);
+  if (search) params.set("search", search);
   const { data, error, isLoading, mutate } = useSWR(
     `${BASE_URL}/certificationbody/standard/all?${params}`,
   );

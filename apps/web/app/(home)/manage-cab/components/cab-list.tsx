@@ -13,16 +13,24 @@ import {
 } from "@/components/ui/dialog";
 import { useAuthStore } from "@/store/auth-store";
 import { useCabs } from "@/utils/apis";
+import { useDebounce } from "@/utils/useDebounce";
 import { createCabColumns, CabDef } from "./cab-columns";
 import { CabForm } from "./cab-form";
 
 export function CabList() {
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput);
   const [createOpen, setCreateOpen] = useState(false);
   const [editCab, setEditCab] = useState<CabDef | null>(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
-  const { data, totalPages, total, isLoading, mutate } = useCabs(page);
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    setPage(1);
+  };
+
+  const { data, totalPages, total, isLoading, mutate } = useCabs(page, search);
 
   const columns = useMemo(
     () =>
@@ -58,6 +66,8 @@ export function CabList() {
           page={page}
           total={total}
           onPageChange={setPage}
+          searchValue={searchInput}
+          onSearchChange={handleSearchChange}
         />
       )}
 

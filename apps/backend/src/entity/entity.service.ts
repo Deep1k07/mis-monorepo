@@ -154,6 +154,7 @@ export class EntityService {
     page: number = 1,
     limit: number = 10,
     busuness_associate?: string,
+    search?: string,
   ) {
     const permissions = req.user.permissions || [];
     const skip = (page - 1) * limit;
@@ -166,7 +167,20 @@ export class EntityService {
       filter.busuness_associate = busuness_associate;
     }
 
-    // console.log("hkbfsjkdf", filter)
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filter.$and = [
+        ...(filter.$and || []),
+        {
+          $or: [
+            { entity_name: regex },
+            { entity_id: regex },
+            { email: regex },
+            { entity_trading_name: regex },
+          ],
+        },
+      ];
+    }
 
     const [data, total] = await Promise.all([
       this.entityModel

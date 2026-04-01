@@ -20,20 +20,29 @@ import {
 } from "@/components/ui/select";
 import { useAuthStore } from "@/store/auth-store";
 import { useStandards, useAllCabsList } from "@/utils/apis";
+import { useDebounce } from "@/utils/useDebounce";
 import { createStandardColumns, StandardDef } from "./standard-columns";
 import { StandardForm } from "./standard-form";
 
 export function StandardList() {
   const [page, setPage] = useState(1);
   const [cabFilter, setCabFilter] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const search = useDebounce(searchInput);
   const [createOpen, setCreateOpen] = useState(false);
   const [editStandard, setEditStandard] = useState<StandardDef | null>(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    setPage(1);
+  };
 
   const { cabs } = useAllCabsList();
   const { data, totalPages, total, isLoading, mutate } = useStandards(
     page,
     cabFilter,
+    search,
   );
 
   const columns = useMemo(
@@ -93,6 +102,8 @@ export function StandardList() {
           page={page}
           total={total}
           onPageChange={setPage}
+          searchValue={searchInput}
+          onSearchChange={handleSearchChange}
         />
       )}
 

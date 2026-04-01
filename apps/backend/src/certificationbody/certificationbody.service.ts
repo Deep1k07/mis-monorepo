@@ -40,19 +40,31 @@ export class CetificationbodyService {
     });
   }
 
-  async getAllCabs(page: number = 1, limit: number = 10) {
+  async getAllCabs(page: number = 1, limit: number = 10, search?: string) {
     const skip = (page - 1) * limit;
+    const filter: any = {};
+
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filter.$or = [
+        { cabCode: regex },
+        { cbCode: regex },
+        { cbName: regex },
+        { abCode: regex },
+        { abName: regex },
+      ];
+    }
 
     const [data, total] = await Promise.all([
       this.certificationBodyModel
-        .find()
+        .find(filter)
         .select('-cabJurisdictions')
         .populate('user', 'email firstName lastName')
         .populate('standards', 'mssCode schemeName standardCode status')
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
-      this.certificationBodyModel.countDocuments(),
+      this.certificationBodyModel.countDocuments(filter),
     ]);
 
     return {
@@ -156,11 +168,26 @@ export class CetificationbodyService {
     page: number = 1,
     limit: number = 10,
     certificationBody?: string,
+    search?: string,
   ) {
     const skip = (page - 1) * limit;
     const filter: any = {};
     if (certificationBody) {
       filter.certificationBody = certificationBody;
+    }
+
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filter.$and = [
+        ...(filter.$and || []),
+        {
+          $or: [
+            { mssCode: regex },
+            { schemeName: regex },
+            { standardCode: regex },
+          ],
+        },
+      ];
     }
 
     const [data, total] = await Promise.all([

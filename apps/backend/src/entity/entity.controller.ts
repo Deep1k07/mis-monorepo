@@ -33,6 +33,7 @@ export class EntityController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('busuness_associate') busuness_associate?: string,
+    @Query('search') search?: string,
   ): Promise<{
     data: Entity[];
     total: number;
@@ -40,7 +41,7 @@ export class EntityController {
     limit: number;
     totalPages: number;
   }> {
-    return this.entityService.getAll(req, page, limit, busuness_associate);
+    return this.entityService.getAll(req, page, limit, busuness_associate, search);
   }
 
   @Patch(':id')

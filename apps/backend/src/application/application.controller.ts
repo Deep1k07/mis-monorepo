@@ -22,8 +22,9 @@ export class ApplicationController {
     @Req() req: AuthRequest,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
+    @Query('search') search?: string,
   ) {
-    return this.applicationService.findAll(req, +page, +limit);
+    return this.applicationService.findAll(req, +page, +limit, search);
   }
 
   @Get(':id')
