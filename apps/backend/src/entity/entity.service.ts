@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Entity } from './schema/entity.schema';
+import { Application } from '../application/schema/application.schema';
 import { cleanString } from 'src/utils/cleanString';
 import { createSlug } from 'src/utils/createNameSlug';
 import { CreateEntityDto } from './dto/entity.dto';
@@ -10,7 +11,10 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 
 @Injectable()
 export class EntityService {
-  constructor(@InjectModel(Entity.name) private entityModel: Model<Entity>) { }
+  constructor(
+    @InjectModel(Entity.name) private entityModel: Model<Entity>,
+    @InjectModel(Application.name) private applicationModel: Model<Application>,
+  ) {}
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
       const id = generateAlphanumericCode();
@@ -146,7 +150,14 @@ export class EntityService {
     if (!entity) {
       throw new BadRequestException('Entity not found');
     }
-    return entity;
+
+    const applications = await this.applicationModel
+      .find({ entity_id: id })
+      .select('certificate_number cab_code standards current_issue valid_until certificateStatus scopeStatus qualityStatus')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return { ...entity.toObject(), applications };
   }
 
   async getAll(

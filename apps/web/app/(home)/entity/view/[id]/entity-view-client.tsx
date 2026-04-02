@@ -283,6 +283,68 @@ export function EntityViewClient() {
               </div>
             </div>
           )}
+
+        {/* Applications */}
+        <div>
+          <h4 className="text-sm font-semibold mb-3">
+            Applications ({entity.applications?.length || 0})
+          </h4>
+          {!entity.applications || entity.applications.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No applications found for this entity.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Certificate No.</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">CAB Code</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Standards</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Issue Date</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Valid Until</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Certificate Status</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Scope Status</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Quality Status</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entity.applications.map((app: any) => (
+                    <tr
+                      key={app._id}
+                      className="border-b last:border-b-0 hover:bg-muted/30 transition-colors"
+                    >
+                      <td className="px-3 py-2 font-mono">{app.certificate_number || "-"}</td>
+                      <td className="px-3 py-2">{app.cab_code || "-"}</td>
+                      <td className="px-3 py-2">
+                        {app.standards?.map((s: any) => s.code).join(", ") || "-"}
+                      </td>
+                      <td className="px-3 py-2">{app.current_issue?.split("T")[0] || "-"}</td>
+                      <td className="px-3 py-2">{app.valid_until?.split("T")[0] || "-"}</td>
+                      <td className="px-3 py-2">
+                        <StatusBadge label="" value={app.certificateStatus} />
+                      </td>
+                      <td className="px-3 py-2">
+                        <StatusBadge label="" value={app.scopeStatus} />
+                      </td>
+                      <td className="px-3 py-2">
+                        <StatusBadge label="" value={app.qualityStatus} />
+                      </td>
+                      <td className="px-3 py-2">
+                        <button
+                          onClick={() => router.push(`/application/view/${app._id}`)}
+                          className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          title="View application"
+                        >
+                          <FileCheck className="h-4 w-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Edit Dialog */}

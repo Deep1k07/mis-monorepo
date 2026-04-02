@@ -52,6 +52,14 @@ export const createColumns = (
   {
     accessorKey: "entity_name",
     header: "Name",
+    cell: ({ row }) => {
+      const name = row.getValue("entity_name") as string;
+      return (
+        <span className="block max-w-[200px] truncate" title={name}>
+          {name}
+        </span>
+      );
+    },
   },
   {
     accessorKey: "email",
