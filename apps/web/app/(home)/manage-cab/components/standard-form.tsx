@@ -20,7 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createStandard, updateStandard, useAllCabsList } from "@/utils/apis";
+import { useAllCabsList } from "@/utils/apis";
+import { createStandard, updateStandard } from "@/utils/mutations";
 import toast from "react-hot-toast";
 
 const standardSchema = z.object({

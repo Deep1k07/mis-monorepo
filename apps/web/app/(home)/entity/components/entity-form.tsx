@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { createEntity, updateEntity, useAllBa, useCountries } from "@/utils/apis";
+import { useAllBa, useCountries } from "@/utils/apis";
+import { createEntity, updateEntity } from "@/utils/mutations";
 import toast from "react-hot-toast";
 
 // Zod Schema

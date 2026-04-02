@@ -1,5 +1,4 @@
 import useSWR from "swr";
-import { apiFetch } from "@/lib/api-fetch";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
@@ -79,17 +78,6 @@ export function useApplicationById(id: string | undefined) {
   };
 }
 
-export const createEntity = async (data: any) => {
-  const response = await apiFetch(`${BASE_URL}/entity/create`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  return response;
-};
-
 // ─── CAB & Standard APIs ───
 
 export function useCabs(page: number, search?: string) {
@@ -121,23 +109,6 @@ export function useCabById(id: string | undefined) {
   };
 }
 
-export const createCab = async (data: any) => {
-  const response = await apiFetch(`${BASE_URL}/certificationbody`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return response;
-};
-
-export const updateCab = async (id: string, data: any) => {
-  const response = await apiFetch(`${BASE_URL}/certificationbody/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return response;
-};
 
 export function useStandards(page: number, certificationBody?: string, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
@@ -179,34 +150,3 @@ export function useAllCabsList() {
   };
 }
 
-export const createStandard = async (data: any) => {
-  const response = await apiFetch(`${BASE_URL}/certificationbody/standard`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  return response;
-};
-
-export const updateStandard = async (id: string, data: any) => {
-  const response = await apiFetch(
-    `${BASE_URL}/certificationbody/standard/${id}`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    },
-  );
-  return response;
-};
-
-export const updateEntity = async (entityId: string, data: any) => {
-  const response = await apiFetch(`${BASE_URL}/entity/${entityId}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  return response;
-};

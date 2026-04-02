@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { createCab, updateCab, useAllStandardsList } from "@/utils/apis";
+import { useAllStandardsList } from "@/utils/apis";
+import { createCab, updateCab } from "@/utils/mutations";
 import toast from "react-hot-toast";
 
 const cabSchema = z.object({
