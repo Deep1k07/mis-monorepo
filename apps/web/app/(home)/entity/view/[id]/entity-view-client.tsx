@@ -191,9 +191,9 @@ export function EntityViewClient() {
 
         {/* Status */}
         <div>
-          <h4 className="text-sm font-semibold mb-3">Status</h4>
+          <h4 className="text-sm font-semibold mb-3">Email Status</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-muted/40 rounded-lg">
-            <StatusBadge label="Entity Status" value={entity.status} />
+            <StatusBadge label="Entity Status" value={entity.isEntityEmailVerifiedStatus} />
           </div>
         </div>
 

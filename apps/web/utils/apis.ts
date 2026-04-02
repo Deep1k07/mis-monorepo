@@ -1,3 +1,4 @@
+import { EntityDef } from "@/app/(home)/entity/components/columns";
 import useSWR from "swr";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
@@ -25,7 +26,7 @@ export function useEntityById(id: string | undefined) {
     id ? `${BASE_URL}/entity/${id}` : null,
   );
   return {
-    entity: data as any | undefined,
+    entity: data as EntityDef | undefined,
     isLoading,
     isError: error,
     mutate: mutate as () => Promise<any>,
