@@ -142,12 +142,6 @@ export function ApplicationViewClient() {
   const openEdit = () => {
     if (!app) return;
     setEditData({
-      entity_name: app.entity_name || "",
-      entity_name_english: app.entity_name_english || "",
-      entity_trading_name: app.entity_trading_name || "",
-      email: app.email || "",
-      website: app.website || "",
-      employess_count: app.employess_count || "",
       scope: app.scope || "",
       additional_scope: app.additional_scope || "",
       primary_certificate_language: app.primary_certificate_language || "",
@@ -203,12 +197,13 @@ export function ApplicationViewClient() {
     );
   }
 
+  const entity = app.entity;
   const baName =
-    typeof app.busuness_associate === "object"
-      ? app.busuness_associate?.username
-      : app.busuness_associate;
+    typeof entity?.busuness_associate === "object"
+      ? entity?.busuness_associate?.username
+      : entity?.busuness_associate;
 
-  const mainAddress = app.main_site_address?.[0];
+  const mainAddress = entity?.main_site_address?.[0];
 
   return (
     <>
@@ -225,12 +220,12 @@ export function ApplicationViewClient() {
             </Button>
             <div className="space-y-1">
               <h2 className="text-2xl font-bold tracking-tight">
-                {app.entity_name}
+                {entity?.entity_name || "-"}
               </h2>
               <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-                <span className="font-mono">{app.entity_id}</span>
+                <span className="font-mono">{entity?.entity_id || "-"}</span>
                 <button
-                  onClick={() => navigator.clipboard.writeText(app.entity_id)}
+                  onClick={() => navigator.clipboard.writeText(entity?.entity_id || "")}
                   className="hover:text-foreground transition-colors"
                   title="Copy Entity ID"
                 >
@@ -279,23 +274,23 @@ export function ApplicationViewClient() {
           </div>
         </div>
 
-        {/* General Info */}
+        {/* Entity Details */}
         <div>
-          <h4 className="text-sm font-semibold mb-3">General Information</h4>
+          <h4 className="text-sm font-semibold mb-3">Entity Details</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <InfoRow icon={Mail} label="Email" value={app.email} />
-            <InfoRow icon={Globe} label="Website" value={app.website} />
+            <InfoRow icon={Mail} label="Email" value={entity?.email} />
+            <InfoRow icon={Globe} label="Website" value={entity?.website} />
             <InfoRow
               icon={Users}
               label="Employees Count"
-              value={app.employess_count}
+              value={entity?.employess_count}
             />
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">
                 English Name
               </span>
               <span className="text-sm">
-                {app.entity_name_english || "-"}
+                {entity?.entity_name_english || "-"}
               </span>
             </div>
             <div className="flex flex-col gap-1">
@@ -303,7 +298,7 @@ export function ApplicationViewClient() {
                 Trading Name
               </span>
               <span className="text-sm">
-                {app.entity_trading_name || "-"}
+                {entity?.entity_trading_name || "-"}
               </span>
             </div>
             {baName && (
@@ -440,14 +435,14 @@ export function ApplicationViewClient() {
         )}
 
         {/* Additional Addresses */}
-        {app.additional_site_address &&
-          app.additional_site_address.length > 0 && (
+        {entity?.additional_site_address &&
+          entity.additional_site_address.length > 0 && (
             <div>
               <h4 className="text-sm font-semibold mb-3">
-                Additional Sites ({app.additional_site_address.length})
+                Additional Sites ({entity.additional_site_address.length})
               </h4>
               <div className="space-y-2">
-                {app.additional_site_address.map((addr: any, i: number) => (
+                {entity.additional_site_address.map((addr: any, i: number) => (
                   <div
                     key={i}
                     className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg"
@@ -468,78 +463,6 @@ export function ApplicationViewClient() {
             <DialogTitle>Edit Application</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="grid gap-1.5">
-              <Label htmlFor="edit-entity-name">Entity Name</Label>
-              <Input
-                id="edit-entity-name"
-                value={editData.entity_name}
-                onChange={(e) =>
-                  setEditData({ ...editData, entity_name: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="edit-entity-name-english">
-                Entity Name (English)
-              </Label>
-              <Input
-                id="edit-entity-name-english"
-                value={editData.entity_name_english}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    entity_name_english: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="edit-trading-name">Trading Name</Label>
-              <Input
-                id="edit-trading-name"
-                value={editData.entity_trading_name}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    entity_trading_name: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="edit-email">Email</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={editData.email}
-                onChange={(e) =>
-                  setEditData({ ...editData, email: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="edit-website">Website</Label>
-              <Input
-                id="edit-website"
-                value={editData.website}
-                onChange={(e) =>
-                  setEditData({ ...editData, website: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="edit-employees">Employees Count</Label>
-              <Input
-                id="edit-employees"
-                value={editData.employess_count}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    employess_count: e.target.value,
-                  })
-                }
-              />
-            </div>
             <div className="grid gap-1.5 sm:col-span-2">
               <Label htmlFor="edit-scope">Scope</Label>
               <Input

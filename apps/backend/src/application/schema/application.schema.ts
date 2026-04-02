@@ -73,7 +73,7 @@ export class Application {
   ])
   standards: { code: string; name: string }[];
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Entity' }) entity: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Entity', required: true }) entity: Types.ObjectId;
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) bulkUploadedBy: Types.ObjectId;
 
   @Prop({ required: true }) entity_id: string;

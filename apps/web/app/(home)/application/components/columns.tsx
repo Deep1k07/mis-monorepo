@@ -5,14 +5,18 @@ import { Eye } from "lucide-react";
 
 export type ApplicationDef = {
   _id: string;
-  entity_id: string;
-  entity_name: string;
+  entity?: {
+    _id: string;
+    entity_id: string;
+    entity_name: string;
+    busuness_associate?: { _id: string; username: string } | string;
+  };
   cab_code: string;
-  busuness_associate?: { _id: string; username: string } | string;
   standards?: { code: string; name: string }[];
   scope: string;
   certificateStatus: string;
   qualityStatus: string;
+  scopeStatus: string;
   baStatus: string;
   createdAt?: string;
 };
@@ -43,14 +47,17 @@ export const createColumns = (
   onView: (app: ApplicationDef) => void,
 ): ColumnDef<ApplicationDef>[] => [
     {
-      accessorKey: "entity_id",
+      id: "entity_id",
       header: "Entity ID",
+      cell: ({ row }) => {
+        return <span>{row.original.entity?.entity_id ?? "-"}</span>;
+      },
     },
     {
-      accessorKey: "entity_name",
+      id: "entity_name",
       header: "Entity Name",
       cell: ({ row }) => {
-        const name = row.getValue("entity_name") as string;
+        const name = row.original.entity?.entity_name ?? "-";
         return (
           <span className="block max-w-[200px] truncate" title={name}>
             {name}
@@ -63,13 +70,10 @@ export const createColumns = (
       header: "CAB Code",
     },
     {
-      accessorKey: "busuness_associate",
+      id: "busuness_associate",
       header: "BA Name",
       cell: ({ row }) => {
-        const ba = row.getValue("busuness_associate") as
-          | { _id: string; username: string }
-          | string
-          | undefined;
+        const ba = row.original.entity?.busuness_associate;
         if (!ba) return <span className="text-muted-foreground">-</span>;
         return <span>{typeof ba === "object" ? ba.username : ba}</span>;
       },
