@@ -3,6 +3,7 @@ import useSWR from "swr";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 
+// get all ba
 export function useAllBa() {
   const { data, error, isLoading } = useSWR(`${BASE_URL}/ba/get-all`);
   return {
@@ -12,6 +13,7 @@ export function useAllBa() {
   };
 }
 
+// get all countries
 export function useCountries() {
   const { data, error, isLoading } = useSWR(`${BASE_URL}/country`);
   return {
@@ -21,6 +23,7 @@ export function useCountries() {
   };
 }
 
+// get entity by id
 export function useEntityById(id: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     id ? `${BASE_URL}/entity/${id}` : null,
@@ -33,6 +36,7 @@ export function useEntityById(id: string | undefined) {
   };
 }
 
+// get all entities
 export function useEntities(page: number, ba: string, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (ba) params.set("busuness_associate", ba);
@@ -51,6 +55,7 @@ export function useEntities(page: number, ba: string, search?: string) {
   };
 }
 
+// get all applications
 export function useApplications(page: number, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
@@ -67,6 +72,7 @@ export function useApplications(page: number, search?: string) {
   };
 }
 
+// get application by id
 export function useApplicationById(id: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     id ? `${BASE_URL}/application/${id}` : null,
@@ -79,8 +85,7 @@ export function useApplicationById(id: string | undefined) {
   };
 }
 
-// ─── CAB & Standard APIs ───
-
+// get all cabs
 export function useCabs(page: number, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
@@ -98,6 +103,7 @@ export function useCabs(page: number, search?: string) {
   };
 }
 
+// get cab by id
 export function useCabById(id: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     id ? `${BASE_URL}/certificationbody/${id}` : null,
@@ -110,7 +116,7 @@ export function useCabById(id: string | undefined) {
   };
 }
 
-
+// get all standards
 export function useStandards(page: number, certificationBody?: string, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (certificationBody) params.set("certificationBody", certificationBody);
@@ -129,6 +135,7 @@ export function useStandards(page: number, certificationBody?: string, search?: 
   };
 }
 
+// get all standards list
 export function useAllStandardsList() {
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/certificationbody/standard/all?limit=200`,
@@ -140,6 +147,7 @@ export function useAllStandardsList() {
   };
 }
 
+// get all cabs list
 export function useAllCabsList() {
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/certificationbody?limit=100`,
