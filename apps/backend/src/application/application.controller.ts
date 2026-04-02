@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Query,
   Req,
   UseGuards,
@@ -25,6 +26,20 @@ import {
 @Controller('application')
 export class ApplicationController {
   constructor(private readonly applicationService: ApplicationService) {}
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Create a new application' })
+  @ApiResponse({ status: 201, description: 'Application created' })
+  async create(
+    @Req() req: AuthRequest,
+    @Body() body: Record<string, any>,
+  ) {
+    return this.applicationService.create({
+      ...body,
+      appliedBy: req.user.userId,
+    });
+  }
 
   @Get()
   @UseGuards(JwtAuthGuard)

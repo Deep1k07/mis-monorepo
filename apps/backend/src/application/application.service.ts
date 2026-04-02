@@ -11,8 +11,8 @@ export class ApplicationService {
     private readonly applicationModel: Model<ApplicationDocument>,
   ) { }
 
-  async create(application: Application): Promise<Application> {
-    const createdApplication = new this.applicationModel(application);
+  async create(data: Record<string, any>) {
+    const createdApplication = new this.applicationModel(data);
     return createdApplication.save();
   }
 

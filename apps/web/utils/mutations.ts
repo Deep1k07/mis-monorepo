@@ -26,6 +26,17 @@ export const updateEntity = async (entityId: string, data: any) => {
   return response;
 };
 
+// ─── Application ───
+
+export const createApplication = async (data: any) => {
+  const response = await apiFetch(`${BASE_URL}/application`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
 // ─── CAB ───
 
 export const createCab = async (data: any) => {

@@ -74,25 +74,29 @@ export class Application {
   standards: { code: string; name: string }[];
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Entity', required: true }) entity: Types.ObjectId;
+  @Prop() secondary_entity_name: string;
+  @Prop({ required: true }) employess_count: string;
+
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) bulkUploadedBy: Types.ObjectId;
 
-  @Prop({ required: true }) entity_id: string;
-  @Prop({ required: true }) entity_name: string;
-  @Prop() name_slug: string;
-  @Prop() secondary_entity_name: string;
-  @Prop({ required: true }) entity_name_english: string;
-  @Prop({ required: true }) entity_trading_name: string;
+  // @Prop({ required: true }) entity_id: string;
+  // @Prop({ required: true }) entity_name: string;
+  // @Prop() name_slug: string;
+  // @Prop({ required: true }) entity_name_english: string;
+  // @Prop({ required: true }) entity_trading_name: string;
 
-  @Prop([
-    {
-      street: String,
-      city: { type: String, default: '' },
-      state: { type: String, default: '' },
-      country: String,
-      postal_code: String,
-    },
-  ])
-  main_site_address: any[];
+
+  // @Prop([
+  //   {
+  //     street: String,
+  //     city: { type: String, default: '' },
+  //     state: { type: String, default: '' },
+  //     country: String,
+  //     postal_code: String,
+  //   },
+  // ])
+  // main_site_address: any[];
 
   @Prop([
     {
@@ -107,20 +111,19 @@ export class Application {
 
   @Prop() additional_address: string;
 
-  @Prop([
-    {
-      street: String,
-      city: { type: String, default: '' },
-      state: { type: String, default: '' },
-      country: String,
-      postal_code: String,
-    },
-  ])
-  additional_address_multiple: any[];
+  // @Prop([
+  //   {
+  //     street: String,
+  //     city: { type: String, default: '' },
+  //     state: { type: String, default: '' },
+  //     country: String,
+  //     postal_code: String,
+  //   },
+  // ])
+  // additional_address_multiple: any[];
 
   @Prop({ required: true }) email: string;
   @Prop() website: string;
-  @Prop({ required: true }) employess_count: string;
   @Prop({ required: true }) scope: string;
   @Prop() additional_scope: string;
   @Prop() drive_link: string;

@@ -13,14 +13,29 @@ export type EntityDef = {
   website?: string;
   drive_link?: string;
   direct_price?: string;
-  busuness_associate?:
-  | {
+  busuness_associate?: {
     _id: string;
     username: string;
     email?: string;
     status?: string;
     phone?: string;
     userId?: string;
+    cab?: {
+      cab: [
+        {
+          cabCode: string;
+          cbCode: string;
+          abCode: string;
+          status: string;
+          standards: {
+            code: string;
+            name: string;
+            status: string;
+            version: number;
+          }[];
+        }
+      ]
+    }
   }
   | string;
   status: string;

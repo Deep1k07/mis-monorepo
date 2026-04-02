@@ -1,0 +1,868 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
+import * as z from "zod";
+import { useForm, useFieldArray } from "react-hook-form";
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
+import { ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import {
+  useEntityById,
+  useCountries,
+} from "@/utils/apis";
+import { createApplication } from "@/utils/mutations";
+import toast from "react-hot-toast";
+
+const LANGUAGES = [
+  "English",
+  "Arabic",
+  "Chinese",
+  "French",
+  "German",
+  "Hindi",
+  "Italian",
+  "Japanese",
+  "Korean",
+  "Portuguese",
+  "Russian",
+  "Spanish",
+  "Turkish",
+];
+
+const addressSchema = z.object({
+  street: z.string().min(1, "Street is required"),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  country: z.string().min(1, "Country is required"),
+  postal_code: z.string().optional(),
+});
+
+const applicationSchema = z.object({
+  certification_type: z.enum(["individual", "integrated"]),
+  cab_code: z.string().min(1, "CAB Code is required"),
+  standards: z
+    .array(
+      z.object({
+        code: z.string(),
+        name: z.string(),
+        _id: z.string(),
+      })
+    )
+    .min(1, "At least one standard is required"),
+  duration: z.string().min(1, "Duration is required"),
+  severity: z.enum(["normal", "urgent", "most_urgent"]).default("normal"),
+  risk: z.enum(["low", "medium", "high"]).default("low"),
+  annexure: z.boolean().default(false),
+  auditor_leader_name: z.string().optional(),
+  charges: z.string().optional(),
+  primary_certificate_language: z.string().min(1, "Language is required"),
+  drive_link: z.string().optional(),
+  scope: z.string().min(1, "Scope is required"),
+  employess_count: z.string().min(1, "Employees count is required"),
+  secondary_entity_name: z.string().optional(),
+  secondary_certificate_language: z.string().optional(),
+  additional_scope: z.string().optional(),
+  additional_site_address: z.array(addressSchema).optional(),
+});
+
+type ApplicationFormValues = z.infer<typeof applicationSchema>;
+
+function SectionCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border bg-card p-5 space-y-4">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+export function ApplyCertificateClient() {
+  const params = useParams();
+  const router = useRouter();
+  const entityId = params.id as string;
+
+  const { entity, isLoading: entityLoading } = useEntityById(entityId);
+  const { countries, isLoading: countriesLoading } = useCountries();
+
+  const [showOtherLanguage, setShowOtherLanguage] = useState(false);
+
+  const form = useForm<ApplicationFormValues>({
+    resolver: standardSchemaResolver(applicationSchema),
+    defaultValues: {
+      certification_type: "individual",
+      cab_code: "",
+      standards: [],
+      duration: "",
+      severity: "normal",
+      risk: "low",
+      annexure: false,
+      auditor_leader_name: "",
+      charges: "",
+      primary_certificate_language: "English",
+      drive_link: "",
+      scope: "",
+      employess_count: "",
+      secondary_entity_name: "",
+      secondary_certificate_language: "",
+      additional_scope: "",
+      additional_site_address: [],
+    },
+  });
+
+  const {
+    fields: otherLangAddresses,
+    append: appendAddress,
+    remove: removeAddress,
+  } = useFieldArray({
+    control: form.control,
+    name: "additional_site_address",
+  });
+
+  const selectedCabCode = form.watch("cab_code");
+  const selectedStandards = form.watch("standards");
+
+  // BA's assigned CABs from CabBA.cab array
+  const baCabs = useMemo(() => {
+    if (!entity?.busuness_associate?.cab?.cab) return [];
+    return entity.busuness_associate.cab.cab.filter(
+      (cb: any) => cb.status === "active"
+    );
+  }, [entity]);
+
+  // Standards for the selected CAB
+  const selectedCab = useMemo(() => {
+    if (!baCabs.length || !selectedCabCode) return null;
+    return baCabs.find((cb: any) => cb.cabCode === selectedCabCode);
+  }, [baCabs, selectedCabCode]);
+
+  const cabStandards = useMemo(() => {
+    if (!selectedCab?.standards) return [];
+    return selectedCab.standards.filter((s: any) => s.status === "active");
+  }, [selectedCab]);
+
+  function toggleStandard(std: any, checked: boolean) {
+    const current = form.getValues("standards");
+    if (checked) {
+      form.setValue("standards", [
+        ...current,
+        { code: std.code, name: std.name, _id: std._id },
+      ]);
+    } else {
+      form.setValue(
+        "standards",
+        current.filter((s) => s._id !== std._id)
+      );
+    }
+    const next = checked
+      ? [...current, std]
+      : current.filter((s) => s._id !== std._id);
+    form.setValue("duration", next.length > 0 ? "1 Year" : "");
+  }
+
+  async function onSubmit(data: ApplicationFormValues) {
+    if (!entity) return;
+
+    const payload: any = {
+      entity: entity._id,
+      busuness_associate:
+        typeof entity.busuness_associate === "object"
+          ? entity.busuness_associate?._id
+          : entity.busuness_associate,
+      cab_code: data.cab_code,
+      standards: data.standards.map((s) => ({ code: s.code, name: s.name })),
+      duration: data.duration,
+      severity: data.severity,
+      risk: data.risk,
+      annexure: data.annexure,
+      auditor_leader_name: data.auditor_leader_name || "",
+      certification_type: data.certification_type,
+      charges: data.charges || "",
+      primary_certificate_language: data.primary_certificate_language,
+      drive_link: data.drive_link || "",
+      scope: data.scope,
+      employess_count: data.employess_count,
+      email: entity.email,
+      website: entity.website || "",
+    };
+
+    if (showOtherLanguage) {
+      payload.secondary_entity_name = data.secondary_entity_name || "";
+      payload.secondary_certificate_language =
+        data.secondary_certificate_language || "";
+      payload.additional_scope = data.additional_scope || "";
+      payload.additional_site_address =
+        data.additional_site_address || [];
+    }
+
+    try {
+      const res = await createApplication(payload);
+      if (res.ok) {
+        toast.success("Application created successfully", {
+          id: "apply-cert",
+        });
+        router.push(`/entity/view/${entityId}`);
+      } else {
+        const err = await res.json().catch(() => null);
+        toast.error(err?.message || "Failed to create application", {
+          id: "apply-cert",
+        });
+      }
+    } catch {
+      toast.error("Failed to create application", { id: "apply-cert" });
+    }
+  }
+
+  if (entityLoading) {
+    return (
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!entity) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <p className="text-muted-foreground">Entity not found</p>
+        <Button variant="outline" onClick={() => router.push("/entity")}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Entities
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Button
+          className="cursor-pointer"
+          variant="outline"
+          size="icon"
+          onClick={() => router.push(`/entity/view/${entityId}`)}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Apply For Certificate
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Entity:{" "}
+            <span className="text-primary font-medium">
+              {entity.entity_name}
+            </span>
+            <span className="mx-2 text-muted-foreground/50">|</span>
+            <span className="font-mono text-xs">{entity.entity_id}</span>
+          </p>
+        </div>
+      </div>
+
+      <Separator />
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Annexure, Severity, Risk */}
+          <SectionCard title="Application Settings">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="annexure"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0 pt-6">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Apply for Annexures
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="severity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Severity</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                        <SelectItem value="most_urgent">Most Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="risk"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Risk</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </SectionCard>
+
+          {/* Certification & CAB */}
+          <SectionCard title="Certification">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="certification_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Certificate Type</FormLabel>
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        form.setValue("cab_code", "");
+                        form.setValue("standards", []);
+                        form.setValue("duration", "");
+                      }}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Certificate Type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="individual">Individual</SelectItem>
+                        <SelectItem value="integrated" disabled>
+                          Integrated
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="cab_code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CAB Code</FormLabel>
+                    <Select
+                      onValueChange={(val) => {
+                        field.onChange(val);
+                        form.setValue("standards", []);
+                        form.setValue("duration", "");
+                      }}
+                      value={field.value}
+                      disabled={!baCabs.length}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              !baCabs.length ? "No CABs available" : "Select CAB"
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {baCabs.map((cb: any) => (
+                          <SelectItem key={cb._id} value={cb.cabCode}>
+                            {cb.cabCode} - {cb.cbCode}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Standards Selection */}
+            {selectedCabCode && cabStandards.length > 0 && (
+              <div className="space-y-2">
+                <FormLabel>Standards</FormLabel>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 border rounded-lg bg-muted/30">
+                  {cabStandards.map((std: any) => {
+                    const isSelected = selectedStandards.some(
+                      (s) => s._id === std._id
+                    );
+                    return (
+                      <label
+                        key={std._id}
+                        className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-muted/50"
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) =>
+                            toggleStandard(std, !!checked)
+                          }
+                        />
+                        <span className="text-sm">
+                          {std.code} - {std.name}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {form.formState.errors.standards && (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.standards.message}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {selectedStandards.length > 0 && (
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem className="max-w-xs">
+                    <FormLabel>Duration</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
+          </SectionCard>
+
+          {/* Application Details */}
+          <SectionCard title="Application Details">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="employess_count"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Employees Count</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. 88" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="auditor_leader_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Lead Auditor Name{" "}
+                      <span className="text-xs text-muted-foreground">(optional)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="charges"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Charges{" "}
+                      <span className="text-xs text-muted-foreground">(optional)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="drive_link"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Drive Link{" "}
+                      <span className="text-xs text-muted-foreground">(optional)</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </SectionCard>
+
+          {/* Scope & Language */}
+          <SectionCard title="Scope & Language">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="primary_certificate_language"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Primary Certificate Language</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {LANGUAGES.map((lang) => (
+                          <SelectItem key={lang} value={lang}>
+                            {lang}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="scope"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Scope</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter scope details..."
+                      maxLength={1250}
+                      className="min-h-24"
+                      {...field}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground text-right">
+                    {field.value?.length || 0}/1250
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Additional Site Addresses from entity */}
+            {entity.additional_site_address &&
+              entity.additional_site_address.length > 0 && (
+                <div className="space-y-2">
+                  <FormLabel>Additional Site Addresses (from Entity)</FormLabel>
+                  <div className="space-y-1.5">
+                    {entity.additional_site_address.map(
+                      (addr: any, i: number) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 p-2.5 bg-muted/40 rounded-md text-sm"
+                        >
+                          <span className="text-muted-foreground">
+                            {[
+                              addr.street,
+                              addr.city,
+                              addr.state,
+                              addr.postal_code,
+                              addr.country,
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+          </SectionCard>
+
+          {/* Other Language Section */}
+          <div className="rounded-lg border bg-card">
+            <button
+              type="button"
+              className="flex items-center justify-between w-full p-5 cursor-pointer"
+              onClick={() => {
+                setShowOtherLanguage(!showOtherLanguage);
+                if (!showOtherLanguage && otherLangAddresses.length === 0) {
+                  appendAddress({
+                    street: "",
+                    city: "",
+                    state: "",
+                    country: "",
+                    postal_code: "",
+                  });
+                }
+              }}
+            >
+              <h3 className="text-sm font-semibold">Apply in Other Languages</h3>
+              {showOtherLanguage ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </button>
+
+            {showOtherLanguage && (
+              <div className="px-5 pb-5 space-y-4">
+                <Separator />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="secondary_entity_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Secondary Entity Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="secondary_certificate_language"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Secondary Certificate Language</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select language" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {LANGUAGES.map((lang) => (
+                              <SelectItem key={lang} value={lang}>
+                                {lang}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="additional_scope"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Scope</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Enter additional scope..."
+                          maxLength={1250}
+                          className="min-h-20"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <Separator />
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-semibold">
+                      Additional Address (Other Language)
+                    </h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        appendAddress({
+                          street: "",
+                          city: "",
+                          state: "",
+                          country: "",
+                          postal_code: "",
+                        })
+                      }
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+
+                  {otherLangAddresses.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="p-4 border rounded-lg relative space-y-4 bg-muted/20"
+                    >
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2 h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => removeAddress(index)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+
+                      <FormField
+                        control={form.control}
+                        name={`additional_site_address.${index}.street`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Street Address</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name={`additional_site_address.${index}.city`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>City</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`additional_site_address.${index}.state`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>State</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`additional_site_address.${index}.country`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Country</FormLabel>
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                disabled={countriesLoading}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue
+                                      placeholder={
+                                        countriesLoading
+                                          ? "Loading..."
+                                          : "Select Country"
+                                      }
+                                    />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {countries?.map((c) => (
+                                    <SelectItem key={c.code} value={c.code}>
+                                      {c.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`additional_site_address.${index}.postal_code`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Postal Code</FormLabel>
+                              <FormControl>
+                                <Input {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full sm:w-auto px-8"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting
+              ? "Submitting..."
+              : "Submit Application"}
+          </Button>
+        </form>
+      </Form>
+    </div>
+  );
+}

@@ -180,7 +180,11 @@ export function EntityViewClient() {
               <Pencil className="h-4 w-4 mr-2" />
               Edit Entity
             </Button>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push(`/entity/apply/${params.id}`)}
+            >
               <FileCheck className="h-4 w-4 mr-2" />
               Apply Certificate
             </Button>

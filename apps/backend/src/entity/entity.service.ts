@@ -146,7 +146,14 @@ export class EntityService {
   async getById(id: string) {
     const entity = await this.entityModel
       .findOne({ entity_id: id })
-      .populate('busuness_associate', 'username email status phone userId');
+      .populate({
+        path: 'busuness_associate',
+        select: 'username email status phone userId cabCode cab',
+        populate: {
+          path: 'cab',
+          select: 'cab',
+        },
+      });
     if (!entity) {
       throw new BadRequestException('Entity not found');
     }
