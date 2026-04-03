@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAllCabsList } from "@/utils/apis";
+import { useAllCabsList, useStandards } from "@/utils/apis";
 import { createStandard, updateStandard } from "@/utils/mutations";
 import toast from "react-hot-toast";
 
@@ -32,7 +32,9 @@ const standardSchema = z.object({
     .toUpperCase(),
   schemeName: z.string().min(1, "Scheme Name is required"),
   standardCode: z.string().min(1, "Standard Code is required"),
+  version: z.string().min(1, "Version is required"),
   certificationBody: z.string().min(1, "Certification Body is required"),
+  predecessor: z.string().optional(),
   status: z.string().optional(),
 });
 
@@ -57,15 +59,25 @@ export function StandardForm({
       mssCode: "",
       schemeName: "",
       standardCode: "",
+      version: "",
       certificationBody: "",
+      predecessor: "",
       status: "active",
     },
   });
 
+  const selectedCab = form.watch("certificationBody");
+  // Fetch standards for the selected CAB to show as predecessor options
+  const { data: cabStandards } = useStandards(1, selectedCab, "");
+
   async function onSubmit(data: StandardFormValues) {
+    const payload = {
+      ...data,
+      predecessor: data.predecessor && data.predecessor !== "none" ? data.predecessor : undefined,
+    };
     try {
       if (mode === "edit" && standardId) {
-        const res = await updateStandard(standardId, data);
+        const res = await updateStandard(standardId, payload);
         if (res.ok) {
           toast.success("Standard updated successfully", {
             id: "standard-form",
@@ -78,7 +90,7 @@ export function StandardForm({
           });
         }
       } else {
-        const res = await createStandard(data);
+        const res = await createStandard(payload);
         if (res.ok) {
           toast.success("Standard created successfully", {
             id: "standard-form",
@@ -183,6 +195,53 @@ export function StandardForm({
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="version"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Version</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. 2015" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="predecessor"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Predecessor{" "}
+                  <span className="text-xs text-muted-foreground">(optional)</span>
+                </FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={!selectedCab}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder={selectedCab ? "Select predecessor" : "Select CAB first"} />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {cabStandards
+                      ?.filter((s: any) => s._id !== standardId)
+                      .map((s: any) => (
+                        <SelectItem key={s._id} value={s._id}>
+                          {s.standardCode} (v{s.version || "?"}) — {s.status}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           {mode === "edit" && (
             <FormField
               control={form.control}
@@ -199,6 +258,7 @@ export function StandardForm({
                     <SelectContent>
                       <SelectItem value="active">Active</SelectItem>
                       <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="expired">Expired</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

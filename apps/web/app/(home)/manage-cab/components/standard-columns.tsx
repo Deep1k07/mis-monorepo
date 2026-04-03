@@ -8,7 +8,10 @@ export type StandardDef = {
   mssCode: string;
   schemeName: string;
   standardCode: string;
+  version: string;
   status: string;
+  predecessor?: { _id: string; standardCode: string; version: string } | null;
+  successor?: { _id: string; standardCode: string; version: string } | null;
   certificationBody?: {
     _id: string;
     cabCode: string;
@@ -49,6 +52,22 @@ export const createStandardColumns = (
     ),
   },
   {
+    accessorKey: "version",
+    header: "Version",
+    cell: ({ row }) => (
+      <span className="font-mono">{row.getValue("version") || "-"}</span>
+    ),
+  },
+  {
+    id: "predecessor",
+    header: "Predecessor",
+    cell: ({ row }) => {
+      const p = row.original.predecessor;
+      if (!p) return <span className="text-muted-foreground">-</span>;
+      return <span className="text-xs">{p.standardCode}:{p.version}</span>;
+    },
+  },
+  {
     accessorKey: "certificationBody",
     header: "CAB",
     cell: ({ row }) => {
@@ -72,7 +91,9 @@ export const createStandardColumns = (
           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
             status === "active"
               ? "bg-green-50 text-green-700 ring-green-600/20"
-              : "bg-red-50 text-red-700 ring-red-600/20"
+              : status === "expired"
+                ? "bg-orange-50 text-orange-700 ring-orange-600/20"
+                : "bg-red-50 text-red-700 ring-red-600/20"
           }`}
         >
           {status}

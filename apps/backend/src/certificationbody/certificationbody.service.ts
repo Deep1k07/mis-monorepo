@@ -20,7 +20,7 @@ export class CetificationbodyService {
     private certificationBodyModel: Model<CertificationBodyDocument>,
     @InjectModel(CertificationStandard.name)
     private certificationStandardModel: Model<CertificationStandardDocument>,
-  ) {}
+  ) { }
 
   // ─── CAB Methods ───
 
@@ -60,7 +60,7 @@ export class CetificationbodyService {
         .find(filter)
         .select('-cabJurisdictions')
         .populate('user', 'email firstName lastName')
-        .populate('standards', 'mssCode schemeName standardCode status')
+        .populate('standards', 'mssCode schemeName standardCode version status')
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
@@ -80,7 +80,7 @@ export class CetificationbodyService {
     const cab = await this.certificationBodyModel
       .findById(id)
       .populate('user', 'email firstName lastName')
-      .populate('standards', 'mssCode schemeName standardCode status')
+      .populate('standards', 'mssCode schemeName standardCode version status')
       .populate('cabJurisdictions');
     if (!cab) {
       throw new BadRequestException('Certification Body not found');
@@ -156,6 +156,14 @@ export class CetificationbodyService {
       user: req.user.userId,
     });
 
+    // If this standard has a predecessor, set the predecessor's successor and mark it expired
+    if (body.predecessor) {
+      await this.certificationStandardModel.findByIdAndUpdate(
+        body.predecessor,
+        { $set: { successor: standard._id, status: 'expired' } },
+      );
+    }
+
     await this.certificationBodyModel.findByIdAndUpdate(
       body.certificationBody,
       { $addToSet: { standards: standard._id } },
@@ -195,6 +203,8 @@ export class CetificationbodyService {
         .find(filter)
         .populate('user', 'firstName lastName email')
         .populate('certificationBody', 'cabCode cbCode cbName')
+        .populate('predecessor', 'standardCode version')
+        .populate('successor', 'standardCode version')
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
@@ -214,7 +224,9 @@ export class CetificationbodyService {
     const standard = await this.certificationStandardModel
       .findById(id)
       .populate('user', 'firstName lastName email')
-      .populate('certificationBody', 'cabCode cbCode cbName');
+      .populate('certificationBody', 'cabCode cbCode cbName')
+      .populate('predecessor', 'standardCode version')
+      .populate('successor', 'standardCode version');
     if (!standard) {
       throw new BadRequestException('Standard not found');
     }

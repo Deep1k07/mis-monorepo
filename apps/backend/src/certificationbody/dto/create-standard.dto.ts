@@ -22,9 +22,21 @@ export class CreateStandardDto {
   @IsString()
   standardCode: string;
 
+  @IsNotEmpty()
+  @IsString()
+  version: string;
+
   @IsOptional()
   @IsString()
   status?: string;
+
+  @IsOptional()
+  @IsMongoId()
+  predecessor?: string;
+
+  @IsOptional()
+  @IsMongoId()
+  successor?: string;
 
   @IsNotEmpty()
   @IsMongoId()

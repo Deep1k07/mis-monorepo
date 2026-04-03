@@ -142,8 +142,10 @@ export function StandardList() {
                 mssCode: editStandard.mssCode,
                 schemeName: editStandard.schemeName,
                 standardCode: editStandard.standardCode,
+                version: editStandard.version || "",
                 certificationBody:
                   editStandard.certificationBody?._id || "",
+                predecessor: editStandard.predecessor?._id || "",
                 status: editStandard.status,
               }}
               onSuccess={() => {
