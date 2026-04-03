@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import mongoose, { HydratedDocument, Types } from 'mongoose';
 
 export type CertificationBodyDocument = HydratedDocument<CertificationBody>;
 
@@ -50,17 +50,17 @@ export class CertificationBody {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'UserAccount' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
   user: Types.ObjectId;
 
   @Prop({
-    type: [{ type: Types.ObjectId, ref: 'Country' }],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Country' }],
     default: [],
   })
   cabJurisdictions: Types.ObjectId[];
 
   @Prop({
-    type: [{ type: Types.ObjectId, ref: 'CertificationStandard' }],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CertificationStandard' }],
     default: [],
   })
   standards: Types.ObjectId[];

@@ -1,19 +1,111 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Application, ApplicationDocument } from './schema/application.schema';
 import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
+import { Entity } from 'src/entity/schema/entity.schema';
+import { CreateApplicationDto, StandardDto } from './dto/application.dto';
+import { CertificationBody } from 'src/certificationbody/schema/certificationBody.schema';
 
 @Injectable()
 export class ApplicationService {
   constructor(
-    @InjectModel(Application.name)
-    private readonly applicationModel: Model<ApplicationDocument>,
+    @InjectModel(Application.name) private readonly applicationModel: Model<ApplicationDocument>,
+    @InjectModel(Entity.name) private readonly entityModel: Model<Entity>,
+    @InjectModel(CertificationBody.name) private readonly certificationBodyModel: Model<CertificationBody>
   ) { }
 
-  async create(data: Record<string, any>) {
-    const createdApplication = new this.applicationModel(data);
-    return createdApplication.save();
+  async create(data: CreateApplicationDto, req: AuthRequest) {
+    const user = req.user;
+    // console.log("data>>>", data)
+    const cabPromise = this.certificationBodyModel.findOne({ cabCode: data.cab_code })
+      .populate('cabJurisdictions', 'code name');
+    const entityPromise = this.entityModel.findById(data.entity).lean()
+    const existingApplicationPromise = this.applicationModel.aggregate([
+      {
+        $match: {
+          $and: [
+            { entity: data.entity },
+            { cab_code: data.cab_code },
+            { certificateStatus: { $nin: ['suspended', 'withdrawn', 'terminate'] } },
+          ],
+        },
+      },
+    ]);
+
+    let [entity, existingApplication, cabData] = await Promise.all([entityPromise, existingApplicationPromise, cabPromise])
+
+    if (!entity) {
+      throw new NotFoundException('Entity not found');
+    }
+
+    // ===================== CAB JURISDICTION CHECK =====================
+    const selectedCountries: string[] = [];
+    if (Array.isArray(entity?.main_site_address) && entity.main_site_address.length > 0) {
+      selectedCountries.push(entity.main_site_address[0].country);
+    }
+    if (Array.isArray(entity?.additional_site_address)) {
+      entity.additional_site_address.forEach((addr) => {
+        if (addr?.country) selectedCountries.push(addr.country);
+      });
+    }
+
+    let cabFlag = true;
+    for (const country of selectedCountries) {
+      const isAllowed = cabData?.cabJurisdictions?.some((jur: any) => jur?.code === country);
+      if (isAllowed) {
+        cabFlag = false;
+        break;
+      }
+    }
+    // Original jurisdiction check as fallback
+    if (cabFlag) {
+      cabData?.cabJurisdictions?.forEach((val: any) => {
+        if (val?.code === entity?.main_site_address[0]?.country) {
+          cabFlag = false;
+        }
+      });
+    }
+
+    if (cabFlag) {
+      throw new BadRequestException(
+        `Can not apply for Certificate because Entity does not fall within ${data?.cab_code}'s jurisdiction.`
+      );
+    }
+
+
+    let stadardLookup = {};
+    data?.standards.forEach((val) => {
+      stadardLookup = { ...stadardLookup, [val.code]: val };
+    });
+
+    let flag = false;
+    if (existingApplication?.length > 0) {
+      existingApplication.forEach((val) => {
+        val?.standards.forEach((ele: StandardDto) => {
+          if (stadardLookup[ele.code]) {
+            if (!data?.secondary_certificate_language) {
+              flag = true;
+            } else if (val?.secondary_certificate_language === data?.secondary_certificate_language) {
+              flag = true;
+            }
+          }
+        });
+      });
+    }
+    if (flag) {
+      throw new BadRequestException(
+        `You have already applied for ${data?.standards[0]?.code} certificate with provided languages.`
+      );
+    }
+
+    let payload = {
+      ...data,
+      appliedBy: user?.userId,
+    }
+
+    const createdApplication = await this.applicationModel.create(payload);
+    return createdApplication;
   }
 
   async findAll(

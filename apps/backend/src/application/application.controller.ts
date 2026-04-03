@@ -14,6 +14,7 @@ import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PaginatedQueryDto } from 'src/common/dto/paginated-query.dto';
 import { Application } from './schema/application.schema';
+import { CreateApplicationDto } from './dto/application.dto';
 import {
   ApiCookieAuth,
   ApiOperation,
@@ -25,7 +26,7 @@ import {
 @ApiCookieAuth()
 @Controller('application')
 export class ApplicationController {
-  constructor(private readonly applicationService: ApplicationService) {}
+  constructor(private readonly applicationService: ApplicationService) { }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -33,12 +34,9 @@ export class ApplicationController {
   @ApiResponse({ status: 201, description: 'Application created' })
   async create(
     @Req() req: AuthRequest,
-    @Body() body: Record<string, any>,
+    @Body() body: CreateApplicationDto,
   ) {
-    return this.applicationService.create({
-      ...body,
-      appliedBy: req.user.userId,
-    });
+    return this.applicationService.create(body, req);
   }
 
   @Get()

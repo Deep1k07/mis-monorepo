@@ -264,22 +264,22 @@ export function ApplyCertificateClient() {
 
     console.log(payload);
 
-    // try {
-    //   const res = await createApplication(payload);
-    //   if (res.ok) {
-    //     toast.success("Application created successfully", {
-    //       id: "apply-cert",
-    //     });
-    //     router.push(`/entity/view/${entityId}`);
-    //   } else {
-    //     const err = await res.json().catch(() => null);
-    //     toast.error(err?.message || "Failed to create application", {
-    //       id: "apply-cert",
-    //     });
-    //   }
-    // } catch {
-    //   toast.error("Failed to create application", { id: "apply-cert" });
-    // }
+    try {
+      const res = await createApplication(payload);
+      if (res.ok) {
+        toast.success("Application created successfully", {
+          id: "apply-cert",
+        });
+        router.push(`/entity/view/${entityId}`);
+      } else {
+        const err = await res.json().catch(() => null);
+        toast.error(err?.message || "Failed to create application", {
+          id: "apply-cert",
+        });
+      }
+    } catch {
+      toast.error("Failed to create application", { id: "apply-cert" });
+    }
   }
 
   if (entityLoading) {
