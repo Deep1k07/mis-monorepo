@@ -94,9 +94,9 @@ export function EntityViewModal({
     drive_link: entity.drive_link || "",
     direct_price: entity.direct_price || "",
     business_associate:
-      typeof entity.busuness_associate === "object"
-        ? entity.busuness_associate?._id || ""
-        : entity.busuness_associate || "",
+      typeof entity.business_associate === "object"
+        ? entity.business_associate?._id || ""
+        : entity.business_associate || "",
     main_site_address: entity.main_site_address?.length
       ? entity.main_site_address
       : [{ street: "", city: "", state: "", country: "", postal_code: "" }],
@@ -128,11 +128,10 @@ export function EntityViewModal({
                   </button>
                   <span className="mx-1">-</span>
                   <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-                      entity.isDirectClient
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${entity.isDirectClient
                         ? "bg-blue-50 text-blue-700 ring-blue-600/20"
                         : "bg-purple-50 text-purple-700 ring-purple-600/20"
-                    }`}
+                      }`}
                   >
                     {entity.isDirectClient ? "Direct Client" : "BAM"}
                   </span>
@@ -176,15 +175,15 @@ export function EntityViewModal({
                     {entity.entity_trading_name || "-"}
                   </span>
                 </div>
-                {!entity.isDirectClient && entity.busuness_associate && (
+                {!entity.isDirectClient && entity.business_associate && (
                   <div className="flex flex-col gap-1">
                     <span className="text-xs text-muted-foreground">
                       Business Associate
                     </span>
                     <span className="text-sm">
-                      {typeof entity.busuness_associate === "object"
-                        ? entity.busuness_associate.username
-                        : entity.busuness_associate}
+                      {typeof entity.business_associate === "object"
+                        ? entity.business_associate.username
+                        : entity.business_associate}
                     </span>
                   </div>
                 )}

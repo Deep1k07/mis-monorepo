@@ -118,9 +118,9 @@ export function EntityViewClient() {
     drive_link: entity.drive_link || "",
     direct_price: entity.direct_price || "",
     business_associate:
-      typeof entity.busuness_associate === "object"
-        ? entity.busuness_associate?._id || ""
-        : entity.busuness_associate || "",
+      typeof entity.business_associate === "object"
+        ? entity.business_associate?._id || ""
+        : entity.business_associate || "",
     main_site_address: entity.main_site_address?.length
       ? entity.main_site_address
       : [{ street: "", city: "", state: "", country: "", postal_code: "" }],

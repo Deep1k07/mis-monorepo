@@ -160,14 +160,14 @@ export class ApplicationService {
         {
           $lookup: {
             from: 'users',
-            localField: 'entity.busuness_associate',
+            localField: 'entity.business_associate',
             foreignField: '_id',
-            as: 'entity.busuness_associate',
+            as: 'entity.business_associate',
           },
         },
         {
           $unwind: {
-            path: '$entity.busuness_associate',
+            path: '$entity.business_associate',
             preserveNullAndEmptyArrays: true,
           },
         },
@@ -183,8 +183,8 @@ export class ApplicationService {
             'entity._id': 1,
             'entity.entity_id': 1,
             'entity.entity_name': 1,
-            'entity.busuness_associate._id': 1,
-            'entity.busuness_associate.username': 1,
+            'entity.business_associate._id': 1,
+            'entity.business_associate.username': 1,
           },
         },
       ]),
@@ -209,9 +209,9 @@ export class ApplicationService {
       .findById(id)
       .populate({
         path: 'entity',
-        select: 'entity_id entity_name entity_name_english entity_trading_name busuness_associate email website employess_count main_site_address additional_site_address',
+        select: 'entity_id entity_name entity_name_english entity_trading_name business_associate email website employess_count main_site_address additional_site_address',
         populate: {
-          path: 'busuness_associate',
+          path: 'business_associate',
           select: 'username email',
         },
       })
@@ -228,7 +228,7 @@ export class ApplicationService {
   async update(id: string, updateData: Partial<Application>) {
     const application = await this.applicationModel
       .findByIdAndUpdate(id, { $set: updateData }, { returnDocument: 'after' })
-      .populate('busuness_associate', 'username email userId')
+      .populate('business_associate', 'username email userId')
       .exec();
 
     if (!application) {

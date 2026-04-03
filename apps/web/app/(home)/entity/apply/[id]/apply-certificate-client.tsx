@@ -176,12 +176,12 @@ export function ApplyCertificateClient() {
 
   // BA's assigned CABs from CabBA.cab array
   const currency = useMemo(() => {
-    if (!entity?.busuness_associate?.cab) return "";
-    return entity.busuness_associate.cab.currency === "USD" ? "$" : "₹";
+    if (!entity?.business_associate?.cab) return "";
+    return entity.business_associate.cab.currency === "USD" ? "$" : "₹";
   }, [entity])
   const baCabs = useMemo(() => {
-    if (!entity?.busuness_associate?.cab?.cab) return [];
-    return entity.busuness_associate.cab.cab.filter(
+    if (!entity?.business_associate?.cab?.cab) return [];
+    return entity.business_associate.cab.cab.filter(
       (cb: any) => cb.status === "active"
     );
   }, [entity]);
@@ -247,10 +247,10 @@ export function ApplyCertificateClient() {
       primary_certificate_language: data.primary_certificate_language,
       drive_link: data.drive_link || "",
       scope: data.scope,
-      // busuness_associate:
-      //   typeof entity.busuness_associate === "object"
-      //     ? entity.busuness_associate?._id
-      //     : entity.busuness_associate,
+      // business_associate:
+      //   typeof entity.business_associate === "object"
+      //     ? entity.business_associate?._id
+      //     : entity.business_associate,
     };
 
     if (showOtherLanguage) {

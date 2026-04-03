@@ -14,7 +14,7 @@ export class EntityService {
   constructor(
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
     @InjectModel(Application.name) private applicationModel: Model<Application>,
-  ) {}
+  ) { }
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
       const id = generateAlphanumericCode();
@@ -25,7 +25,7 @@ export class EntityService {
   }
 
   async create(body: CreateEntityDto, req: AuthRequest) {
-    if (!body?.isDirectClient && !body?.busuness_associate) {
+    if (!body?.isDirectClient && !body?.business_associate) {
       throw new BadRequestException('Business Associate is required');
     }
 
@@ -84,7 +84,7 @@ export class EntityService {
       throw new BadRequestException('Entity not found');
     }
 
-    if (!body?.isDirectClient && !body?.busuness_associate) {
+    if (!body?.isDirectClient && !body?.business_associate) {
       throw new BadRequestException('Business Associate is required');
     }
 
@@ -147,7 +147,7 @@ export class EntityService {
     const entity = await this.entityModel
       .findOne({ entity_id: id })
       .populate({
-        path: 'busuness_associate',
+        path: 'business_associate',
         select: 'username email status phone userId cabCode cab',
         populate: {
           path: 'cab',
@@ -171,7 +171,7 @@ export class EntityService {
     req: AuthRequest,
     page: number = 1,
     limit: number = 10,
-    busuness_associate?: string,
+    business_associate?: string,
     search?: string,
   ) {
     const permissions = req.user.permissions || [];
@@ -181,8 +181,8 @@ export class EntityService {
       ? {}
       : { $or: [{ user: req.user.userId }, { createdBy: req.user.userId }] };
 
-    if (busuness_associate) {
-      filter.busuness_associate = busuness_associate;
+    if (business_associate) {
+      filter.business_associate = business_associate;
     }
 
     if (search) {
@@ -203,7 +203,7 @@ export class EntityService {
     const [data, total] = await Promise.all([
       this.entityModel
         .find(filter)
-        .populate('busuness_associate', 'username')
+        .populate('business_associate', 'username')
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),

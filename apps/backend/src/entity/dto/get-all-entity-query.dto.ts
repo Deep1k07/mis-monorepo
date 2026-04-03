@@ -6,5 +6,5 @@ export class GetAllEntityQueryDto extends PaginatedQueryDto {
   @ApiPropertyOptional({ description: 'Business associate ID (MongoDB ObjectId)' })
   @IsOptional()
   @IsString()
-  busuness_associate?: string;
+  business_associate?: string;
 }

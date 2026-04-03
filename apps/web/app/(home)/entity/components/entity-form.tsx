@@ -141,7 +141,7 @@ export function EntityForm({
     const mappedDto: any = {
       ...rest,
       isDirectClient: _type === "client",
-      busuness_associate: _type === "bam" ? business_associate : null,
+      business_associate: _type === "bam" ? business_associate : null,
     };
 
     try {

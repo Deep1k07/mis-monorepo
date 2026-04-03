@@ -7,7 +7,7 @@ export class Entity {
   user: Types.ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
-  busuness_associate: Types.ObjectId;
+  business_associate: Types.ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
   createdBy: Types.ObjectId;

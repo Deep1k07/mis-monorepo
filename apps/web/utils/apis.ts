@@ -39,7 +39,7 @@ export function useEntityById(id: string | undefined) {
 // get all entities
 export function useEntities(page: number, ba: string, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
-  if (ba) params.set("busuness_associate", ba);
+  if (ba) params.set("business_associate", ba);
   if (search) params.set("search", search);
 
   const { data, error, isLoading } = useSWR(

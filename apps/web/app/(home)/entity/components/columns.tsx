@@ -14,7 +14,7 @@ export type EntityDef = {
   drive_link?: string;
   direct_price?: string;
   employess_count?: string
-  busuness_associate?: {
+  business_associate?: {
     _id: string;
     username: string;
     email?: string;
@@ -129,10 +129,10 @@ export const createColumns = (
       },
     },
     {
-      accessorKey: "busuness_associate",
+      accessorKey: "business_associate",
       header: "Business Associate",
       cell: ({ row }) => {
-        const ba = row.getValue("busuness_associate") as
+        const ba = row.getValue("business_associate") as
           | { _id: string; username: string }
           | string
           | undefined;

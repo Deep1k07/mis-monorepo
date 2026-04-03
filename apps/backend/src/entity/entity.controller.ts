@@ -26,7 +26,7 @@ import {
 @ApiCookieAuth()
 @Controller('entity')
 export class EntityController {
-  constructor(private readonly entityService: EntityService) {}
+  constructor(private readonly entityService: EntityService) { }
 
   @Post('create')
   @UseGuards(JwtAuthGuard)
@@ -58,7 +58,7 @@ export class EntityController {
       req,
       query.page,
       query.limit,
-      query.busuness_associate,
+      query.business_associate,
       query.search,
     );
   }

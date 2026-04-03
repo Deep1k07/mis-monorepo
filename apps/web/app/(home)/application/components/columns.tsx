@@ -9,7 +9,7 @@ export type ApplicationDef = {
     _id: string;
     entity_id: string;
     entity_name: string;
-    busuness_associate?: { _id: string; username: string } | string;
+    business_associate?: { _id: string; username: string } | string;
   };
   cab_code: string;
   standards?: { code: string; name: string }[];
@@ -70,10 +70,10 @@ export const createColumns = (
       header: "CAB Code",
     },
     {
-      id: "busuness_associate",
+      id: "business_associate",
       header: "BA Name",
       cell: ({ row }) => {
-        const ba = row.original.entity?.busuness_associate;
+        const ba = row.original.entity?.business_associate;
         if (!ba) return <span className="text-muted-foreground">-</span>;
         return <span>{typeof ba === "object" ? ba.username : ba}</span>;
       },

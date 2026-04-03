@@ -87,7 +87,7 @@ export class CreateEntityDto {
 
   @IsMongoId()
   @IsOptional()
-  busuness_associate: string;
+  business_associate: string;
 
   @IsNotEmpty()
   @IsString()

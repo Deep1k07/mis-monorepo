@@ -56,7 +56,7 @@ export const AppliedFinalCertificateSchema =
 @Schema({ timestamps: true })
 export class Application {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) user: Types.ObjectId;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' }) busuness_associate: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' }) business_associate: Types.ObjectId;
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) scope_manager: Types.ObjectId;
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) quality_manager: Types.ObjectId;
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) appliedBy: Types.ObjectId;

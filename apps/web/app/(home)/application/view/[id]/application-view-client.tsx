@@ -199,9 +199,9 @@ export function ApplicationViewClient() {
 
   const entity = app.entity;
   const baName =
-    typeof entity?.busuness_associate === "object"
-      ? entity?.busuness_associate?.username
-      : entity?.busuness_associate;
+    typeof entity?.business_associate === "object"
+      ? entity?.business_associate?.username
+      : entity?.business_associate;
 
   const mainAddress = entity?.main_site_address?.[0];
 
@@ -402,26 +402,26 @@ export function ApplicationViewClient() {
           app.certificate_manager ||
           app.finance_manager ||
           app.appliedBy) && (
-          <div>
-            <h4 className="text-sm font-semibold mb-3">Assigned People</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <PersonInfo label="Scope Manager" person={app.scope_manager} />
-              <PersonInfo
-                label="Quality Manager"
-                person={app.quality_manager}
-              />
-              <PersonInfo
-                label="Certificate Manager"
-                person={app.certificate_manager}
-              />
-              <PersonInfo
-                label="Finance Manager"
-                person={app.finance_manager}
-              />
-              <PersonInfo label="Applied By" person={app.appliedBy} />
+            <div>
+              <h4 className="text-sm font-semibold mb-3">Assigned People</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <PersonInfo label="Scope Manager" person={app.scope_manager} />
+                <PersonInfo
+                  label="Quality Manager"
+                  person={app.quality_manager}
+                />
+                <PersonInfo
+                  label="Certificate Manager"
+                  person={app.certificate_manager}
+                />
+                <PersonInfo
+                  label="Finance Manager"
+                  person={app.finance_manager}
+                />
+                <PersonInfo label="Applied By" person={app.appliedBy} />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Main Address */}
         {mainAddress && (
