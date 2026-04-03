@@ -36,9 +36,10 @@ import EntityPage from "../../page";
 
 const LANGUAGES = [
   "English",
+  "French",
+  "Spanish",
   "Arabic",
   "Chinese",
-  "French",
   "German",
   "Hindi",
   "Italian",
@@ -46,7 +47,6 @@ const LANGUAGES = [
   "Korean",
   "Portuguese",
   "Russian",
-  "Spanish",
   "Turkish",
 ];
 
@@ -94,6 +94,9 @@ const applicationSchema = z.object({
     }
     if (!data.additional_scope) {
       ctx.addIssue({ code: "custom", path: ["additional_scope"], message: "Additional scope is required" });
+    }
+    if (!data.additional_site_address || data.additional_site_address.length === 0) {
+      ctx.addIssue({ code: "custom", path: ["additional_site_address"], message: "At least one additional address is required" });
     }
   }
 });
@@ -163,7 +166,7 @@ export function ApplyCertificateClient() {
     setShowOtherLanguage(next);
     form.setValue("apply_other_language", next);
     if (!next) {
-      form.clearErrors(["secondary_entity_name", "secondary_certificate_language", "additional_scope"]);
+      form.clearErrors(["secondary_entity_name", "secondary_certificate_language", "additional_scope", "additional_site_address"]);
     }
   };
 
@@ -232,10 +235,6 @@ export function ApplyCertificateClient() {
 
     const payload: any = {
       entity: entity._id,
-      busuness_associate:
-        typeof entity.busuness_associate === "object"
-          ? entity.busuness_associate?._id
-          : entity.busuness_associate,
       cab_code: data.cab_code,
       standards: data.standards.map((s) => ({ code: s.code, name: s.name })),
       duration: data.duration,
@@ -248,6 +247,10 @@ export function ApplyCertificateClient() {
       primary_certificate_language: data.primary_certificate_language,
       drive_link: data.drive_link || "",
       scope: data.scope,
+      // busuness_associate:
+      //   typeof entity.busuness_associate === "object"
+      //     ? entity.busuness_associate?._id
+      //     : entity.busuness_associate,
     };
 
     if (showOtherLanguage) {
@@ -824,9 +827,16 @@ export function ApplyCertificateClient() {
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold">
-                      Additional Address (Other Language)
-                    </h4>
+                    <div>
+                      <h4 className="text-sm font-semibold">
+                        Additional Address (Other Language) <span className="text-destructive">*</span>
+                      </h4>
+                      {form.formState.errors.additional_site_address?.message && (
+                        <p className="text-sm text-destructive mt-1">
+                          {form.formState.errors.additional_site_address.message as string}
+                        </p>
+                      )}
+                    </div>
                     <Button
                       type="button"
                       variant="outline"
