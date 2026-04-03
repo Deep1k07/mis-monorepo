@@ -73,16 +73,28 @@ const applicationSchema = z.object({
   severity: z.enum(["normal", "urgent", "most_urgent"]).default("normal"),
   risk: z.enum(["low", "medium", "high"]).default("low"),
   annexure: z.boolean().default(false),
-  auditor_leader_name: z.string().optional(),
+  auditor_leader_name: z.string().min(1, "Auditor Leader Name is required"),
   charges: z.string().optional(),
   primary_certificate_language: z.string().min(1, "Language is required"),
   drive_link: z.string().optional(),
   scope: z.string().min(1, "Scope is required"),
-  employess_count: z.string().min(1, "Employees count is required"),
   secondary_entity_name: z.string().optional(),
   secondary_certificate_language: z.string().optional(),
   additional_scope: z.string().optional(),
+  apply_other_language: z.boolean().default(false),
   additional_site_address: z.array(addressSchema).optional(),
+}).superRefine((data, ctx) => {
+  if (data.apply_other_language) {
+    if (!data.secondary_entity_name) {
+      ctx.addIssue({ code: "custom", path: ["secondary_entity_name"], message: "Secondary entity name is required" });
+    }
+    if (!data.secondary_certificate_language) {
+      ctx.addIssue({ code: "custom", path: ["secondary_certificate_language"], message: "Secondary language is required" });
+    }
+    if (!data.additional_scope) {
+      ctx.addIssue({ code: "custom", path: ["additional_scope"], message: "Additional scope is required" });
+    }
+  }
 });
 
 type ApplicationFormValues = z.infer<typeof applicationSchema>;
@@ -111,6 +123,7 @@ export function ApplyCertificateClient() {
   const { countries, isLoading: countriesLoading } = useCountries();
 
   const [showOtherLanguage, setShowOtherLanguage] = useState(false);
+  const [manualCharges, setManualCharges] = useState(false);
 
   const form = useForm<ApplicationFormValues>({
     resolver: standardSchemaResolver(applicationSchema),
@@ -127,10 +140,10 @@ export function ApplyCertificateClient() {
       primary_certificate_language: "English",
       drive_link: "",
       scope: "",
-      employess_count: "",
       secondary_entity_name: "",
       secondary_certificate_language: "",
       additional_scope: "",
+      apply_other_language: false,
       additional_site_address: [],
     },
   });
@@ -144,8 +157,18 @@ export function ApplyCertificateClient() {
     name: "additional_site_address",
   });
 
+  const toggleOtherLanguage = () => {
+    const next = !showOtherLanguage;
+    setShowOtherLanguage(next);
+    form.setValue("apply_other_language", next);
+    if (!next) {
+      form.clearErrors(["secondary_entity_name", "secondary_certificate_language", "additional_scope"]);
+    }
+  };
+
   const selectedCabCode = form.watch("cab_code");
   const selectedStandards = form.watch("standards");
+  const selectedDuration = form.watch("duration");
 
   // BA's assigned CABs from CabBA.cab array
   const baCabs = useMemo(() => {
@@ -166,6 +189,21 @@ export function ApplyCertificateClient() {
     return selectedCab.standards.filter((s: any) => s.status === "active");
   }, [selectedCab]);
 
+  // Calculate rates from selected standards' active rateCards
+  const { annualRate, recertificationRate } = useMemo(() => {
+    let annual = 0;
+    let recertification = 0;
+    for (const selected of selectedStandards) {
+      const std = cabStandards.find((s: any) => s._id === selected._id);
+      if (!std?.rateCard) continue;
+      const activeCard = std.rateCard.find((rc: any) => rc.status === "active");
+      if (!activeCard) continue;
+      annual += parseFloat(activeCard.annual || "0") || 0;
+      recertification += parseFloat(activeCard.recertification || "0") || 0;
+    }
+    return { annualRate: annual, recertificationRate: recertification };
+  }, [selectedStandards, cabStandards]);
+
   function toggleStandard(std: any, checked: boolean) {
     const current = form.getValues("standards");
     if (checked) {
@@ -179,10 +217,9 @@ export function ApplyCertificateClient() {
         current.filter((s) => s._id !== std._id)
       );
     }
-    const next = checked
-      ? [...current, std]
-      : current.filter((s) => s._id !== std._id);
-    form.setValue("duration", next.length > 0 ? "1 Year" : "");
+    if (!checked && form.getValues("standards").length === 0) {
+      form.setValue("duration", "");
+    }
   }
 
   async function onSubmit(data: ApplicationFormValues) {
@@ -206,9 +243,9 @@ export function ApplyCertificateClient() {
       primary_certificate_language: data.primary_certificate_language,
       drive_link: data.drive_link || "",
       scope: data.scope,
-      employess_count: data.employess_count,
-      email: entity.email,
       website: entity.website || "",
+      // email: entity.email,
+      // employess_count: entity.employess_count || "",
     };
 
     if (showOtherLanguage) {
@@ -220,22 +257,24 @@ export function ApplyCertificateClient() {
         data.additional_site_address || [];
     }
 
-    try {
-      const res = await createApplication(payload);
-      if (res.ok) {
-        toast.success("Application created successfully", {
-          id: "apply-cert",
-        });
-        router.push(`/entity/view/${entityId}`);
-      } else {
-        const err = await res.json().catch(() => null);
-        toast.error(err?.message || "Failed to create application", {
-          id: "apply-cert",
-        });
-      }
-    } catch {
-      toast.error("Failed to create application", { id: "apply-cert" });
-    }
+    console.log(payload);
+
+    // try {
+    //   const res = await createApplication(payload);
+    //   if (res.ok) {
+    //     toast.success("Application created successfully", {
+    //       id: "apply-cert",
+    //     });
+    //     router.push(`/entity/view/${entityId}`);
+    //   } else {
+    //     const err = await res.json().catch(() => null);
+    //     toast.error(err?.message || "Failed to create application", {
+    //       id: "apply-cert",
+    //     });
+    //   }
+    // } catch {
+    //   toast.error("Failed to create application", { id: "apply-cert" });
+    // }
   }
 
   if (entityLoading) {
@@ -286,6 +325,25 @@ export function ApplyCertificateClient() {
       </div>
 
       <Separator />
+
+      {/* Entity Info */}
+      <div className="rounded-lg border bg-card p-5">
+        <h3 className="text-sm font-semibold mb-3">Entity Information</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+          <div>
+            <span className="text-xs text-muted-foreground">Entity Name</span>
+            <p className="font-medium">{entity.entity_name}</p>
+          </div>
+          <div>
+            <span className="text-xs text-muted-foreground">Entity ID</span>
+            <p className="font-mono">{entity.entity_id}</p>
+          </div>
+          <div>
+            <span className="text-xs text-muted-foreground">Employees Count</span>
+            <p>{entity.employess_count || "-"}</p>
+          </div>
+        </div>
+      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -468,18 +526,76 @@ export function ApplyCertificateClient() {
             )}
 
             {selectedStandards.length > 0 && (
-              <FormField
-                control={form.control}
-                name="duration"
-                render={({ field }) => (
-                  <FormItem className="max-w-xs">
-                    <FormLabel>Duration</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                  <FormField
+                    control={form.control}
+                    name="duration"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duration</FormLabel>
+                        <Select
+                          onValueChange={(val) => {
+                            field.onChange(val);
+                            if (!manualCharges) {
+                              const rate = val === "1 Year" ? annualRate : recertificationRate;
+                              form.setValue("charges", rate.toFixed(2));
+                            }
+                          }}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select duration" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="1 Year">
+                              1 Year — ${annualRate.toFixed(2)}
+                            </SelectItem>
+                            <SelectItem value="3 Year">
+                              3 Year — ${recertificationRate.toFixed(2)}
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="charges"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Charges ($)</FormLabel>
+                          <label className="flex items-center gap-1.5 cursor-pointer">
+                            <Checkbox
+                              checked={manualCharges}
+                              disabled={!selectedDuration}
+                              onCheckedChange={(checked) => {
+                                setManualCharges(!!checked);
+                                if (!checked && selectedDuration) {
+                                  const rate = selectedDuration === "1 Year" ? annualRate : recertificationRate;
+                                  form.setValue("charges", rate.toFixed(2));
+                                }
+                              }}
+                            />
+                            <span className="text-xs text-muted-foreground">Add charges manually</span>
+                          </label>
+                        </div>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            disabled={!manualCharges || !selectedDuration}
+                            placeholder={selectedDuration ? "Enter charges" : "Select duration first"}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             )}
           </SectionCard>
 
@@ -488,40 +604,12 @@ export function ApplyCertificateClient() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="employess_count"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Employees Count</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. 88" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="auditor_leader_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
                       Lead Auditor Name{" "}
-                      <span className="text-xs text-muted-foreground">(optional)</span>
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="charges"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Charges{" "}
-                      <span className="text-xs text-muted-foreground">(optional)</span>
+                      {/* <span className="text-xs text-muted-foreground">(optional)</span> */}
                     </FormLabel>
                     <FormControl>
                       <Input {...field} />
@@ -637,7 +725,7 @@ export function ApplyCertificateClient() {
               type="button"
               className="flex items-center justify-between w-full p-5 cursor-pointer"
               onClick={() => {
-                setShowOtherLanguage(!showOtherLanguage);
+                toggleOtherLanguage();
                 if (!showOtherLanguage && otherLangAddresses.length === 0) {
                   appendAddress({
                     street: "",
@@ -666,10 +754,11 @@ export function ApplyCertificateClient() {
                     name="secondary_entity_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Secondary Entity Name</FormLabel>
+                        <FormLabel>Secondary Entity Name <span className="text-destructive">*</span></FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -678,7 +767,7 @@ export function ApplyCertificateClient() {
                     name="secondary_certificate_language"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Secondary Certificate Language</FormLabel>
+                        <FormLabel>Secondary Certificate Language <span className="text-destructive">*</span></FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
@@ -696,6 +785,7 @@ export function ApplyCertificateClient() {
                             ))}
                           </SelectContent>
                         </Select>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -706,7 +796,7 @@ export function ApplyCertificateClient() {
                   name="additional_scope"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Additional Scope</FormLabel>
+                      <FormLabel>Additional Scope <span className="text-destructive">*</span></FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Enter additional scope..."
@@ -715,6 +805,7 @@ export function ApplyCertificateClient() {
                           {...field}
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />

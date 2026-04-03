@@ -13,6 +13,7 @@ export type EntityDef = {
   website?: string;
   drive_link?: string;
   direct_price?: string;
+  employess_count?: string
   busuness_associate?: {
     _id: string;
     username: string;
@@ -32,12 +33,17 @@ export type EntityDef = {
             name: string;
             status: string;
             version: number;
+            rateCard: {
+              status: string;
+              annual: string;
+              recertification: string;
+            }[]
           }[];
         }
       ]
     }
   }
-  | string;
+  | undefined;
   status: string;
   isDirectClient?: boolean;
   main_site_address?: {
