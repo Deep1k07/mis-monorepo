@@ -32,6 +32,7 @@ import {
 } from "@/utils/apis";
 import { createApplication } from "@/utils/mutations";
 import toast from "react-hot-toast";
+import EntityPage from "../../page";
 
 const LANGUAGES = [
   "English",
@@ -171,6 +172,10 @@ export function ApplyCertificateClient() {
   const selectedDuration = form.watch("duration");
 
   // BA's assigned CABs from CabBA.cab array
+  const currency = useMemo(() => {
+    if (!entity?.busuness_associate?.cab) return "";
+    return entity.busuness_associate.cab.currency === "USD" ? "$" : "₹";
+  }, [entity])
   const baCabs = useMemo(() => {
     if (!entity?.busuness_associate?.cab?.cab) return [];
     return entity.busuness_associate.cab.cab.filter(
@@ -190,18 +195,18 @@ export function ApplyCertificateClient() {
   }, [selectedCab]);
 
   // Calculate rates from selected standards' active rateCards
-  const { annualRate, recertificationRate } = useMemo(() => {
-    let annual = 0;
+  const { initialRate, recertificationRate } = useMemo(() => {
+    let initial = 0;
     let recertification = 0;
     for (const selected of selectedStandards) {
       const std = cabStandards.find((s: any) => s._id === selected._id);
       if (!std?.rateCard) continue;
       const activeCard = std.rateCard.find((rc: any) => rc.status === "active");
       if (!activeCard) continue;
-      annual += parseFloat(activeCard.annual || "0") || 0;
+      initial += parseFloat(activeCard.initial || "0") || 0;
       recertification += parseFloat(activeCard.recertification || "0") || 0;
     }
-    return { annualRate: annual, recertificationRate: recertification };
+    return { initialRate: initial, recertificationRate: recertification };
   }, [selectedStandards, cabStandards]);
 
   function toggleStandard(std: any, checked: boolean) {
@@ -243,9 +248,6 @@ export function ApplyCertificateClient() {
       primary_certificate_language: data.primary_certificate_language,
       drive_link: data.drive_link || "",
       scope: data.scope,
-      website: entity.website || "",
-      // email: entity.email,
-      // employess_count: entity.employess_count || "",
     };
 
     if (showOtherLanguage) {
@@ -320,6 +322,14 @@ export function ApplyCertificateClient() {
             </span>
             <span className="mx-2 text-muted-foreground/50">|</span>
             <span className="font-mono text-xs">{entity.entity_id}</span>
+            <span className="mx-2 text-muted-foreground/50">|</span>
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${entity.isDirectClient
+                ? "bg-blue-50 text-blue-700 ring-blue-600/20"
+                : "bg-purple-50 text-purple-700 ring-purple-600/20"
+                }`}>
+              {entity.isDirectClient ? "Client" : "BAM"}
+            </span>
           </p>
         </div>
       </div>
@@ -538,7 +548,7 @@ export function ApplyCertificateClient() {
                           onValueChange={(val) => {
                             field.onChange(val);
                             if (!manualCharges) {
-                              const rate = val === "1 Year" ? annualRate : recertificationRate;
+                              const rate = val === "1 Year" ? initialRate : recertificationRate;
                               form.setValue("charges", rate.toFixed(2));
                             }
                           }}
@@ -551,10 +561,10 @@ export function ApplyCertificateClient() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="1 Year">
-                              1 Year — ${annualRate.toFixed(2)}
+                              1 Year — {currency}{initialRate.toFixed(2)}
                             </SelectItem>
                             <SelectItem value="3 Year">
-                              3 Year — ${recertificationRate.toFixed(2)}
+                              3 Year — {currency}{recertificationRate.toFixed(2)}
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -576,7 +586,7 @@ export function ApplyCertificateClient() {
                               onCheckedChange={(checked) => {
                                 setManualCharges(!!checked);
                                 if (!checked && selectedDuration) {
-                                  const rate = selectedDuration === "1 Year" ? annualRate : recertificationRate;
+                                  const rate = selectedDuration === "1 Year" ? initialRate : recertificationRate;
                                   form.setValue("charges", rate.toFixed(2));
                                 }
                               }}

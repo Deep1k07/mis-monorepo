@@ -22,6 +22,7 @@ export type EntityDef = {
     phone?: string;
     userId?: string;
     cab?: {
+      currency: string;
       cab: [
         {
           cabCode: string;
@@ -36,6 +37,7 @@ export type EntityDef = {
             rateCard: {
               status: string;
               annual: string;
+              initial: string;
               recertification: string;
             }[]
           }[];
