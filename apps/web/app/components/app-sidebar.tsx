@@ -12,6 +12,7 @@ import {
   ChevronRight,
   List,
   ShieldCheck,
+  UserCog,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { ProfileModal } from "@/components/profile-modal";
@@ -76,6 +77,13 @@ const navItems: NavItem[] = [
     icon: ShieldCheck,
     isActive: false,
     permission: "cab-standard:read",
+  },
+  {
+    title: "Manage User",
+    url: "/manage-user?tab=permissions",
+    icon: UserCog,
+    isActive: false,
+    permission: ["manage:users"]
   },
 ];
 
