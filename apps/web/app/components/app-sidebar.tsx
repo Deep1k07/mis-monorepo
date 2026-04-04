@@ -38,7 +38,7 @@ type NavItem = {
   url: string;
   icon: React.ElementType;
   isActive?: boolean;
-  permission?: string;
+  permission?: string | string[];
   children?: { title: string; url: string; icon?: React.ElementType }[];
 };
 
@@ -54,14 +54,14 @@ const navItems: NavItem[] = [
     url: "/entity",
     icon: Database,
     isActive: false,
-    permission: "entity:read",
+    permission: ["entity:read", "entity:read:all"],
   },
   {
     title: "Initial Application",
     url: "/application",
     icon: FileText,
     isActive: false,
-    permission: "application:read",
+    permission: ["application:read", "application:read:all"],
     children: [
       {
         title: "All Application",
@@ -127,9 +127,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, hasPermission, logout: clearUser } = useAuthStore();
   const [profileOpen, setProfileOpen] = React.useState(false);
 
-  const filteredNav = navItems.filter(
-    (item) => !item.permission || hasPermission(item.permission),
-  );
+  const filteredNav = navItems.filter((item) => {
+    if (!item.permission) return true;
+    if (Array.isArray(item.permission)) {
+      return item.permission.some((p) => hasPermission(p));
+    }
+    return hasPermission(item.permission);
+  });
 
   const handleLogout = async () => {
     try {

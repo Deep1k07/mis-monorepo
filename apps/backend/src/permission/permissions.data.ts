@@ -54,6 +54,13 @@ export const defaultPermissions = [
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
   },
+  {
+    name: 'application:read:all',
+    description: 'Can view all applications',
+    category: 'Application',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
 
   // Cab and Standards permissions
   {
@@ -76,5 +83,21 @@ export const defaultPermissions = [
     category: 'CertificationBody',
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
-  }
+  },
+
+  // BA permissions
+  {
+    name: 'ba:read:all',
+    description: 'Can view all BAs',
+    category: 'BA',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'ba:read',
+    description: 'Can view own BAs',
+    category: 'BA',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
 ];
