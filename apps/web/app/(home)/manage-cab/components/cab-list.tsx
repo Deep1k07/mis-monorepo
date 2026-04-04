@@ -70,7 +70,7 @@ export function CabList() {
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Certification Body</DialogTitle>
             <DialogDescription>
@@ -88,7 +88,7 @@ export function CabList() {
 
       {/* Edit Dialog */}
       <Dialog open={!!editCab} onOpenChange={(open) => !open && setEditCab(null)}>
-        <DialogContent className="sm:max-w-4xl">
+        <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Certification Body</DialogTitle>
             <DialogDescription>
