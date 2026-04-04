@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { escapeRegex } from 'src/utils/escapeRegex';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   CertificationBody,
@@ -45,7 +46,7 @@ export class CetificationbodyService {
     const filter: any = {};
 
     if (search) {
-      const regex = new RegExp(search, 'i');
+      const regex = new RegExp(escapeRegex(search), 'i');
       filter.$or = [
         { cabCode: regex },
         { cbCode: regex },
@@ -187,7 +188,7 @@ export class CetificationbodyService {
     }
 
     if (search) {
-      const regex = new RegExp(search, 'i');
+      const regex = new RegExp(escapeRegex(search), 'i');
       filter.$and = [
         ...(filter.$and || []),
         {

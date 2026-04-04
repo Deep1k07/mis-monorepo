@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table";
 import { createColumns } from "./columns";
@@ -13,12 +13,15 @@ import {
 } from "@/components/ui/select";
 import { useAllBa, useEntities } from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
+import { useQueryParams } from "@/utils/useQueryParams";
 
 export function EntityClient() {
   const router = useRouter();
-  const [page, setPage] = useState(1);
-  const [baFilter, setBaFilter] = useState("");
-  const [searchInput, setSearchInput] = useState("");
+  const { get, getNumber, set } = useQueryParams();
+
+  const page = getNumber("page", 1);
+  const baFilter = get("ba");
+  const searchInput = get("search");
   const search = useDebounce(searchInput);
   const [mounted, setMounted] = useState(false);
 
@@ -27,8 +30,11 @@ export function EntityClient() {
   }, []);
 
   const handleSearchChange = (value: string) => {
-    setSearchInput(value);
-    setPage(1);
+    set({ search: value, page: 1 });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    set({ page: newPage });
   };
 
   const columns = useMemo(
@@ -47,24 +53,18 @@ export function EntityClient() {
     isLoading: loading,
   } = useEntities(page, baFilter, search);
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
   const filterSlot = mounted ? (
     <Select
-      value={baFilter}
+      value={baFilter || "all"}
       onValueChange={(value) => {
-        setBaFilter(value === "all" ? "" : (value ?? ""));
-        setPage(1);
+        set({ ba: value === "all" ? undefined : value, page: 1 });
       }}
     >
       <SelectTrigger className="w-[220px]">
-        <SelectValue placeholder="All Business Associates">
+        <SelectValue>
           {baFilter
-            ? (bams?.find((b) => b._id === baFilter)?.username ??
-              "All Business Associates")
-            : null}
+            ? bams?.find((b) => b._id === baFilter)?.username
+            : "All Business Associates"}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>

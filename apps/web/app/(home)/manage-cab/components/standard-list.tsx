@@ -21,21 +21,23 @@ import {
 import { useAuthStore } from "@/store/auth-store";
 import { useStandards, useAllCabsList } from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
+import { useQueryParams } from "@/utils/useQueryParams";
 import { createStandardColumns, StandardDef } from "./standard-columns";
 import { StandardForm } from "./standard-form";
 
 export function StandardList() {
-  const [page, setPage] = useState(1);
-  const [cabFilter, setCabFilter] = useState("");
-  const [searchInput, setSearchInput] = useState("");
+  const { get, getNumber, set } = useQueryParams();
+
+  const page = getNumber("page", 1);
+  const cabFilter = get("cab");
+  const searchInput = get("search");
   const search = useDebounce(searchInput);
   const [createOpen, setCreateOpen] = useState(false);
   const [editStandard, setEditStandard] = useState<StandardDef | null>(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const handleSearchChange = (value: string) => {
-    setSearchInput(value);
-    setPage(1);
+    set({ search: value, page: 1 });
   };
 
   const { cabs } = useAllCabsList();
@@ -55,17 +57,16 @@ export function StandardList() {
 
   const filterSlot = (
     <Select
-      value={cabFilter}
+      value={cabFilter || "all"}
       onValueChange={(value) => {
-        setCabFilter(value === "all" ? "" : (value ?? ""));
-        setPage(1);
+        set({ cab: value === "all" ? undefined : value, page: 1 });
       }}
     >
       <SelectTrigger className="w-[220px]">
-        <SelectValue placeholder="All CABs">
+        <SelectValue>
           {cabFilter
             ? cabs?.find((c: any) => c._id === cabFilter)?.cbName
-            : null}
+            : "All CABs"}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
@@ -98,7 +99,7 @@ export function StandardList() {
           pageCount={totalPages}
           page={page}
           total={total}
-          onPageChange={setPage}
+          onPageChange={(p) => set({ page: p })}
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
           filterSlot={filterSlot}

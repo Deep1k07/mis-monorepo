@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { escapeRegex } from 'src/utils/escapeRegex';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schema/ba.schema';
 import { Model } from 'mongoose';
@@ -21,8 +22,8 @@ export class BaService {
             // { user: user.userId },
             {
               $or: [
-                { username: new RegExp(searchTerm, 'i') },
-                { userId: new RegExp(searchTerm, 'i') },
+                { username: new RegExp(escapeRegex(searchTerm), 'i') },
+                { userId: new RegExp(escapeRegex(searchTerm), 'i') },
               ],
             },
           ],
@@ -37,8 +38,8 @@ export class BaService {
           { user: user.userId },
           {
             $or: [
-              { username: new RegExp(searchTerm, 'i') },
-              { userId: new RegExp(searchTerm, 'i') },
+              { username: new RegExp(escapeRegex(searchTerm), 'i') },
+              { userId: new RegExp(escapeRegex(searchTerm), 'i') },
             ],
           },
         ],

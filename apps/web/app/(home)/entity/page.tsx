@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
@@ -55,7 +56,9 @@ export default async function EntityPage() {
             </div>
             <EntityDialog />
           </div>
-          <EntityClient />
+          <Suspense fallback={<div className="flex items-center justify-center py-10 text-muted-foreground">Loading...</div>}>
+            <EntityClient />
+          </Suspense>
         </div>
       </SidebarInset>
     </SidebarProvider>

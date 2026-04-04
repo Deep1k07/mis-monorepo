@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
@@ -49,7 +50,9 @@ export default function ManageCabPage() {
               Manage certification bodies and their standards.
             </p>
           </div>
-          <ManageCabClient />
+          <Suspense fallback={<div className="flex items-center justify-center py-10 text-muted-foreground">Loading...</div>}>
+            <ManageCabClient />
+          </Suspense>
         </div>
       </SidebarInset>
     </SidebarProvider>

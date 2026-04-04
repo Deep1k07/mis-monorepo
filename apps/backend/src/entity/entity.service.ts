@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { Entity } from './schema/entity.schema';
 import { Application } from '../application/schema/application.schema';
 import { cleanString } from 'src/utils/cleanString';
+import { escapeRegex } from 'src/utils/escapeRegex';
 import { createSlug } from 'src/utils/createNameSlug';
 import { CreateEntityDto } from './dto/entity.dto';
 import { generateAlphanumericCode } from 'src/utils/createEntityId';
@@ -186,7 +187,7 @@ export class EntityService {
     }
 
     if (search) {
-      const regex = new RegExp(search, 'i');
+      const regex = new RegExp(escapeRegex(search), 'i');
       filter.$and = [
         ...(filter.$and || []),
         {

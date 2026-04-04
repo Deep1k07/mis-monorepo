@@ -1,21 +1,27 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table";
 import { createColumns } from "./columns";
 import { useApplications } from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
+import { useQueryParams } from "@/utils/useQueryParams";
 
 export function ApplicationClient() {
   const router = useRouter();
-  const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
+  const { get, getNumber, set } = useQueryParams();
+
+  const page = getNumber("page", 1);
+  const searchInput = get("search");
   const search = useDebounce(searchInput);
 
   const handleSearchChange = (value: string) => {
-    setSearchInput(value);
-    setPage(1);
+    set({ search: value, page: 1 });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    set({ page: newPage });
   };
 
   const columns = useMemo(
@@ -27,10 +33,6 @@ export function ApplicationClient() {
   );
 
   const { data, totalPages, total, isLoading: loading } = useApplications(page, search);
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
 
   return (
     <>

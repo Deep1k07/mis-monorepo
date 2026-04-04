@@ -6,6 +6,7 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { Entity } from 'src/entity/schema/entity.schema';
 import { CreateApplicationDto, StandardDto } from './dto/application.dto';
 import { CertificationBody } from 'src/certificationbody/schema/certificationBody.schema';
+import { escapeRegex } from 'src/utils/escapeRegex';
 
 @Injectable()
 export class ApplicationService {
@@ -122,7 +123,7 @@ export class ApplicationService {
     }
 
     if (search) {
-      const regex = new RegExp(search, 'i');
+      const regex = new RegExp(escapeRegex(search), 'i');
       filter.$and = [
         ...(filter.$and || []),
         {

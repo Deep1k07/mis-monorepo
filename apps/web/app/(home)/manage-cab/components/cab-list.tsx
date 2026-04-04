@@ -14,20 +14,22 @@ import {
 import { useAuthStore } from "@/store/auth-store";
 import { useCabs } from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
+import { useQueryParams } from "@/utils/useQueryParams";
 import { createCabColumns, CabDef } from "./cab-columns";
 import { CabForm } from "./cab-form";
 
 export function CabList() {
-  const [page, setPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
+  const { get, getNumber, set } = useQueryParams();
+
+  const page = getNumber("page", 1);
+  const searchInput = get("search");
   const search = useDebounce(searchInput);
   const [createOpen, setCreateOpen] = useState(false);
   const [editCab, setEditCab] = useState<CabDef | null>(null);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const handleSearchChange = (value: string) => {
-    setSearchInput(value);
-    setPage(1);
+    set({ search: value, page: 1 });
   };
 
   const { data, totalPages, total, isLoading, mutate } = useCabs(page, search);
@@ -59,7 +61,7 @@ export function CabList() {
           pageCount={totalPages}
           page={page}
           total={total}
-          onPageChange={setPage}
+          onPageChange={(p) => set({ page: p })}
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
           actionSlot={actionSlot}
