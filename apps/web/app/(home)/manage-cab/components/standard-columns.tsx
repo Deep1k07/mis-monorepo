@@ -12,12 +12,12 @@ export type StandardDef = {
   status: string;
   predecessor?: { _id: string; standardCode: string; version: string } | null;
   successor?: { _id: string; standardCode: string; version: string } | null;
-  certificationBody?: {
+  certificationBodies?: {
     _id: string;
     cabCode: string;
     cbCode: string;
     cbName: string;
-  };
+  }[];
   createdAt?: string;
 };
 
@@ -68,14 +68,15 @@ export const createStandardColumns = (
     },
   },
   {
-    accessorKey: "certificationBody",
-    header: "CAB",
+    id: "certificationBodies",
+    header: "CABs",
     cell: ({ row }) => {
-      const cb = row.getValue("certificationBody") as any;
-      if (!cb) return <span className="text-muted-foreground">-</span>;
-      const label = `${cb.cabCode} - ${cb.cbName}`;
+      const cbs = row.original.certificationBodies;
+      if (!cbs || cbs.length === 0) return <span className="text-muted-foreground">-</span>;
+      const label = cbs.map((cb) => cb.cabCode).join(", ");
+      const full = cbs.map((cb) => `${cb.cabCode} - ${cb.cbName}`).join(", ");
       return (
-        <span className="block max-w-[200px] truncate" title={label}>
+        <span className="block max-w-[200px] truncate" title={full}>
           {label}
         </span>
       );

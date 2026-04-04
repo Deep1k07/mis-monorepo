@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAllCabsList, useStandards } from "@/utils/apis";
 import { createStandard, updateStandard } from "@/utils/mutations";
 import toast from "react-hot-toast";
@@ -31,9 +32,9 @@ const standardSchema = z.object({
     .max(3, "Must be 3 characters")
     .toUpperCase(),
   schemeName: z.string().min(1, "Scheme Name is required"),
-  standardCode: z.string().regex(/^ISO \d{4}$/, "Must be in format 'ISO YYYY' (e.g., ISO 2019)"),
+  standardCode: z.string().regex(/^ISO \d{5}$/, "Must be in format 'ISO YYYYY' (e.g., ISO 2019,14001)"),
   version: z.string().min(1, "Version is required"),
-  certificationBody: z.string().min(1, "Certification Body is required"),
+  certificationBodies: z.array(z.string()).min(1, "At least one Certification Body is required"),
   predecessor: z.string().optional(),
   status: z.string().optional(),
 });
@@ -60,15 +61,15 @@ export function StandardForm({
       schemeName: "",
       standardCode: "",
       version: "",
-      certificationBody: "",
+      certificationBodies: [],
       predecessor: "",
       status: "active",
     },
   });
 
-  const selectedCab = form.watch("certificationBody");
-  // Fetch standards for the selected CAB to show as predecessor options
-  const { data: cabStandards } = useStandards(1, selectedCab, "");
+  const selectedCabs = form.watch("certificationBodies");
+  // Fetch standards for predecessor options (first selected CAB or all)
+  const { data: cabStandards } = useStandards(1, selectedCabs?.[0] || "", "");
 
   async function onSubmit(data: StandardFormValues) {
     const payload = {
@@ -115,36 +116,40 @@ export function StandardForm({
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="certificationBody"
+            name="certificationBodies"
             render={({ field }) => (
               <FormItem className="col-span-2">
-                <FormLabel>Certification Body</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={loadingCabs}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={
-                          loadingCabs
-                            ? "Loading..."
-                            : "Select Certification Body"
-                        }
-                      >
-                        {cabs?.find((c: any) => c._id === field.value)?.cbName}
-                      </SelectValue>
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {cabs?.map((cab: any) => (
-                      <SelectItem key={cab._id} value={cab._id}>
-                        {cab.cabCode} - {cab.cbName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>Certification Bodies</FormLabel>
+                {loadingCabs ? (
+                  <p className="text-sm text-muted-foreground">Loading...</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg max-h-48 overflow-y-auto">
+                    {cabs?.map((cab: any) => {
+                      const isChecked = field.value?.includes(cab._id);
+                      return (
+                        <label
+                          key={cab._id}
+                          className="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-muted/50"
+                        >
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={(checked) => {
+                              const current = field.value || [];
+                              field.onChange(
+                                checked
+                                  ? [...current, cab._id]
+                                  : current.filter((id: string) => id !== cab._id),
+                              );
+                            }}
+                          />
+                          <span className="text-sm">
+                            {cab.cabCode} - {cab.cbName}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -220,11 +225,11 @@ export function StandardForm({
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={!selectedCab}
+                  disabled={!selectedCabs?.length}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={selectedCab ? "Select predecessor" : "Select CAB first"} />
+                      <SelectValue placeholder={selectedCabs?.length ? "Select predecessor" : "Select CAB first"} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

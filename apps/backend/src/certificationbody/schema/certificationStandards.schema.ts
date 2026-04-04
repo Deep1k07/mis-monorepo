@@ -46,8 +46,8 @@ export class CertificationStandard {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
   user: Types.ObjectId;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'CertificationBody' })
-  certificationBody: Types.ObjectId;
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CertificationBody' }], default: [] })
+  certificationBodies: Types.ObjectId[];
 }
 
 export const CertificationStandardSchema = SchemaFactory.createForClass(CertificationStandard);

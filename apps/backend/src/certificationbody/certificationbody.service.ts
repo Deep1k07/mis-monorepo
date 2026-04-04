@@ -106,30 +106,30 @@ export class CetificationbodyService {
       }
     }
 
-    // Sync certificationBody ref on standards when standards array changes
+    // Sync certificationBodies ref on standards when standards array changes
     if (body.standards) {
       const oldStandardIds = cab.standards?.map((s) => s.toString()) || [];
       const newStandardIds = body.standards;
 
-      // Standards removed from this CAB — unset their certificationBody
+      // Standards removed from this CAB — pull this CAB from their certificationBodies
       const removed = oldStandardIds.filter(
         (s) => !newStandardIds.includes(s),
       );
       if (removed.length) {
         await this.certificationStandardModel.updateMany(
           { _id: { $in: removed } },
-          { $unset: { certificationBody: '' } },
+          { $pull: { certificationBodies: id } },
         );
       }
 
-      // Standards added to this CAB — set their certificationBody
+      // Standards added to this CAB — push this CAB into their certificationBodies
       const added = newStandardIds.filter(
         (s) => !oldStandardIds.includes(s),
       );
       if (added.length) {
         await this.certificationStandardModel.updateMany(
           { _id: { $in: added } },
-          { $set: { certificationBody: id } },
+          { $addToSet: { certificationBodies: id } },
         );
       }
     }
@@ -144,11 +144,12 @@ export class CetificationbodyService {
   // ─── Standard Methods ───
 
   async createStandard(body: CreateStandardDto, req: AuthRequest) {
-    const cab = await this.certificationBodyModel.findById(
-      body.certificationBody,
-    );
-    if (!cab) {
-      throw new BadRequestException('Certification Body not found');
+    // Validate all CABs exist
+    const cabs = await this.certificationBodyModel.find({
+      _id: { $in: body.certificationBodies },
+    });
+    if (cabs.length !== body.certificationBodies.length) {
+      throw new BadRequestException('One or more Certification Bodies not found');
     }
 
     const standard = await this.certificationStandardModel.create({
@@ -164,8 +165,9 @@ export class CetificationbodyService {
       );
     }
 
-    await this.certificationBodyModel.findByIdAndUpdate(
-      body.certificationBody,
+    // Add this standard to all selected CABs
+    await this.certificationBodyModel.updateMany(
+      { _id: { $in: body.certificationBodies } },
       { $addToSet: { standards: standard._id } },
     );
 
@@ -181,7 +183,7 @@ export class CetificationbodyService {
     const skip = (page - 1) * limit;
     const filter: any = {};
     if (certificationBody) {
-      filter.certificationBody = certificationBody;
+      filter.certificationBodies = certificationBody;
     }
 
     if (search) {
@@ -202,7 +204,7 @@ export class CetificationbodyService {
       this.certificationStandardModel
         .find(filter)
         .populate('user', 'firstName lastName email')
-        .populate('certificationBody', 'cabCode cbCode cbName')
+        .populate('certificationBodies', 'cabCode cbCode cbName')
         .populate('predecessor', 'standardCode version')
         .populate('successor', 'standardCode version')
         .skip(skip)
@@ -224,7 +226,7 @@ export class CetificationbodyService {
     const standard = await this.certificationStandardModel
       .findById(id)
       .populate('user', 'firstName lastName email')
-      .populate('certificationBody', 'cabCode cbCode cbName')
+      .populate('certificationBodies', 'cabCode cbCode cbName')
       .populate('predecessor', 'standardCode version')
       .populate('successor', 'standardCode version');
     if (!standard) {
@@ -239,20 +241,27 @@ export class CetificationbodyService {
       throw new BadRequestException('Standard not found');
     }
 
-    if (
-      body.certificationBody &&
-      body.certificationBody !== standard.certificationBody?.toString()
-    ) {
-      // Remove from old CAB's standards array
-      await this.certificationBodyModel.findByIdAndUpdate(
-        standard.certificationBody,
-        { $pull: { standards: standard._id } },
-      );
-      // Add to new CAB's standards array
-      await this.certificationBodyModel.findByIdAndUpdate(
-        body.certificationBody,
-        { $addToSet: { standards: id } },
-      );
+    if (body.certificationBodies) {
+      const oldCabIds = standard.certificationBodies?.map((c) => c.toString()) || [];
+      const newCabIds = body.certificationBodies;
+
+      // CABs removed — pull this standard from their standards array
+      const removed = oldCabIds.filter((c) => !newCabIds.includes(c));
+      if (removed.length) {
+        await this.certificationBodyModel.updateMany(
+          { _id: { $in: removed } },
+          { $pull: { standards: standard._id } },
+        );
+      }
+
+      // CABs added — push this standard into their standards array
+      const added = newCabIds.filter((c) => !oldCabIds.includes(c));
+      if (added.length) {
+        await this.certificationBodyModel.updateMany(
+          { _id: { $in: added } },
+          { $addToSet: { standards: id } },
+        );
+      }
     }
 
     return this.certificationStandardModel.findByIdAndUpdate(

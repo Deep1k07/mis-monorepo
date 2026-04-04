@@ -1,4 +1,5 @@
 import {
+  IsArray,
   IsString,
   IsNotEmpty,
   IsOptional,
@@ -38,7 +39,7 @@ export class CreateStandardDto {
   @IsMongoId()
   successor?: string;
 
-  @IsNotEmpty()
-  @IsMongoId()
-  certificationBody: string;
+  @IsArray()
+  @IsMongoId({ each: true })
+  certificationBodies: string[];
 }

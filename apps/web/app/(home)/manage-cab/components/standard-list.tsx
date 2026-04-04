@@ -143,8 +143,8 @@ export function StandardList() {
                 schemeName: editStandard.schemeName,
                 standardCode: editStandard.standardCode,
                 version: editStandard.version || "",
-                certificationBody:
-                  editStandard.certificationBody?._id || "",
+                certificationBodies:
+                  editStandard.certificationBodies?.map((cb) => cb._id) || [],
                 predecessor: editStandard.predecessor?._id || "",
                 status: editStandard.status,
               }}
