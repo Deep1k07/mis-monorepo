@@ -80,7 +80,7 @@ const navItems: NavItem[] = [
   },
   {
     title: "Manage User",
-    url: "/manage-user?tab=permissions",
+    url: "/manage-user",
     icon: UserCog,
     isActive: false,
     permission: ["manage:users"]

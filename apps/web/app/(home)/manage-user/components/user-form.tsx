@@ -24,34 +24,28 @@ import { useAllRoles } from "@/utils/apis";
 import { createUser, updateUser } from "@/utils/mutations";
 import toast from "react-hot-toast";
 
-const createUserSchema = z.object({
+const userSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().optional(),
   email: z.string().email("Invalid email"),
   phone: z.string().min(1, "Phone is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().optional(),
   role: z.string().min(1, "Role is required"),
   reportingManager: z.string().optional(),
   status: z.string().optional(),
 });
 
-const editUserSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().optional(),
-  email: z.string().email("Invalid email"),
-  phone: z.string().min(1, "Phone is required"),
-  password: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.length >= 6, {
-      message: "Password must be at least 6 characters",
-    }),
-  role: z.string().min(1, "Role is required"),
-  reportingManager: z.string().optional(),
-  status: z.string().optional(),
-});
+const createUserSchema = userSchema.refine(
+  (data) => data.password && data.password.length >= 6,
+  { message: "Password must be at least 6 characters", path: ["password"] }
+);
 
-export type UserFormValues = z.infer<typeof createUserSchema>;
+const editUserSchema = userSchema.refine(
+  (data) => !data.password || data.password.length >= 6,
+  { message: "Password must be at least 6 characters", path: ["password"] }
+);
+
+export type UserFormValues = z.infer<typeof userSchema>;
 
 export function UserForm({
   onSuccess,
@@ -84,7 +78,7 @@ export function UserForm({
     try {
       const payload = { ...data };
       if (mode === "edit" && !payload.password) {
-        delete (payload as any).password;
+        delete payload.password;
       }
 
       if (mode === "edit" && userId) {
@@ -204,7 +198,16 @@ export function UserForm({
                         placeholder={
                           loadingRoles ? "Loading..." : "Select role"
                         }
-                      />
+                      >
+                        {(value: string | null) =>
+                          value
+                            ? (roles.find((r: any) => r._id === value)
+                                ?.role ?? value)
+                            : loadingRoles
+                              ? "Loading..."
+                              : "Select role"
+                        }
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

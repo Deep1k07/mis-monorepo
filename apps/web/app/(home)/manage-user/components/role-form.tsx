@@ -76,10 +76,10 @@ function MultiSelectPermissions({
   const selectedItems = options.filter((o) => value.includes(o._id));
   const filteredOptions = search
     ? options.filter(
-        (o) =>
-          o.name.toLowerCase().includes(search.toLowerCase()) ||
-          o.category?.toLowerCase().includes(search.toLowerCase()),
-      )
+      (o) =>
+        o.name.toLowerCase().includes(search.toLowerCase()) ||
+        o.category?.toLowerCase().includes(search.toLowerCase()),
+    )
     : options;
 
   // Group by category
@@ -87,7 +87,7 @@ function MultiSelectPermissions({
     (acc: Record<string, any[]>, item) => {
       const cat = item.category || "Other";
       if (!acc[cat]) acc[cat] = [];
-      acc[cat].push(item);
+      acc[cat]!.push(item);
       return acc;
     },
     {},
@@ -255,7 +255,14 @@ export function RoleForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select reporting role" />
+                      <SelectValue placeholder="Select reporting role">
+                        {(value: string | null) =>
+                          value
+                            ? (roles.find((r: any) => r._id === value)
+                              ?.role ?? value)
+                            : "Select reporting role"
+                        }
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
