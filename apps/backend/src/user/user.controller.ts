@@ -26,7 +26,7 @@ import {
 @ApiCookieAuth()
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -34,18 +34,18 @@ export class UserController {
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @ApiResponse({ status: 400, description: 'Validation error or duplicate email' })
   async create(
-    @Body() body: CreateUserDto,
     @Req() req: AuthRequest,
+    @Body() body: CreateUserDto,
   ) {
-    return this.userService.create(body, req);
+    return this.userService.create(req, body);
   }
 
   @Get('get-all')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all users with pagination' })
   @ApiResponse({ status: 200, description: 'Paginated list of users' })
-  async getAll(@Query() query: PaginatedQueryDto) {
-    return this.userService.getAll(query.page, query.limit, query.search);
+  async getAll(@Req() req: AuthRequest, @Query() query: PaginatedQueryDto) {
+    return this.userService.getAll(req, query.page, query.limit, query.search);
   }
 
   @Get(':id')
@@ -53,8 +53,8 @@ export class UserController {
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User found' })
   @ApiResponse({ status: 400, description: 'User not found' })
-  async getById(@Param('id') id: string) {
-    return this.userService.getById(id);
+  async getById(@Req() req: AuthRequest, @Param('id') id: string) {
+    return this.userService.getById(req, id);
   }
 
   @Patch(':id')
@@ -63,9 +63,10 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 400, description: 'User not found' })
   async update(
+    @Req() req: AuthRequest,
     @Param('id') id: string,
     @Body() body: UpdateUserDto,
   ) {
-    return this.userService.update(id, body);
+    return this.userService.update(req, id, body);
   }
 }

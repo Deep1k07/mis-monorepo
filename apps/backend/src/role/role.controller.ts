@@ -26,22 +26,22 @@ import {
 @ApiCookieAuth()
 @Controller('role')
 export class RoleController {
-  constructor(private readonly roleService: RoleService) {}
+  constructor(private readonly roleService: RoleService) { }
 
   @Get()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all roles (unpaginated)' })
   @ApiResponse({ status: 200, description: 'List of all roles' })
-  async getAllRoles(): Promise<UserRole[]> {
-    return this.roleService.getAllRoles();
+  async getAllRoles(@Req() req: AuthRequest): Promise<UserRole[]> {
+    return this.roleService.getAllRoles(req);
   }
 
   @Get('get-all')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all roles with pagination' })
   @ApiResponse({ status: 200, description: 'Paginated list of roles' })
-  async getAll(@Query() query: PaginatedQueryDto) {
-    return this.roleService.getAll(query.page, query.limit, query.search);
+  async getAll(@Req() req: AuthRequest, @Query() query: PaginatedQueryDto) {
+    return this.roleService.getAll(req, query.page, query.limit, query.search);
   }
 
   @Post()
@@ -62,9 +62,10 @@ export class RoleController {
   @ApiResponse({ status: 200, description: 'Role updated successfully' })
   @ApiResponse({ status: 400, description: 'Role not found' })
   async update(
+    @Req() req: AuthRequest,
     @Param('id') id: string,
     @Body() body: CreateRoleDto,
   ) {
-    return this.roleService.update(id, body);
+    return this.roleService.update(req, id, body);
   }
 }

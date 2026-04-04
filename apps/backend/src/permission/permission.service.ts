@@ -14,12 +14,27 @@ export class PermissionService {
   ) { }
 
   async getAllPermissions(req: AuthRequest) {
-    return this.permissionModel.find().exec();
+    const user = req.user;
+    if (user.permissions.includes('permission:read')) {
+      return this.permissionModel.find().exec();
+    }
+    return [];
   }
 
-  async getAll(page: number = 1, limit: number = 10, search?: string) {
+  async getAll(req: AuthRequest, page: number = 1, limit: number = 10, search?: string) {
+    const user = req.user;
     const skip = (page - 1) * limit;
     const filter: any = {};
+
+    if (!['manage:users', 'permission:read'].some((p) => user.permissions.includes(p))) {
+      return {
+        data: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+      }
+    }
 
     if (search) {
       const regex = new RegExp(escapeRegex(search), 'i');
@@ -48,7 +63,11 @@ export class PermissionService {
     };
   }
 
-  async create(body: CreatePermissionDto) {
+  async create(req: AuthRequest, body: CreatePermissionDto) {
+    const user = req.user;
+    if (!['manage:users', 'permission:create'].some((p) => user.permissions.includes(p))) {
+      throw new BadRequestException('You do not have permission to create a permission');
+    }
     const existing = await this.permissionModel.findOne({
       name: body.name.toLowerCase(),
     });
@@ -58,7 +77,11 @@ export class PermissionService {
     return this.permissionModel.create(body);
   }
 
-  async update(id: string, body: CreatePermissionDto) {
+  async update(req: AuthRequest, id: string, body: CreatePermissionDto) {
+    const user = req.user;
+    if (!['manage:users', 'permission:update'].some((p) => user.permissions.includes(p))) {
+      throw new BadRequestException('You do not have permission to update a permission');
+    }
     const permission = await this.permissionModel.findById(id);
     if (!permission) {
       throw new BadRequestException('Permission not found');

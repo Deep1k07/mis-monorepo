@@ -33,19 +33,15 @@ export class PermissionController {
   @ApiOperation({ summary: 'Get all permissions (unpaginated)' })
   @ApiResponse({ status: 200, description: 'List of all permissions' })
   async getAllPermissions(@Req() req: AuthRequest): Promise<Permission[]> {
-    let user = req.user;
-    if (user.permissions.includes('permission:read:all')) {
-      return this.permissionService.getAllPermissions(req);
-    }
-    return [];
+    return this.permissionService.getAllPermissions(req);
   }
 
   @Get('get-all')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all permissions with pagination' })
   @ApiResponse({ status: 200, description: 'Paginated list of permissions' })
-  async getAll(@Query() query: PaginatedQueryDto) {
-    return this.permissionService.getAll(query.page, query.limit, query.search);
+  async getAll(@Req() req: AuthRequest, @Query() query: PaginatedQueryDto) {
+    return this.permissionService.getAll(req, query.page, query.limit, query.search);
   }
 
   @Post()
@@ -53,8 +49,8 @@ export class PermissionController {
   @ApiOperation({ summary: 'Create a new permission' })
   @ApiResponse({ status: 201, description: 'Permission created successfully' })
   @ApiResponse({ status: 400, description: 'Permission already exists' })
-  async create(@Body() body: CreatePermissionDto) {
-    return this.permissionService.create(body);
+  async create(@Req() req: AuthRequest, @Body() body: CreatePermissionDto) {
+    return this.permissionService.create(req, body);
   }
 
   @Patch(':id')
@@ -63,9 +59,10 @@ export class PermissionController {
   @ApiResponse({ status: 200, description: 'Permission updated successfully' })
   @ApiResponse({ status: 400, description: 'Permission not found' })
   async update(
+    @Req() req: AuthRequest,
     @Param('id') id: string,
     @Body() body: CreatePermissionDto,
   ) {
-    return this.permissionService.update(id, body);
+    return this.permissionService.update(req, id, body);
   }
 }

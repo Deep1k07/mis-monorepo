@@ -14,7 +14,7 @@ export class UserService {
   constructor(
     @InjectModel(UserAccount.name)
     private userModel: Model<UserAccount>,
-  ) {}
+  ) { }
 
   private async getUniqueUserId(): Promise<string> {
     while (true) {
@@ -24,7 +24,11 @@ export class UserService {
     }
   }
 
-  async create(body: CreateUserDto, req: AuthRequest) {
+  async create(req: AuthRequest, body: CreateUserDto) {
+    const user = req.user;
+    if (!['manage:users', 'user:create'].some((p) => user.permissions.includes(p))) {
+      throw new BadRequestException('You do not have permission to create a user');
+    }
     const existing = await this.userModel.findOne({ email: body.email.toLowerCase() });
     if (existing) {
       throw new BadRequestException('A user with this email already exists');
@@ -48,9 +52,13 @@ export class UserService {
     });
   }
 
-  async update(id: string, body: UpdateUserDto) {
-    const user = await this.userModel.findById(id);
-    if (!user) {
+  async update(req: AuthRequest, id: string, body: UpdateUserDto) {
+    const user = req.user;
+    if (!['manage:users', 'user:update'].some((p) => user.permissions.includes(p))) {
+      throw new BadRequestException('You do not have permission to update a user');
+    }
+    const users = await this.userModel.findById(id);
+    if (!users) {
       throw new BadRequestException('User not found');
     }
 
@@ -78,12 +86,18 @@ export class UserService {
   }
 
   async getAll(
+    req: AuthRequest,
     page: number = 1,
     limit: number = 10,
     search?: string,
   ) {
+    const user = req.user;
     const skip = (page - 1) * limit;
     const filter: any = {};
+
+    if (!['manage:users', 'user:read'].some((p) => user.permissions.includes(p))) {
+      throw new BadRequestException('You do not have permission to get users');
+    }
 
     if (search) {
       const regex = new RegExp(escapeRegex(search), 'i');
@@ -115,7 +129,7 @@ export class UserService {
     };
   }
 
-  async getById(id: string) {
+  async getById(req: AuthRequest, id: string) {
     const user = await this.userModel
       .findById(id)
       .populate('role', 'role description status')
