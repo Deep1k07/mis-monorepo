@@ -9,7 +9,7 @@ export enum Status {
   INACTIVE = 'inactive',
   EXPIRED = 'expired'
 }
-
+const regex = /^[0-9a-zA-Z]+$/;  //regex used for mssCod
 @Schema({ timestamps: true })
 export class CertificationStandard {
   @Prop({
@@ -18,6 +18,7 @@ export class CertificationStandard {
     trim: true,
     minlength: 3,
     maxlength: 3,
+    match: regex
   })
   mssCode: string;
 

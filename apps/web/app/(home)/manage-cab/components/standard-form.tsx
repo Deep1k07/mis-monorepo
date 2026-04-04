@@ -31,7 +31,7 @@ const standardSchema = z.object({
     .max(3, "Must be 3 characters")
     .toUpperCase(),
   schemeName: z.string().min(1, "Scheme Name is required"),
-  standardCode: z.string().min(1, "Standard Code is required"),
+  standardCode: z.string().regex(/^ISO \d{4}$/, "Must be in format 'ISO YYYY' (e.g., ISO 2019)"),
   version: z.string().min(1, "Version is required"),
   certificationBody: z.string().min(1, "Certification Body is required"),
   predecessor: z.string().optional(),
@@ -173,7 +173,7 @@ export function StandardForm({
               <FormItem>
                 <FormLabel>Standard Code</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. ISO 9001:2015" {...field} />
+                  <Input placeholder="e.g. ISO 9001" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

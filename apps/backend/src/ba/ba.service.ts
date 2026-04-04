@@ -13,10 +13,28 @@ export class BaService {
   ) { }
 
   async getAll(req: AuthRequest, searchTerm: string) {
+    let user = req.user;
+    if (user.permissions.includes('ba:read:all')) {
+      let result = await this.userModel
+        .find({
+          $and: [
+            // { user: user.userId },
+            {
+              $or: [
+                { username: new RegExp(searchTerm, 'i') },
+                { userId: new RegExp(searchTerm, 'i') },
+              ],
+            },
+          ],
+        })
+        .sort({ username: 1 });
+
+      return result;
+    }
     let result = await this.userModel
       .find({
         $and: [
-          { user: req.user.userId },
+          { user: user.userId },
           {
             $or: [
               { username: new RegExp(searchTerm, 'i') },
