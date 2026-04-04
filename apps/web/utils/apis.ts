@@ -27,6 +27,7 @@ export function useCountries() {
 export function useEntityById(id: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(
     id ? `${BASE_URL}/entity/${id}` : null,
+    { refreshInterval: 0 },
   );
   return {
     entity: data as EntityDef | undefined,
