@@ -9,12 +9,14 @@ import { createSlug } from 'src/utils/createNameSlug';
 import { CreateEntityDto } from './dto/entity.dto';
 import { generateAlphanumericCode } from 'src/utils/createEntityId';
 import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class EntityService {
   constructor(
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
     @InjectModel(Application.name) private applicationModel: Model<Application>,
+    private eventEmitter: EventEmitter2,
   ) { }
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
@@ -60,6 +62,12 @@ export class EntityService {
       isEntityEmailVerifiedStatus: restBody?.by_pass ? 'by-pass' : 'pending',
       createdBy: req?.user?.userId,
     };
+
+    this.eventEmitter.emit('entity:created', {
+      to: newPayload.email,
+      type: 'create_entity',
+      entityData: newPayload,
+    });
 
     return this.entityModel.create(newPayload);
   }

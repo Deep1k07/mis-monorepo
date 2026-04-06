@@ -4,7 +4,7 @@ import mongoose, { Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Entity {
 
-  @Prop({ required: true, enum: ['User', 'UserAccount'] })
+  @Prop({ enum: ['User', 'UserAccount'] })
   createdByModel: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
