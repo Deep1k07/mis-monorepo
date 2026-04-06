@@ -10,7 +10,7 @@ import {
   IsArray,
   MaxLength,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 class AddressDto {
   @ApiProperty() @IsString() @IsNotEmpty() street: string;
@@ -20,11 +20,14 @@ class AddressDto {
   @ApiProperty() @IsString() @IsNotEmpty() postal_code: string;
 }
 
+const stripLeadingZeros = ({ value }: { value: any }) =>
+  typeof value === 'string' ? String(parseInt(value, 10) || 0) : value;
+
 class RateCardDto {
   @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) initial?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) annual?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) recertification?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) @Transform(stripLeadingZeros) initial?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) @Transform(stripLeadingZeros) annual?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) @Transform(stripLeadingZeros) recertification?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() comments?: string;
