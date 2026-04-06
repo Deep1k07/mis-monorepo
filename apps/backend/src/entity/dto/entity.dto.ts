@@ -7,23 +7,30 @@ import {
   IsArray,
   IsMongoId,
   IsBoolean,
-  IsNumber,
   Matches,
+  MaxLength,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+import { cleanString } from 'src/utils/cleanString';
 
 // 🔹 Main Site Address DTO
 class MainSiteAddressDto {
   @IsNotEmpty()
   @IsString()
+  @MaxLength(50)
+  @Transform(({ value }) => cleanString(value))
   street: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(20)
+  @Transform(({ value }) => cleanString(value))
   city: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(20)
+  @Transform(({ value }) => cleanString(value))
   state: string;
 
   @IsNotEmpty()
@@ -35,6 +42,8 @@ class MainSiteAddressDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(10)
+  @Transform(({ value }) => value.trim())
   postal_code: string;
 }
 
@@ -42,14 +51,17 @@ class MainSiteAddressDto {
 class AdditionalSiteAddressDto {
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   street: string;
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   city: string;
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   state: string;
 
   @IsNotEmpty()
@@ -61,6 +73,7 @@ class AdditionalSiteAddressDto {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => value.trim())
   postal_code: string;
 
   @IsOptional()
@@ -83,6 +96,7 @@ export class CreateEntityDto {
 
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   entity_name: string;
 
   @IsMongoId()
@@ -91,10 +105,12 @@ export class CreateEntityDto {
 
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   entity_name_english: string;
 
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => cleanString(value))
   entity_trading_name: string;
 
   // ✅ main_site_address (array)
