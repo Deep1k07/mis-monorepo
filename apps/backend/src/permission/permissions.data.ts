@@ -100,4 +100,82 @@ export const defaultPermissions = [
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
   },
+
+  // User management permissions
+  {
+    name: 'manage:users',  // must for manage user tab-> permissions/roles/users
+    description: 'Can manage users',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  // Permission management
+
+  {
+    name: 'permission:read',
+    description: 'Can view permissions',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'permission:create',
+    description: 'Can create permissions',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'permission:update',
+    description: 'Can update permissions',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+
+  // Role management
+  {
+    name: 'role:create',
+    description: 'Can create roles',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'role:update',
+    description: 'Can update roles',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'role:read',
+    description: 'Can view roles',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+
+  // User management
+  {
+    name: 'user:create',
+    description: 'Can create users',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'user:read',
+    description: 'Can view users',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'user:update',
+    description: 'Can update users',
+    category: 'User Management',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
 ];

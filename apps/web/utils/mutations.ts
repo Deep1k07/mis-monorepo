@@ -79,3 +79,63 @@ export const updateStandard = async (id: string, data: any) => {
   );
   return response;
 };
+
+// ─── Permission ───
+
+export const createPermission = async (data: any) => {
+  const response = await apiFetch(`${BASE_URL}/permission`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+export const updatePermission = async (id: string, data: any) => {
+  const response = await apiFetch(`${BASE_URL}/permission/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+// ─── Role ───
+
+export const createRole = async (data: any) => {
+  const response = await apiFetch(`${BASE_URL}/role`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+export const updateRole = async (id: string, data: any) => {
+  const response = await apiFetch(`${BASE_URL}/role/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+// ─── User ───
+
+export const createUser = async (data: any) => {
+  const response = await apiFetch(`${BASE_URL}/user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+export const updateUser = async (id: string, data: any) => {
+  const response = await apiFetch(`${BASE_URL}/user/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};

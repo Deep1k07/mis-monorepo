@@ -12,6 +12,7 @@ import {
   ChevronRight,
   List,
   ShieldCheck,
+  UserCog,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { ProfileModal } from "@/components/profile-modal";
@@ -39,7 +40,7 @@ type NavItem = {
   icon: React.ElementType;
   isActive?: boolean;
   permission?: string | string[];
-  children?: { title: string; url: string; icon?: React.ElementType }[];
+  children?: { title: string; url: string; icon?: React.ElementType; permission?: string | string[] }[];
 };
 
 const navItems: NavItem[] = [
@@ -77,16 +78,35 @@ const navItems: NavItem[] = [
     isActive: false,
     permission: "cab-standard:read",
   },
+  {
+    title: "Manage User",
+    url: "/manage-user",
+    icon: UserCog,
+    isActive: false,
+    permission: ["manage:users"]
+  },
 ];
 
 function CollapsibleNavItem({
   item,
   pathname,
+  hasPermission,
 }: {
   item: NavItem;
   pathname: string;
+  hasPermission: (p: string) => boolean;
 }) {
   const [open, setOpen] = React.useState(pathname.startsWith(item.url));
+
+  const filteredChildren = item.children?.filter((child) => {
+    if (!child.permission) return true;
+    if (Array.isArray(child.permission)) {
+      return child.permission.some((p) => hasPermission(p));
+    }
+    return hasPermission(child.permission);
+  });
+
+  if (!filteredChildren || filteredChildren.length === 0) return null;
 
   return (
     <SidebarMenuItem>
@@ -104,7 +124,7 @@ function CollapsibleNavItem({
       </SidebarMenuButton>
       {open && (
         <SidebarMenuSub>
-          {item.children!.map((child) => (
+          {filteredChildren.map((child) => (
             <SidebarMenuSubItem key={child.title}>
               <SidebarMenuSubButton
                 render={<Link href={child.url} />}
@@ -169,6 +189,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       key={item.title}
                       item={item}
                       pathname={pathname}
+                      hasPermission={hasPermission}
                     />
                   ) : (
                     <SidebarMenuItem key={item.title}>

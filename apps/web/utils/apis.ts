@@ -160,3 +160,78 @@ export function useAllCabsList() {
   };
 }
 
+// ─── Permissions ───
+
+export function usePermissions(page: number, search?: string) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
+
+  const { data, error, isLoading, mutate } = useSWR(
+    `${BASE_URL}/permission/get-all?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
+export function useAllPermissions() {
+  const { data, error, isLoading } = useSWR(`${BASE_URL}/permission`);
+  return {
+    permissions: (data ?? []) as any[],
+    isLoading,
+    isError: error,
+  };
+}
+
+// ─── Roles ───
+
+export function useRoles(page: number, search?: string) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
+
+  const { data, error, isLoading, mutate } = useSWR(
+    `${BASE_URL}/role/get-all?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
+export function useAllRoles() {
+  const { data, error, isLoading } = useSWR(`${BASE_URL}/role`);
+  return {
+    roles: (data ?? []) as any[],
+    isLoading,
+    isError: error,
+  };
+}
+
+// ─── Users ───
+
+export function useUsers(page: number, search?: string) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
+
+  const { data, error, isLoading, mutate } = useSWR(
+    `${BASE_URL}/user/get-all?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+

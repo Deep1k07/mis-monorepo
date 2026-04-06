@@ -37,8 +37,7 @@ export class EntityService {
     // ------------------- ENTITY ID GENERATION -------------------
     const entityId = await this.getUniqueEntityId(this.entityModel);
 
-    let entityName = cleanString(body.entity_name);
-
+    let entityName = body.entity_name;
     let nameSlug = createSlug(entityName);
 
     const existingSlug = await this.entityModel.findOne({
@@ -58,20 +57,6 @@ export class EntityService {
       entity_name: entityName,
       name_slug: nameSlug,
       ...(direct_price != null ? { direct_price: Number(direct_price) } : {}),
-      main_site_address: restBody?.main_site_address?.map((address: any) => ({
-        street: cleanString(address?.street),
-        city: cleanString(address?.city),
-        country: address?.country,
-        postal_code: cleanString(address?.postal_code),
-      })),
-      additional_site_address: restBody?.additional_site_address?.map(
-        (address: any) => ({
-          street: cleanString(address?.street),
-          city: cleanString(address?.city),
-          country: address?.country,
-          postal_code: cleanString(address?.postal_code),
-        }),
-      ),
       isEntityEmailVerifiedStatus: restBody?.by_pass ? 'by-pass' : 'pending',
       createdBy: req?.user?.userId,
     };
@@ -115,27 +100,11 @@ export class EntityService {
     }
 
     if (updateData.main_site_address) {
-      updateData.main_site_address = updateData.main_site_address.map(
-        (address: any) => ({
-          street: cleanString(address?.street),
-          city: cleanString(address?.city),
-          state: address?.state,
-          country: address?.country,
-          postal_code: cleanString(address?.postal_code),
-        }),
-      );
+      updateData.main_site_address = updateData.main_site_address
     }
 
     if (updateData.additional_site_address) {
-      updateData.additional_site_address =
-        updateData.additional_site_address.map((address: any) => ({
-          ...address,
-          street: cleanString(address?.street),
-          city: cleanString(address?.city),
-          state: address?.state,
-          country: address?.country,
-          postal_code: cleanString(address?.postal_code),
-        }));
+      updateData.additional_site_address = updateData.additional_site_address
     }
     return this.entityModel.findOneAndUpdate(
       { entity_id: entityId },
@@ -205,6 +174,7 @@ export class EntityService {
       this.entityModel
         .find(filter)
         .populate('business_associate', 'username')
+        .populate('createdBy', 'username')
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 }),
