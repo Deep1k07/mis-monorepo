@@ -160,6 +160,25 @@ export function useAllCabsList() {
   };
 }
 
+// ─── BA (paginated) ───
+
+export function useBAs(page: number, search?: string) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
+  const { data, error, isLoading, mutate } = useSWR(
+    `${BASE_URL}/ba/get-all-paginated?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    currentPage: data?.page ?? page,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
 // ─── Permissions ───
 
 export function usePermissions(page: number, search?: string) {

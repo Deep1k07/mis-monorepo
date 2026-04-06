@@ -37,6 +37,26 @@ export const createApplication = async (data: any) => {
   return response;
 };
 
+// ─── BA ───
+
+export const createBa = async (data: any) => {
+  const response = await apiFetch(`${BASE_URL}/ba`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
+export const updateBa = async (id: string, data: any) => {
+  const response = await apiFetch(`${BASE_URL}/ba/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
 // ─── CAB ───
 
 export const createCab = async (data: any) => {

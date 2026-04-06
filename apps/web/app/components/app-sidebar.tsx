@@ -13,6 +13,7 @@ import {
   List,
   ShieldCheck,
   UserCog,
+  Briefcase,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { ProfileModal } from "@/components/profile-modal";
@@ -77,6 +78,13 @@ const navItems: NavItem[] = [
     icon: ShieldCheck,
     isActive: false,
     permission: "cab-standard:read",
+  },
+  {
+    title: "Manage BA",
+    url: "/manage-ba",
+    icon: Briefcase,
+    isActive: false,
+    permission: ["ba:read", "ba:read:all"],
   },
   {
     title: "Manage User",
