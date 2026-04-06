@@ -93,76 +93,164 @@ function MultiSelectPermissions({
     {},
   );
 
+  // Group selected items by category
+  const selectedGrouped = selectedItems.reduce(
+    (acc: Record<string, any[]>, item) => {
+      const cat = item.category || "Other";
+      if (!acc[cat]) acc[cat] = [];
+      acc[cat]!.push(item);
+      return acc;
+    },
+    {},
+  );
+
+  const toggleCategory = (categoryItems: any[]) => {
+    const categoryIds = categoryItems.map((i) => i._id);
+    const allSelected = categoryIds.every((id) => value.includes(id));
+    if (allSelected) {
+      onChange(value.filter((v) => !categoryIds.includes(v)));
+    } else {
+      const newValue = [...value];
+      categoryIds.forEach((id) => {
+        if (!newValue.includes(id)) newValue.push(id);
+      });
+      onChange(newValue);
+    }
+  };
+
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative space-y-2">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex min-h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs cursor-pointer hover:bg-accent"
+        className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs cursor-pointer hover:bg-accent"
       >
-        <div className="flex flex-wrap gap-1 flex-1">
-          {selectedItems.length === 0 && (
-            <span className="text-muted-foreground">
-              {loading ? "Loading..." : "Select permissions..."}
-            </span>
-          )}
-          {selectedItems.map((item) => (
-            <span
-              key={item._id}
-              className="inline-flex items-center gap-1 rounded-md bg-secondary px-1.5 py-0.5 text-xs font-medium"
-            >
-              {item.name}
-              <X
-                className="h-3 w-3 cursor-pointer hover:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggle(item._id);
-                }}
-              />
-            </span>
-          ))}
-        </div>
+        <span className={selectedItems.length === 0 ? "text-muted-foreground" : ""}>
+          {loading
+            ? "Loading..."
+            : selectedItems.length === 0
+              ? "Select permissions..."
+              : `${selectedItems.length} permission${selectedItems.length > 1 ? "s" : ""} selected`}
+        </span>
         <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
       </button>
+
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md max-h-60 overflow-y-auto">
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg">
           <div className="sticky top-0 bg-popover p-2 border-b">
             <input
               type="text"
               placeholder="Search permissions..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-md border border-input bg-transparent px-2 py-1 text-sm"
+              className="w-full rounded-md border border-input bg-transparent px-2 py-1.5 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring"
             />
           </div>
-          {Object.keys(grouped).length === 0 ? (
-            <div className="px-3 py-2 text-sm text-muted-foreground">
-              No permissions available
-            </div>
-          ) : (
-            Object.entries(grouped).map(([category, items]) => (
-              <div key={category}>
-                <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
-                  {category}
-                </div>
-                {items.map((item: any) => (
-                  <button
-                    key={item._id}
-                    type="button"
-                    onClick={() => toggle(item._id)}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-accent cursor-pointer"
-                  >
-                    <div className="flex h-4 w-4 items-center justify-center">
-                      {value.includes(item._id) && (
-                        <Check className="h-3.5 w-3.5" />
-                      )}
-                    </div>
-                    <span className="font-mono text-xs">{item.name}</span>
-                  </button>
-                ))}
+          <div className="max-h-72 overflow-y-auto">
+            {Object.keys(grouped).length === 0 ? (
+              <div className="px-3 py-4 text-sm text-center text-muted-foreground">
+                No permissions found
               </div>
-            ))
+            ) : (
+              Object.entries(grouped).map(([category, items]) => {
+                const categoryIds = items.map((i: any) => i._id);
+                const allSelected = categoryIds.every((id: string) => value.includes(id));
+                const someSelected = !allSelected && categoryIds.some((id: string) => value.includes(id));
+                return (
+                  <div key={category}>
+                    <button
+                      type="button"
+                      onClick={() => toggleCategory(items)}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 bg-muted/50 hover:bg-muted cursor-pointer"
+                    >
+                      <div
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors ${
+                          allSelected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : someSelected
+                              ? "border-primary bg-primary/20"
+                              : "border-input"
+                        }`}
+                      >
+                        {allSelected && <Check className="h-3 w-3" />}
+                        {someSelected && !allSelected && (
+                          <div className="h-1.5 w-1.5 rounded-sm bg-primary" />
+                        )}
+                      </div>
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        {category}
+                      </span>
+                      <span className="ml-auto text-[10px] text-muted-foreground">
+                        {categoryIds.filter((id: string) => value.includes(id)).length}/{categoryIds.length}
+                      </span>
+                    </button>
+                    {items.map((item: any) => {
+                      const isSelected = value.includes(item._id);
+                      return (
+                        <button
+                          key={item._id}
+                          type="button"
+                          onClick={() => toggle(item._id)}
+                          className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm cursor-pointer transition-colors ${
+                            isSelected ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-accent"
+                          }`}
+                        >
+                          <div
+                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors ${
+                              isSelected
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-input"
+                            }`}
+                          >
+                            {isSelected && <Check className="h-3 w-3" />}
+                          </div>
+                          <span className="font-mono text-xs">{item.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })
+            )}
+          </div>
+          {selectedItems.length > 0 && (
+            <div className="border-t px-3 py-2 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                {selectedItems.length} selected
+              </span>
+              <button
+                type="button"
+                onClick={() => onChange([])}
+                className="text-xs text-destructive hover:underline cursor-pointer"
+              >
+                Clear all
+              </button>
+            </div>
           )}
+        </div>
+      )}
+
+      {selectedItems.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto rounded-md border border-dashed border-input p-2">
+          {Object.entries(selectedGrouped).map(([category, items]) => (
+            <div key={category} className="flex flex-wrap gap-1 items-center">
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase mr-0.5">
+                {category}:
+              </span>
+              {items.map((item: any) => (
+                <span
+                  key={item._id}
+                  className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium"
+                >
+                  {item.name}
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors"
+                    onClick={() => toggle(item._id)}
+                  />
+                </span>
+              ))}
+            </div>
+          ))}
         </div>
       )}
     </div>
