@@ -9,6 +9,7 @@ import {
   ValidateNested,
   IsArray,
   MaxLength,
+  Matches,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
@@ -71,7 +72,14 @@ export class CreateBaDto {
   // ── CabBA fields ──
   @ApiProperty() @IsString() @MinLength(1) contact_name: string;
   @ApiProperty() @IsString() @MinLength(1) registration_authority: string;
-  @ApiProperty() @IsString() @MinLength(1) registration_number: string;
+
+  @ApiProperty()
+  @IsString()
+  @MinLength(5)
+  @MaxLength(20)
+  @Matches(/^\S+$/, { message: 'Registration number must not contain spaces' })
+  registration_number: string;
+
   @ApiProperty() @IsString() @IsNotEmpty() registration_date: string;
   @ApiProperty() @ValidateNested() @Type(() => AddressDto) address: AddressDto;
   @ApiProperty() @IsString() @IsNotEmpty() currency: string;
