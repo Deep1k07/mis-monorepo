@@ -7,6 +7,7 @@ import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { CabBA } from './schema/cabBa.schema';
 import { CreateBaDto } from './dto/create-ba.dto';
 import { UpdateBaDto } from './dto/update-ba.dto';
+import { generateAlphanumericCode } from 'src/utils/createEntityId';
 import bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -16,13 +17,15 @@ export class BaService {
     @InjectModel(CabBA.name) private cabBaModel: Model<CabBA>,
   ) {}
 
-  async create(req: AuthRequest, body: CreateBaDto) {
-    // Check duplicate username
-    const existingUser = await this.userModel.findOne({ username: body.username });
-    if (existingUser) {
-      throw new BadRequestException('A BA with this username already exists');
+  private async getUniqueUserId(): Promise<string> {
+    while (true) {
+      const id = generateAlphanumericCode(4);
+      const found = await this.userModel.exists({ userId: id });
+      if (!found) return id;
     }
+  }
 
+  async create(req: AuthRequest, body: CreateBaDto) {
     // Check duplicate registration number
     const existingReg = await this.cabBaModel.findOne({
       registration_number: body.registration_number,
@@ -49,10 +52,12 @@ export class BaService {
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(body.password, salt);
+    const userId = await this.getUniqueUserId();
 
     // Create User (BA) document
     const user = await this.userModel.create({
       username: body.username,
+      userId,
       email: body.email?.toLowerCase(),
       phone: body.phone,
       password: hashedPassword,
@@ -112,13 +117,6 @@ export class BaService {
     // Update User fields
     const userUpdate: any = {};
     if (body.username !== undefined) {
-      const existing = await this.userModel.findOne({
-        username: body.username,
-        _id: { $ne: id },
-      });
-      if (existing) {
-        throw new BadRequestException('A BA with this username already exists');
-      }
       userUpdate.username = body.username;
     }
     if (body.email !== undefined) userUpdate.email = body.email.toLowerCase();

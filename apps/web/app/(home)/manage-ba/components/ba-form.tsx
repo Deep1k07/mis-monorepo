@@ -474,15 +474,18 @@ function CbRateCardSection({
                             <Input
                               type="number"
                               min="0"
+                              max={99999}
+                              maxLength={5}
                               value={std.rateCard[0]?.initial || ""}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                if (e.target.value.length > 5) return;
                                 updateRateCard(
                                   cbIndex,
                                   stdIndex,
                                   "initial",
                                   e.target.value,
-                                )
-                              }
+                                );
+                              }}
                               className="h-8 w-24"
                               placeholder="0"
                             />
@@ -491,15 +494,18 @@ function CbRateCardSection({
                             <Input
                               type="number"
                               min="0"
+                              max={99999}
+                              maxLength={5}
                               value={std.rateCard[0]?.annual || ""}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                if (e.target.value.length > 5) return;
                                 updateRateCard(
                                   cbIndex,
                                   stdIndex,
                                   "annual",
                                   e.target.value,
-                                )
-                              }
+                                );
+                              }}
                               className="h-8 w-24"
                               placeholder="0"
                             />
@@ -508,15 +514,18 @@ function CbRateCardSection({
                             <Input
                               type="number"
                               min="0"
+                              max={99999}
+                              maxLength={5}
                               value={std.rateCard[0]?.recertification || ""}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                if (e.target.value.length > 5) return;
                                 updateRateCard(
                                   cbIndex,
                                   stdIndex,
                                   "recertification",
                                   e.target.value,
-                                )
-                              }
+                                );
+                              }}
                               className="h-8 w-24"
                               placeholder="0"
                             />
@@ -617,7 +626,27 @@ export function BaForm({
     setCbError(null);
 
     try {
-      const payload: any = { ...data, cab: cbEntries };
+      // Strip DB-only fields (_id, createdAt, updatedAt) from cab sub-documents
+      const cleanedCab = cbEntries.map(({ cabCode, cbCode, abCode, status, standards }) => ({
+        cabCode,
+        cbCode,
+        abCode,
+        status,
+        standards: standards.map(({ name, code, version, status: sStatus, rateCard }) => ({
+          name,
+          code,
+          version,
+          status: sStatus,
+          rateCard: rateCard.map(({ initial, annual, recertification, startDate, status: rStatus }) => ({
+            initial,
+            annual,
+            recertification,
+            startDate,
+            status: rStatus,
+          })),
+        })),
+      }));
+      const payload: any = { ...data, cab: cleanedCab };
       if (mode === "edit" && !payload.password) {
         delete payload.password;
       }

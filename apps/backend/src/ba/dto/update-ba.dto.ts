@@ -3,9 +3,12 @@ import {
   IsString,
   IsOptional,
   IsEmail,
+  IsNumber,
   MinLength,
   ValidateNested,
   IsArray,
+  IsNotEmpty,
+  MaxLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -15,6 +18,44 @@ class AddressDto {
   @ApiPropertyOptional() @IsOptional() @IsString() state?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() country?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() postal_code?: string;
+}
+
+class RateCardDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) initial?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) annual?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) recertification?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() comments?: string;
+}
+
+class StandardDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() name?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() code?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() version?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
+
+  @ApiPropertyOptional({ type: [RateCardDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => RateCardDto)
+  rateCard?: RateCardDto[];
+}
+
+class CbDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() cabCode?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() cbCode?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() abCode?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
+
+  @ApiPropertyOptional({ type: [StandardDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => StandardDto)
+  standards?: StandardDto[];
 }
 
 export class UpdateBaDto {
@@ -35,6 +76,13 @@ export class UpdateBaDto {
   @ApiPropertyOptional() @IsOptional() @IsString() gst?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() certificateLanguage?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() otherCertificateLanguage?: string;
-  @ApiPropertyOptional() @IsOptional() @IsArray() cab?: any[];
+
+  @ApiPropertyOptional({ type: [CbDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CbDto)
+  cab?: CbDto[];
+
   @ApiPropertyOptional() @IsOptional() @IsString() website?: string;
 }
