@@ -3,13 +3,17 @@ import mongoose, { Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Entity {
+
+  @Prop({ required: true, enum: ['User', 'UserAccount'] })
+  createdByModel: string;
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
   user: Types.ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   business_associate: Types.ObjectId;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, refPath: 'createdByModel' })
   createdBy: Types.ObjectId;
 
   @Prop({ required: true, unique: true })

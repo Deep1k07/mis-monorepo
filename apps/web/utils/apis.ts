@@ -175,7 +175,7 @@ export function usePermissions(page: number, search?: string) {
     total: data?.total ?? 0,
     isLoading,
     isError: error,
-    mutate,
+    mutate: mutate as () => Promise<any>,
   };
 }
 
@@ -203,7 +203,7 @@ export function useRoles(page: number, search?: string) {
     total: data?.total ?? 0,
     isLoading,
     isError: error,
-    mutate,
+    mutate: mutate as () => Promise<any>,
   };
 }
 
@@ -231,7 +231,7 @@ export function useUsers(page: number, search?: string) {
     total: data?.total ?? 0,
     isLoading,
     isError: error,
-    mutate,
+    mutate: mutate as () => Promise<any>,
   };
 }
 

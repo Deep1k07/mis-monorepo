@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import * as z from "zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp, MapPin } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -175,6 +175,7 @@ export function ApplyCertificateClient() {
   const selectedDuration = form.watch("duration");
 
   // BA's assigned CABs from CabBA.cab array
+
   const currency = useMemo(() => {
     if (!entity?.business_associate?.cab) return "";
     return entity.business_associate.cab.currency === "USD" ? "$" : "₹";
@@ -185,6 +186,8 @@ export function ApplyCertificateClient() {
       (cb: any) => cb.status === "active"
     );
   }, [entity]);
+
+  const mainAddress = entity?.main_site_address?.[0];
 
   // Standards for the selected CAB
   const selectedCab = useMemo(() => {
@@ -354,6 +357,27 @@ export function ApplyCertificateClient() {
           <div>
             <span className="text-xs text-muted-foreground">Employees Count</span>
             <p>{entity.employess_count || "-"}</p>
+          </div>
+          <div>
+            <span className="text-xs text-muted-foreground">Business Associate</span>
+            <p>{entity.business_associate?.username || "-"}</p>
+          </div>
+          <div className="sm:col-span-3">
+            <span className="text-xs text-muted-foreground">Main Site Address</span>
+            <div className="flex items-center gap-2 mt-1">
+              <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+              <p>
+                {[
+                  mainAddress?.street,
+                  mainAddress?.city,
+                  mainAddress?.state,
+                  mainAddress?.postal_code,
+                  mainAddress?.country,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || "-"}
+              </p>
+            </div>
           </div>
         </div>
       </div>
