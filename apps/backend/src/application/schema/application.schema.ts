@@ -75,7 +75,7 @@ export class Application {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Entity', required: true }) entity: Types.ObjectId;
   @Prop() secondary_entity_name: string;
-  @Prop({ required: true }) employess_count: string;
+  @Prop() employess_count: string;
 
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) bulkUploadedBy: Types.ObjectId;
@@ -122,7 +122,7 @@ export class Application {
   // ])
   // additional_address_multiple: any[];
 
-  @Prop({ required: true }) email: string;
+  @Prop() email: string;
   @Prop() website: string;
   @Prop({ required: true }) scope: string;
   @Prop() additional_scope: string;
