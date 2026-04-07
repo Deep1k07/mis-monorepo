@@ -84,9 +84,10 @@ export function useApplications(page: number, search?: string) {
 }
 
 // get draft applications (scope review)
-export function useDraftApplications(page: number, search?: string) {
+export function useDraftApplications(page: number, search?: string, scopeStatus?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
+  if (scopeStatus) params.set("scopeStatus", scopeStatus);
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/application/draft?${params}`,
   );

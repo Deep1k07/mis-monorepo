@@ -61,6 +61,21 @@ export const defaultPermissions = [
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
   },
+  {
+    name: 'application:read:draft',
+    description: 'Can view draft applications',
+    category: 'Application',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'application:approve:draft',
+    description: 'Can approve draft applications',
+    category: 'Application',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+
 
   // Cab and Standards permissions
   {
@@ -96,6 +111,20 @@ export const defaultPermissions = [
   {
     name: 'ba:read',
     description: 'Can view own BAs',
+    category: 'BA',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'ba:create',
+    description: 'Can create BA',
+    category: 'BA',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'ba:update',
+    description: 'Can update BA',
     category: 'BA',
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,

@@ -207,37 +207,23 @@ export class ApplicationService {
   }
 
   async findDraft(
-    req: AuthRequest,
+    _req: AuthRequest,
     page: number = 1,
     limit: number = 10,
     search?: string,
+    scopeStatus?: string,
   ) {
-    const filter: any = {
-      scopeStatus: 'pending',
-      certificateStatus: 'proceed',
-      isBaManagerApproved: true,
-    };
-
-    if (search) {
-      const regex = new RegExp(escapeRegex(search), 'i');
-      filter.$and = [
-        {
-          $or: [
-            { 'entity.entity_name': regex },
-            { 'entity.entity_id': regex },
-            { cab_code: regex },
-            { 'standards.code': regex },
-          ],
-        },
-      ];
-    }
+    const allowedStatuses = ['pending', 'rejected', 'completed'];
+    const statusFilter = scopeStatus && allowedStatuses.includes(scopeStatus)
+      ? scopeStatus
+      : { $in: ['pending', 'rejected'] };
 
     const skip = (page - 1) * limit;
 
     const pipeline: any[] = [
       {
         $match: {
-          scopeStatus: 'pending',
+          scopeStatus: statusFilter,
           certificateStatus: 'proceed',
           isBaManagerApproved: true,
         },

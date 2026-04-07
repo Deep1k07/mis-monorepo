@@ -7,6 +7,13 @@ import { createDraftColumns } from "./columns";
 import { useDraftApplications } from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
 import { useQueryParams } from "@/utils/useQueryParams";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function DraftApplicationClient() {
   const router = useRouter();
@@ -15,6 +22,7 @@ export function DraftApplicationClient() {
   const page = getNumber("page", 1);
   const searchInput = get("search");
   const search = useDebounce(searchInput);
+  const scopeStatus = get("scopeStatus");
 
   const handleSearchChange = (value: string) => {
     set({ search: value, page: 1 });
@@ -22,6 +30,10 @@ export function DraftApplicationClient() {
 
   const handlePageChange = (newPage: number) => {
     set({ page: newPage });
+  };
+
+  const handleScopeStatusChange = (value: string) => {
+    set({ scopeStatus: value === "all" ? "" : value, page: 1 });
   };
 
   const columns = useMemo(
@@ -37,7 +49,7 @@ export function DraftApplicationClient() {
     totalPages,
     total,
     isLoading: loading,
-  } = useDraftApplications(page, search);
+  } = useDraftApplications(page, search, scopeStatus || undefined);
 
   return (
     <>
@@ -55,6 +67,22 @@ export function DraftApplicationClient() {
           onPageChange={handlePageChange}
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
+          filterSlot={
+            <Select
+              value={scopeStatus || "all"}
+              onValueChange={handleScopeStatusChange}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Scope Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          }
         />
       )}
     </>

@@ -17,4 +17,9 @@ export class PaginatedQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({ description: 'Scope status filter' })
+  @IsOptional()
+  @IsString()
+  scopeStatus?: string;
 }
