@@ -21,7 +21,7 @@ export class AuthService {
     private jwtService: JwtService,
     private eventEmitter: EventEmitter2,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   async login(body: LoginDto) {
     const user = await this.userModel
@@ -72,7 +72,7 @@ export class AuthService {
       };
     }
 
-    this.eventEmitter.emit('user-login', {
+    this.eventEmitter.emit('user:login', {
       email: user.email,
       userId: user._id.toString(),
     });

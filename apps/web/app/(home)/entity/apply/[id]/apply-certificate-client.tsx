@@ -29,26 +29,11 @@ import { Separator } from "@/components/ui/separator";
 import {
   useEntityById,
   useCountries,
+  useLanguages,
 } from "@/utils/apis";
 import { createApplication } from "@/utils/mutations";
 import toast from "react-hot-toast";
 import EntityPage from "../../page";
-
-const LANGUAGES = [
-  "English",
-  "French",
-  "Spanish",
-  "Arabic",
-  "Chinese",
-  "German",
-  "Hindi",
-  "Italian",
-  "Japanese",
-  "Korean",
-  "Portuguese",
-  "Russian",
-  "Turkish",
-];
 
 const addressSchema = z.object({
   street: z.string().min(1, "Street is required"),
@@ -125,6 +110,7 @@ export function ApplyCertificateClient() {
 
   const { entity, isLoading: entityLoading } = useEntityById(entityId);
   const { countries, isLoading: countriesLoading } = useCountries();
+  const { languages } = useLanguages();
 
   const [showOtherLanguage, setShowOtherLanguage] = useState(false);
   const [manualCharges, setManualCharges] = useState(false);
@@ -200,37 +186,24 @@ export function ApplyCertificateClient() {
     return selectedCab.standards.filter((s: any) => s.status === "active");
   }, [selectedCab]);
 
-  // Calculate rates from selected standards' active rateCards
+  // Get rate card for the selected standard
   const { initialRate, recertificationRate } = useMemo(() => {
-    let initial = 0;
-    let recertification = 0;
-    for (const selected of selectedStandards) {
-      const std = cabStandards.find((s: any) => s._id === selected._id);
-      if (!std?.rateCard) continue;
-      const activeCard = std.rateCard.find((rc: any) => rc.status === "active");
-      if (!activeCard) continue;
-      initial += parseFloat(activeCard.initial || "0") || 0;
-      recertification += parseFloat(activeCard.recertification || "0") || 0;
-    }
-    return { initialRate: initial, recertificationRate: recertification };
+    if (selectedStandards.length === 0) return { initialRate: 0, recertificationRate: 0 };
+    const selected = selectedStandards[0];
+    const std = cabStandards.find((s: any) => s.code === selected?.code);
+    if (!std?.rateCard) return { initialRate: 0, recertificationRate: 0 };
+    const activeCard = std.rateCard.find((rc: any) => rc.status === "active") || std.rateCard[0];
+    if (!activeCard) return { initialRate: 0, recertificationRate: 0 };
+    return {
+      initialRate: parseFloat(activeCard.initial || "0") || 0,
+      recertificationRate: parseFloat(activeCard.recertification || "0") || 0,
+    };
   }, [selectedStandards, cabStandards]);
 
-  function toggleStandard(std: any, checked: boolean) {
-    const current = form.getValues("standards");
-    if (checked) {
-      form.setValue("standards", [
-        ...current,
-        { code: std.code, name: std.name, _id: std._id },
-      ]);
-    } else {
-      form.setValue(
-        "standards",
-        current.filter((s) => s._id !== std._id)
-      );
-    }
-    if (!checked && form.getValues("standards").length === 0) {
-      form.setValue("duration", "");
-    }
+  function selectStandard(std: any) {
+    form.setValue("standards", [{ code: std.code, name: std.name, _id: std.code }]);
+    form.setValue("duration", "");
+    form.setValue("charges", "");
   }
 
   async function onSubmit(data: ApplicationFormValues) {
@@ -362,7 +335,7 @@ export function ApplyCertificateClient() {
             <span className="text-xs text-muted-foreground">Business Associate</span>
             <p>{entity.business_associate?.username || "-"}</p>
           </div>
-          <div className="sm:col-span-3">
+          <div className="sm:col-span-2">
             <span className="text-xs text-muted-foreground">Main Site Address</span>
             <div className="flex items-center gap-2 mt-1">
               <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -379,6 +352,32 @@ export function ApplyCertificateClient() {
               </p>
             </div>
           </div>
+          {entity.additional_site_address &&
+            entity.additional_site_address.length > 0 && (
+              <div className="sm:col-span-3">
+                <span className="text-xs text-muted-foreground">
+                  Additional Site Addresses ({entity.additional_site_address.length})
+                </span>
+                <div className="space-y-1.5 mt-1">
+                  {entity.additional_site_address.map((addr: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <p className="text-sm">
+                        {[
+                          addr.street,
+                          addr.city,
+                          addr.state,
+                          addr.postal_code,
+                          addr.country,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
         </div>
       </div>
 
@@ -527,26 +526,24 @@ export function ApplyCertificateClient() {
               />
             </div>
 
-            {/* Standards Selection */}
+            {/* Standards Selection (single select) */}
             {selectedCabCode && cabStandards.length > 0 && (
               <div className="space-y-2">
-                <FormLabel>Standards</FormLabel>
+                <FormLabel>Standard</FormLabel>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 border rounded-lg bg-muted/30">
                   {cabStandards.map((std: any) => {
                     const isSelected = selectedStandards.some(
-                      (s) => s._id === std._id
+                      (s) => s.code === std.code
                     );
                     return (
                       <label
-                        key={std._id}
-                        className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-muted/50"
+                        key={std.code}
+                        className={`flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-muted/50 ${isSelected ? "bg-primary/5 ring-1 ring-primary/20" : ""}`}
+                        onClick={() => selectStandard(std)}
                       >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={(checked) =>
-                            toggleStandard(std, !!checked)
-                          }
-                        />
+                        <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? "border-primary" : "border-muted-foreground/40"}`}>
+                          {isSelected && <div className="h-2 w-2 rounded-full bg-primary" />}
+                        </div>
                         <span className="text-sm">
                           {std.code} - {std.name}
                         </span>
@@ -558,6 +555,20 @@ export function ApplyCertificateClient() {
                   <p className="text-sm text-destructive">
                     {form.formState.errors.standards.message}
                   </p>
+                )}
+
+                {/* Show rates for selected standard */}
+                {selectedStandards.length > 0 && (
+                  <div className="flex gap-6 p-3 border rounded-lg bg-muted/20 text-sm">
+                    <div>
+                      <span className="text-xs text-muted-foreground">Initial (1 Year)</span>
+                      <p className="font-medium">{currency}{initialRate.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Recertification (3 Year)</span>
+                      <p className="font-medium">{currency}{recertificationRate.toFixed(2)}</p>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -691,7 +702,7 @@ export function ApplyCertificateClient() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {LANGUAGES.map((lang) => (
+                        {languages.map((lang) => (
                           <SelectItem key={lang} value={lang}>
                             {lang}
                           </SelectItem>
@@ -815,7 +826,7 @@ export function ApplyCertificateClient() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {LANGUAGES.map((lang) => (
+                            {languages.map((lang) => (
                               <SelectItem key={lang} value={lang}>
                                 {lang}
                               </SelectItem>

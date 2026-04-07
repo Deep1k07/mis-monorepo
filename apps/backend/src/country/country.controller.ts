@@ -17,4 +17,12 @@ export class CountryController {
   async findAll(): Promise<Country[]> {
     return this.countryService.findAll();
   }
+
+  @Get('languages')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get all supported languages' })
+  @ApiResponse({ status: 200, description: 'List of supported languages' })
+  getLanguages(): string[] {
+    return this.countryService.getLanguages();
+  }
 }
