@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAllCabsList } from "@/utils/apis";
+import { useAllCabsList, useCountries } from "@/utils/apis";
 import { createBa, updateBa } from "@/utils/mutations";
 import toast from "react-hot-toast";
 
@@ -292,8 +292,8 @@ function CbRateCardSection({
         standards: [
           ...existing,
           {
-            name: `${standard.standardCode}:${standard.version}`,
-            code: standard.mssCode,
+            name: standard.mssCode,
+            code: `${standard.standardCode}:${standard.version}`,
             version: 0,
             status: "active",
             rateCard: [
@@ -586,6 +586,7 @@ export function BaForm({
   const [cbEntries, setCbEntries] = useState<CbEntry[]>(defaultCab || []);
   const [cbError, setCbError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const { countries, isLoading: countriesLoading } = useCountries();
 
   const form = useForm<BaFormValues>({
     resolver: zodResolver(mode === "edit" ? editBaSchema : createBaSchema),
@@ -1007,9 +1008,20 @@ export function BaForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Country <span className="text-destructive">*</span></FormLabel>
-                  <FormControl>
-                    <Input placeholder="Country" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={countriesLoading}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={countriesLoading ? "Loading..." : "Select country"} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {countries?.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
