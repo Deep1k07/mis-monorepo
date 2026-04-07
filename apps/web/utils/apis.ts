@@ -23,6 +23,16 @@ export function useCountries() {
   };
 }
 
+// get all languages
+export function useLanguages() {
+  const { data, error, isLoading } = useSWR(`${BASE_URL}/country/languages`);
+  return {
+    languages: (data ?? []) as string[],
+    isLoading,
+    isError: error,
+  };
+}
+
 // get entity by id
 export function useEntityById(id: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(

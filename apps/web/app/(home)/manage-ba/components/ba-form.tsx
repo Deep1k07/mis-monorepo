@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAllCabsList, useCountries } from "@/utils/apis";
+import { useAllCabsList, useCountries, useLanguages } from "@/utils/apis";
 import { createBa, updateBa } from "@/utils/mutations";
 import toast from "react-hot-toast";
 
@@ -61,16 +61,6 @@ const addressSchema = z.object({
   country: z.string().min(1, "Country is required"),
   postal_code: z.string().min(1, "Postal code is required"),
 });
-
-const LANGUAGES = [
-  "English",
-  "Hindi",
-  "Spanish",
-  "French",
-  "Arabic",
-  "Chinese",
-  "Portuguese",
-] as const;
 
 const baSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -587,6 +577,7 @@ export function BaForm({
   const [cbError, setCbError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const { countries, isLoading: countriesLoading } = useCountries();
+  const { languages } = useLanguages();
 
   const form = useForm<BaFormValues>({
     resolver: zodResolver(mode === "edit" ? editBaSchema : createBaSchema),
@@ -906,7 +897,7 @@ export function BaForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {LANGUAGES.map((lang) => (
+                      {languages.map((lang) => (
                         <SelectItem key={lang} value={lang}>
                           {lang}
                         </SelectItem>
@@ -930,7 +921,7 @@ export function BaForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {LANGUAGES.map((lang) => (
+                      {languages.map((lang) => (
                         <SelectItem key={lang} value={lang}>
                           {lang}
                         </SelectItem>

@@ -29,26 +29,11 @@ import { Separator } from "@/components/ui/separator";
 import {
   useEntityById,
   useCountries,
+  useLanguages,
 } from "@/utils/apis";
 import { createApplication } from "@/utils/mutations";
 import toast from "react-hot-toast";
 import EntityPage from "../../page";
-
-const LANGUAGES = [
-  "English",
-  "French",
-  "Spanish",
-  "Arabic",
-  "Chinese",
-  "German",
-  "Hindi",
-  "Italian",
-  "Japanese",
-  "Korean",
-  "Portuguese",
-  "Russian",
-  "Turkish",
-];
 
 const addressSchema = z.object({
   street: z.string().min(1, "Street is required"),
@@ -125,6 +110,7 @@ export function ApplyCertificateClient() {
 
   const { entity, isLoading: entityLoading } = useEntityById(entityId);
   const { countries, isLoading: countriesLoading } = useCountries();
+  const { languages } = useLanguages();
 
   const [showOtherLanguage, setShowOtherLanguage] = useState(false);
   const [manualCharges, setManualCharges] = useState(false);
@@ -716,7 +702,7 @@ export function ApplyCertificateClient() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {LANGUAGES.map((lang) => (
+                        {languages.map((lang) => (
                           <SelectItem key={lang} value={lang}>
                             {lang}
                           </SelectItem>
@@ -840,7 +826,7 @@ export function ApplyCertificateClient() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {LANGUAGES.map((lang) => (
+                            {languages.map((lang) => (
                               <SelectItem key={lang} value={lang}>
                                 {lang}
                               </SelectItem>
