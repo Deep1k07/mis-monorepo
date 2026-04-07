@@ -69,6 +69,13 @@ const navItems: NavItem[] = [
         title: "All Application",
         url: "/application",
         icon: List,
+        permission: "application:read",
+      },
+      {
+        title: "Draft Application",
+        url: "/application/draft",
+        icon: List,
+        permission: "application:read:draft",
       },
     ],
   },
