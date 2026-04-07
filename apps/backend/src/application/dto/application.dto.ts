@@ -4,6 +4,7 @@ import {
     IsEnum,
     IsMongoId,
     IsNotEmpty,
+    IsNumber,
     IsOptional,
     IsString,
     ValidateNested,
@@ -134,3 +135,36 @@ export class CreateApplicationDto {
     @Type(() => AddressDto)
     additional_site_address?: AddressDto[];
 }
+
+export class UpdateApplicationDto {
+    @IsNotEmpty()
+    @IsString()
+    scope: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    scope_comment?: string;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    iaf_code?: string;
+
+    @IsString()
+    @IsNotEmpty()
+    audit1?: string;
+
+    @IsString()
+    @IsNotEmpty()
+    audit2: string;
+
+    @IsOptional()
+    @IsNumber()
+    isScopeModified?: number;
+
+    @IsString()
+    @IsNotEmpty()
+    scopeStatus?: string;
+}
+

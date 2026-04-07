@@ -14,7 +14,7 @@ import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PaginatedQueryDto } from 'src/common/dto/paginated-query.dto';
 import { Application } from './schema/application.schema';
-import { CreateApplicationDto } from './dto/application.dto';
+import { CreateApplicationDto, UpdateApplicationDto } from './dto/application.dto';
 import {
   ApiCookieAuth,
   ApiOperation,
@@ -60,6 +60,27 @@ export class ApplicationController {
     );
   }
 
+  @Get('draft')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get draft applications for scope review' })
+  @ApiResponse({ status: 200, description: 'Paginated list of draft applications' })
+  async findDraft(
+    @Req() req: AuthRequest,
+    @Query() query: PaginatedQueryDto,
+  ): Promise<{
+    data: Application[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    return this.applicationService.findDraft(
+      req,
+      query.page,
+      query.limit,
+      query.search,
+    );
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get application by ID' })
@@ -75,9 +96,10 @@ export class ApplicationController {
   @ApiResponse({ status: 200, description: 'Application updated' })
   @ApiResponse({ status: 404, description: 'Application not found' })
   async update(
+    @Req() req: AuthRequest,
     @Param('id') id: string,
-    @Body() body: Partial<Application>,
+    @Body() body: UpdateApplicationDto,
   ): Promise<Application> {
-    return this.applicationService.update(id, body);
+    return this.applicationService.update(req, id, body);
   }
 }

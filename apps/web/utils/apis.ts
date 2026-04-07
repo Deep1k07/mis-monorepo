@@ -83,6 +83,23 @@ export function useApplications(page: number, search?: string) {
   };
 }
 
+// get draft applications (scope review)
+export function useDraftApplications(page: number, search?: string) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
+  const { data, error, isLoading } = useSWR(
+    `${BASE_URL}/application/draft?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    currentPage: data?.page ?? page,
+    isLoading,
+    isError: error,
+  };
+}
+
 // get application by id
 export function useApplicationById(id: string | undefined) {
   const { data, error, isLoading, mutate } = useSWR(

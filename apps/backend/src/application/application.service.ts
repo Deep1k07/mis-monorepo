@@ -4,7 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Application, ApplicationDocument } from './schema/application.schema';
 import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { Entity } from 'src/entity/schema/entity.schema';
-import { CreateApplicationDto, StandardDto } from './dto/application.dto';
+import { CreateApplicationDto, StandardDto, UpdateApplicationDto } from './dto/application.dto';
 import { CertificationBody } from 'src/certificationbody/schema/certificationBody.schema';
 import { escapeRegex } from 'src/utils/escapeRegex';
 
@@ -102,6 +102,7 @@ export class ApplicationService {
 
     let payload = {
       ...data,
+      user: user?.userId,
       appliedBy: user?.userId,
     }
 
@@ -205,12 +206,126 @@ export class ApplicationService {
     };
   }
 
+  async findDraft(
+    req: AuthRequest,
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ) {
+    const filter: any = {
+      scopeStatus: 'pending',
+      certificateStatus: 'proceed',
+      isBaManagerApproved: true,
+    };
+
+    if (search) {
+      const regex = new RegExp(escapeRegex(search), 'i');
+      filter.$and = [
+        {
+          $or: [
+            { 'entity.entity_name': regex },
+            { 'entity.entity_id': regex },
+            { cab_code: regex },
+            { 'standards.code': regex },
+          ],
+        },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+
+    const pipeline: any[] = [
+      {
+        $match: {
+          scopeStatus: 'pending',
+          certificateStatus: 'proceed',
+          isBaManagerApproved: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'entities',
+          localField: 'entity',
+          foreignField: '_id',
+          as: 'entity',
+        },
+      },
+      { $unwind: { path: '$entity', preserveNullAndEmptyArrays: true } },
+      ...(search
+        ? [
+          {
+            $match: {
+              $or: [
+                { 'entity.entity_name': new RegExp(escapeRegex(search), 'i') },
+                { 'entity.entity_id': new RegExp(escapeRegex(search), 'i') },
+                { cab_code: new RegExp(escapeRegex(search), 'i') },
+                { 'standards.code': new RegExp(escapeRegex(search), 'i') },
+              ],
+            },
+          },
+        ]
+        : []),
+      { $sort: { createdAt: -1 as const } },
+    ];
+
+    const [data, countResult] = await Promise.all([
+      this.applicationModel.aggregate([
+        ...pipeline,
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'entity.business_associate',
+            foreignField: '_id',
+            as: 'entity.business_associate',
+          },
+        },
+        {
+          $unwind: {
+            path: '$entity.business_associate',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            cab_code: 1,
+            standards: 1,
+            scope: 1,
+            certificateStatus: 1,
+            scopeStatus: 1,
+            createdAt: 1,
+            'entity._id': 1,
+            'entity.entity_id': 1,
+            'entity.entity_name': 1,
+            'entity.isDirectClient': 1,
+            'entity.business_associate._id': 1,
+            'entity.business_associate.username': 1,
+          },
+        },
+      ]),
+      this.applicationModel.aggregate([
+        ...pipeline,
+        { $count: 'total' },
+      ]),
+    ]);
+
+    const total = countResult[0]?.total ?? 0;
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
   async findById(id: string) {
     const application = await this.applicationModel
       .findById(id)
       .populate({
         path: 'entity',
-        select: 'entity_id entity_name entity_name_english entity_trading_name business_associate email website employess_count main_site_address additional_site_address',
+        select: 'entity_id entity_name entity_name_english entity_trading_name business_associate email website employess_count main_site_address additional_site_address isDirectClient',
         populate: {
           path: 'business_associate',
           select: 'username email',
@@ -226,9 +341,11 @@ export class ApplicationService {
     return application;
   }
 
-  async update(id: string, updateData: Partial<Application>) {
+  async update(req: AuthRequest, id: string, updateData: UpdateApplicationDto) {
+    let user = req.user
+
     const application = await this.applicationModel
-      .findByIdAndUpdate(id, { $set: updateData }, { returnDocument: 'after' })
+      .findByIdAndUpdate(id, { $set: { ...updateData, scope_manager: user.userId } }, { returnDocument: 'after' })
       .populate('business_associate', 'username email userId')
       .exec();
 
