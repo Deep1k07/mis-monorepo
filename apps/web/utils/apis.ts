@@ -208,6 +208,19 @@ export function useBAs(page: number, search?: string) {
   };
 }
 
+// get ba by id
+export function useBaById(id: string | undefined) {
+  const { data, error, isLoading, mutate } = useSWR(
+    id ? `${BASE_URL}/ba/${id}` : null,
+  );
+  return {
+    ba: data as any | undefined,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
 // ─── Permissions ───
 
 export function usePermissions(page: number, search?: string) {

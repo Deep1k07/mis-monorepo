@@ -83,4 +83,12 @@ export class BaController {
   async getAllCabBa(): Promise<CabBA[]> {
     return this.baService.getAllCabBa();
   }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get a business associate by ID' })
+  @ApiResponse({ status: 200, description: 'Business associate details' })
+  async getById(@Param('id') id: string) {
+    return this.baService.getById(id);
+  }
 }

@@ -210,6 +210,14 @@ export class BaService {
     };
   }
 
+  async getById(id: string) {
+    const user = await this.userModel.findById(id).populate('cab');
+    if (!user) {
+      throw new BadRequestException('BA not found');
+    }
+    return user;
+  }
+
   async getAllCabBa() {
     return this.cabBaModel.find().exec();
   }

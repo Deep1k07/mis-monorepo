@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Pencil } from "lucide-react";
+import { Eye } from "lucide-react";
 
 export type BaDef = {
   _id: string;
@@ -35,7 +35,7 @@ export type BaDef = {
 };
 
 export const createBaColumns = (
-  onEdit: (ba: BaDef) => void,
+  onView: (ba: BaDef) => void,
 ): ColumnDef<BaDef>[] => [
     {
       accessorKey: "userId",
@@ -115,11 +115,11 @@ export const createBaColumns = (
       header: "",
       cell: ({ row }) => (
         <button
-          onClick={() => onEdit(row.original)}
+          onClick={() => onView(row.original)}
           className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-          title="Edit"
+          title="View"
         >
-          <Pencil className="h-4 w-4" />
+          <Eye className="h-4 w-4" />
         </button>
       ),
     },
