@@ -32,9 +32,16 @@ const standardSchema = z.object({
     .max(3, "Must be 3 characters")
     .toUpperCase(),
   schemeName: z.string().min(1, "Scheme Name is required"),
-  standardCode: z.string().regex(/^ISO(\/IEC)? \d{4,5}$/, "Must be in format 'ISO YYYYY' (e.g., ISO 2019,14001)"),
+  standardCode: z
+    .string()
+    .regex(
+      /^ISO(\/IEC)? \d{4,5}$/,
+      "Must be in format 'ISO YYYYY' (e.g., ISO 2019,14001)",
+    ),
   version: z.string().min(1, "Version is required"),
-  certificationBodies: z.array(z.string()).min(1, "At least one Certification Body is required"),
+  certificationBodies: z
+    .array(z.string())
+    .min(1, "At least one Certification Body is required"),
   predecessor: z.string().optional(),
   status: z.string().optional(),
 });
@@ -74,7 +81,10 @@ export function StandardForm({
   async function onSubmit(data: StandardFormValues) {
     const payload = {
       ...data,
-      predecessor: data.predecessor && data.predecessor !== "none" ? data.predecessor : undefined,
+      predecessor:
+        data.predecessor && data.predecessor !== "none"
+          ? data.predecessor
+          : undefined,
     };
     try {
       if (mode === "edit" && standardId) {
@@ -138,7 +148,9 @@ export function StandardForm({
                               field.onChange(
                                 checked
                                   ? [...current, cab._id]
-                                  : current.filter((id: string) => id !== cab._id),
+                                  : current.filter(
+                                      (id: string) => id !== cab._id,
+                                    ),
                               );
                             }}
                           />
@@ -220,7 +232,9 @@ export function StandardForm({
               <FormItem>
                 <FormLabel>
                   Predecessor{" "}
-                  <span className="text-xs text-muted-foreground">(optional)</span>
+                  <span className="text-xs text-muted-foreground">
+                    (optional)
+                  </span>
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -229,7 +243,13 @@ export function StandardForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={selectedCabs?.length ? "Select predecessor" : "Select CAB first"} />
+                      <SelectValue
+                        placeholder={
+                          selectedCabs?.length
+                            ? "Select predecessor"
+                            : "Select CAB first"
+                        }
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>

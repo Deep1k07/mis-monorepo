@@ -76,22 +76,19 @@ function MultiSelectPermissions({
   const selectedItems = options.filter((o) => value.includes(o._id));
   const filteredOptions = search
     ? options.filter(
-      (o) =>
-        o.name.toLowerCase().includes(search.toLowerCase()) ||
-        o.category?.toLowerCase().includes(search.toLowerCase()),
-    )
+        (o) =>
+          o.name.toLowerCase().includes(search.toLowerCase()) ||
+          o.category?.toLowerCase().includes(search.toLowerCase()),
+      )
     : options;
 
   // Group by category
-  const grouped = filteredOptions.reduce(
-    (acc: Record<string, any[]>, item) => {
-      const cat = item.category || "Other";
-      if (!acc[cat]) acc[cat] = [];
-      acc[cat]!.push(item);
-      return acc;
-    },
-    {},
-  );
+  const grouped = filteredOptions.reduce((acc: Record<string, any[]>, item) => {
+    const cat = item.category || "Other";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat]!.push(item);
+    return acc;
+  }, {});
 
   // Group selected items by category
   const selectedGrouped = selectedItems.reduce(
@@ -125,7 +122,9 @@ function MultiSelectPermissions({
         onClick={() => setOpen(!open)}
         className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs cursor-pointer hover:bg-accent"
       >
-        <span className={selectedItems.length === 0 ? "text-muted-foreground" : ""}>
+        <span
+          className={selectedItems.length === 0 ? "text-muted-foreground" : ""}
+        >
           {loading
             ? "Loading..."
             : selectedItems.length === 0
@@ -154,8 +153,12 @@ function MultiSelectPermissions({
             ) : (
               Object.entries(grouped).map(([category, items]) => {
                 const categoryIds = items.map((i: any) => i._id);
-                const allSelected = categoryIds.every((id: string) => value.includes(id));
-                const someSelected = !allSelected && categoryIds.some((id: string) => value.includes(id));
+                const allSelected = categoryIds.every((id: string) =>
+                  value.includes(id),
+                );
+                const someSelected =
+                  !allSelected &&
+                  categoryIds.some((id: string) => value.includes(id));
                 return (
                   <div key={category}>
                     <button
@@ -181,7 +184,11 @@ function MultiSelectPermissions({
                         {category}
                       </span>
                       <span className="ml-auto text-[10px] text-muted-foreground">
-                        {categoryIds.filter((id: string) => value.includes(id)).length}/{categoryIds.length}
+                        {
+                          categoryIds.filter((id: string) => value.includes(id))
+                            .length
+                        }
+                        /{categoryIds.length}
                       </span>
                     </button>
                     {items.map((item: any) => {
@@ -192,7 +199,9 @@ function MultiSelectPermissions({
                           type="button"
                           onClick={() => toggle(item._id)}
                           className={`flex w-full items-center gap-2 px-3 py-1.5 text-sm cursor-pointer transition-colors ${
-                            isSelected ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-accent"
+                            isSelected
+                              ? "bg-primary/5 hover:bg-primary/10"
+                              : "hover:bg-accent"
                           }`}
                         >
                           <div
@@ -346,8 +355,8 @@ export function RoleForm({
                       <SelectValue placeholder="Select reporting role">
                         {(value: string | null) =>
                           value
-                            ? (roles.find((r: any) => r._id === value)
-                              ?.role ?? value)
+                            ? (roles.find((r: any) => r._id === value)?.role ??
+                              value)
                             : "Select reporting role"
                         }
                       </SelectValue>

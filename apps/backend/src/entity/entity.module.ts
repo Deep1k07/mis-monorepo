@@ -3,7 +3,10 @@ import { EntityController } from './entity.controller';
 import { EntityService } from './entity.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Entity, EntitySchema } from './schema/entity.schema';
-import { Application, ApplicationSchema } from '../application/schema/application.schema';
+import {
+  Application,
+  ApplicationSchema,
+} from '../application/schema/application.schema';
 import { CabBA, CabBASchema } from '../ba/schema/cabBa.schema';
 
 import { AuthModule } from '../auth/auth.module';

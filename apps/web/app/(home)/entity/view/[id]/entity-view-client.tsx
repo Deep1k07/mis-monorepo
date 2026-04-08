@@ -85,7 +85,11 @@ export function EntityViewClient() {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
 
-  const { entity, isLoading: loading, mutate } = useEntityById(params.id as string);
+  const {
+    entity,
+    isLoading: loading,
+    mutate,
+  } = useEntityById(params.id as string);
 
   if (loading) {
     return (
@@ -154,7 +158,9 @@ export function EntityViewClient() {
                 <button
                   onClick={async () => {
                     await navigator.clipboard.writeText(entity.entity_id);
-                    toast.success("Entity ID copied to clipboard", { id: 'entity-view' });
+                    toast.success("Entity ID copied to clipboard", {
+                      id: "entity-view",
+                    });
                   }}
                   className="hover:text-foreground transition-colors cursor-pointer"
                   title="Copy ID"
@@ -163,10 +169,11 @@ export function EntityViewClient() {
                 </button>
                 <span className="mx-1">-</span>
                 <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${entity.isDirectClient
-                    ? "bg-blue-50 text-blue-700 ring-blue-600/20"
-                    : "bg-purple-50 text-purple-700 ring-purple-600/20"
-                    }`}
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
+                    entity.isDirectClient
+                      ? "bg-blue-50 text-blue-700 ring-blue-600/20"
+                      : "bg-purple-50 text-purple-700 ring-purple-600/20"
+                  }`}
                 >
                   {entity.isDirectClient ? "Direct Client" : "BAM"}
                 </span>
@@ -199,7 +206,10 @@ export function EntityViewClient() {
         <div>
           <h4 className="text-sm font-semibold mb-3">Email Status</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-muted/40 rounded-lg">
-            <StatusBadge label="Entity Status" value={entity.isEntityEmailVerifiedStatus} />
+            <StatusBadge
+              label="Entity Status"
+              value={entity.isEntityEmailVerifiedStatus}
+            />
           </div>
         </div>
 
@@ -239,16 +249,30 @@ export function EntityViewClient() {
         </div>
 
         {/* Business Associate Details */}
-        {!entity.isDirectClient && entity.business_associate && typeof entity.business_associate === "object" && (
-          <div>
-            <h4 className="text-sm font-semibold mb-3">Business Associate</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted/40 rounded-lg">
-              <InfoRow icon={User} label="Username" value={entity.business_associate.username} />
-              <InfoRow icon={Mail} label="Email" value={entity.business_associate.email} />
-              <InfoRow icon={Hash} label="User ID" value={entity.business_associate.userId} />
+        {!entity.isDirectClient &&
+          entity.business_associate &&
+          typeof entity.business_associate === "object" && (
+            <div>
+              <h4 className="text-sm font-semibold mb-3">Business Associate</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted/40 rounded-lg">
+                <InfoRow
+                  icon={User}
+                  label="Username"
+                  value={entity.business_associate.username}
+                />
+                <InfoRow
+                  icon={Mail}
+                  label="Email"
+                  value={entity.business_associate.email}
+                />
+                <InfoRow
+                  icon={Hash}
+                  label="User ID"
+                  value={entity.business_associate.userId}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Main Address */}
         {mainAddress && (
@@ -308,20 +332,38 @@ export function EntityViewClient() {
             Applications ({entity.applications?.length || 0})
           </h4>
           {!entity.applications || entity.applications.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No applications found for this entity.</p>
+            <p className="text-sm text-muted-foreground">
+              No applications found for this entity.
+            </p>
           ) : (
             <div className="overflow-x-auto rounded-lg border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/50">
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Certificate No.</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">CAB Code</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Standards</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Issue Date</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Valid Until</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Certificate Status</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Scope Status</th>
-                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">Quality Status</th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      Certificate No.
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      CAB Code
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      Standards
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      Issue Date
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      Valid Until
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      Certificate Status
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      Scope Status
+                    </th>
+                    <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      Quality Status
+                    </th>
                     <th className="px-3 py-2 text-left font-medium text-muted-foreground"></th>
                   </tr>
                 </thead>
@@ -331,13 +373,20 @@ export function EntityViewClient() {
                       key={app._id}
                       className="border-b last:border-b-0 hover:bg-muted/30 transition-colors"
                     >
-                      <td className="px-3 py-2 font-mono">{app.certificate_number || "-"}</td>
+                      <td className="px-3 py-2 font-mono">
+                        {app.certificate_number || "-"}
+                      </td>
                       <td className="px-3 py-2">{app.cab_code || "-"}</td>
                       <td className="px-3 py-2">
-                        {app.standards?.map((s: any) => s.code).join(", ") || "-"}
+                        {app.standards?.map((s: any) => s.code).join(", ") ||
+                          "-"}
                       </td>
-                      <td className="px-3 py-2">{app.current_issue?.split("T")[0] || "-"}</td>
-                      <td className="px-3 py-2">{app.valid_until?.split("T")[0] || "-"}</td>
+                      <td className="px-3 py-2">
+                        {app.current_issue?.split("T")[0] || "-"}
+                      </td>
+                      <td className="px-3 py-2">
+                        {app.valid_until?.split("T")[0] || "-"}
+                      </td>
                       <td className="px-3 py-2">
                         <StatusBadge label="" value={app.certificateStatus} />
                       </td>
@@ -349,7 +398,9 @@ export function EntityViewClient() {
                       </td>
                       <td className="px-3 py-2">
                         <button
-                          onClick={() => router.push(`/application/view/${app._id}`)}
+                          onClick={() =>
+                            router.push(`/application/view/${app._id}`)
+                          }
                           className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                           title="View application"
                         >

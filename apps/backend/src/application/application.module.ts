@@ -5,7 +5,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Application, ApplicationSchema } from './schema/application.schema';
 import { AuthModule } from 'src/auth/auth.module';
 import { Entity, EntitySchema } from 'src/entity/schema/entity.schema';
-import { CertificationBody, CertificationBodySchema } from 'src/certificationbody/schema/certificationBody.schema';
+import {
+  CertificationBody,
+  CertificationBodySchema,
+} from 'src/certificationbody/schema/certificationBody.schema';
 
 @Module({
   imports: [
@@ -19,4 +22,4 @@ import { CertificationBody, CertificationBodySchema } from 'src/certificationbod
   providers: [ApplicationService],
   controllers: [ApplicationController],
 })
-export class ApplicationModule { }
+export class ApplicationModule {}

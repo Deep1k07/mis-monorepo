@@ -11,7 +11,7 @@ export class PermissionService {
   constructor(
     @InjectModel(Permission.name)
     private permissionModel: Model<PermissionDocument>,
-  ) { }
+  ) {}
 
   async getAllPermissions(req: AuthRequest) {
     const user = req.user;
@@ -21,19 +21,28 @@ export class PermissionService {
     return [];
   }
 
-  async getAll(req: AuthRequest, page: number = 1, limit: number = 10, search?: string) {
+  async getAll(
+    req: AuthRequest,
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ) {
     const user = req.user;
     const skip = (page - 1) * limit;
     const filter: any = {};
 
-    if (!['manage:users', 'permission:read'].some((p) => user.permissions.includes(p))) {
+    if (
+      !['manage:users', 'permission:read'].some((p) =>
+        user.permissions.includes(p),
+      )
+    ) {
       return {
         data: [],
         total: 0,
         page,
         limit,
         totalPages: 0,
-      }
+      };
     }
 
     if (search) {
@@ -65,8 +74,14 @@ export class PermissionService {
 
   async create(req: AuthRequest, body: CreatePermissionDto) {
     const user = req.user;
-    if (!['manage:users', 'permission:create'].some((p) => user.permissions.includes(p))) {
-      throw new BadRequestException('You do not have permission to create a permission');
+    if (
+      !['manage:users', 'permission:create'].some((p) =>
+        user.permissions.includes(p),
+      )
+    ) {
+      throw new BadRequestException(
+        'You do not have permission to create a permission',
+      );
     }
     const existing = await this.permissionModel.findOne({
       name: body.name.toLowerCase(),
@@ -79,8 +94,14 @@ export class PermissionService {
 
   async update(req: AuthRequest, id: string, body: CreatePermissionDto) {
     const user = req.user;
-    if (!['manage:users', 'permission:update'].some((p) => user.permissions.includes(p))) {
-      throw new BadRequestException('You do not have permission to update a permission');
+    if (
+      !['manage:users', 'permission:update'].some((p) =>
+        user.permissions.includes(p),
+      )
+    ) {
+      throw new BadRequestException(
+        'You do not have permission to update a permission',
+      );
     }
     const permission = await this.permissionModel.findById(id);
     if (!permission) {

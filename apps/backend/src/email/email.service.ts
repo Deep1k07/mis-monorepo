@@ -49,7 +49,7 @@ export class EmailService {
     return true;
   }
 
-  //Entity email 
+  //Entity email
   @OnEvent('entity:created')
   async sendMailForEntity(payload: EntityEmailDto) {
     const { to, type, entityData } = payload;
@@ -63,7 +63,9 @@ export class EmailService {
     let htmlContent = '';
     let guardian = ['GAU', 'GAI'];
     let domainEmail =
-      this.configService.getOrThrow<string>('NODE_ENV') === 'production' ? domain[entityData?.email_cab_code] : this.configService.getOrThrow<string>('EMAIL_DEV');
+      this.configService.getOrThrow<string>('NODE_ENV') === 'production'
+        ? domain[entityData?.email_cab_code]
+        : this.configService.getOrThrow<string>('EMAIL_DEV');
     let isGuardian = guardian?.includes(entityData?.email_cab_code);
     let isTnv = entityData?.email_cab_code === 'TCU';
 
@@ -130,5 +132,5 @@ export class EmailService {
     }
 
     this.logger.log(`OTP email sent to ${to}, id: ${data?.id}`);
-  };
+  }
 }

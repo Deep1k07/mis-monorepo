@@ -21,7 +21,7 @@ export class CetificationbodyService {
     private certificationBodyModel: Model<CertificationBodyDocument>,
     @InjectModel(CertificationStandard.name)
     private certificationStandardModel: Model<CertificationStandardDocument>,
-  ) { }
+  ) {}
 
   // ─── CAB Methods ───
 
@@ -113,9 +113,7 @@ export class CetificationbodyService {
       const newStandardIds = body.standards;
 
       // Standards removed from this CAB — pull this CAB from their certificationBodies
-      const removed = oldStandardIds.filter(
-        (s) => !newStandardIds.includes(s),
-      );
+      const removed = oldStandardIds.filter((s) => !newStandardIds.includes(s));
       if (removed.length) {
         await this.certificationStandardModel.updateMany(
           { _id: { $in: removed } },
@@ -124,9 +122,7 @@ export class CetificationbodyService {
       }
 
       // Standards added to this CAB — push this CAB into their certificationBodies
-      const added = newStandardIds.filter(
-        (s) => !oldStandardIds.includes(s),
-      );
+      const added = newStandardIds.filter((s) => !oldStandardIds.includes(s));
       if (added.length) {
         await this.certificationStandardModel.updateMany(
           { _id: { $in: added } },
@@ -150,7 +146,9 @@ export class CetificationbodyService {
       _id: { $in: body.certificationBodies },
     });
     if (cabs.length !== body.certificationBodies.length) {
-      throw new BadRequestException('One or more Certification Bodies not found');
+      throw new BadRequestException(
+        'One or more Certification Bodies not found',
+      );
     }
 
     const standard = await this.certificationStandardModel.create({
@@ -243,7 +241,8 @@ export class CetificationbodyService {
     }
 
     if (body.certificationBodies) {
-      const oldCabIds = standard.certificationBodies?.map((c) => c.toString()) || [];
+      const oldCabIds =
+        standard.certificationBodies?.map((c) => c.toString()) || [];
       const newCabIds = body.certificationBodies;
 
       // CABs removed — pull this standard from their standards array

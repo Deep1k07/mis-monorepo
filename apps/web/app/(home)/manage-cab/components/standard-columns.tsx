@@ -28,16 +28,17 @@ export const createStandardColumns = (
     accessorKey: "mssCode",
     header: "MSS Code",
     cell: ({ row }) => (
-      <span className="font-mono font-medium">
-        {row.getValue("mssCode")}
-      </span>
+      <span className="font-mono font-medium">{row.getValue("mssCode")}</span>
     ),
   },
   {
     accessorKey: "schemeName",
     header: "Scheme Name",
     cell: ({ row }) => (
-      <span className="block max-w-[200px] truncate" title={row.getValue("schemeName")}>
+      <span
+        className="block max-w-[200px] truncate"
+        title={row.getValue("schemeName")}
+      >
         {row.getValue("schemeName")}
       </span>
     ),
@@ -46,7 +47,10 @@ export const createStandardColumns = (
     accessorKey: "standardCode",
     header: "Standard Code",
     cell: ({ row }) => (
-      <span className="block max-w-[200px] truncate" title={row.getValue("standardCode")}>
+      <span
+        className="block max-w-[200px] truncate"
+        title={row.getValue("standardCode")}
+      >
         {row.getValue("standardCode")}
       </span>
     ),
@@ -64,7 +68,11 @@ export const createStandardColumns = (
     cell: ({ row }) => {
       const p = row.original.predecessor;
       if (!p) return <span className="text-muted-foreground">-</span>;
-      return <span className="text-xs">{p.standardCode}:{p.version}</span>;
+      return (
+        <span className="text-xs">
+          {p.standardCode}:{p.version}
+        </span>
+      );
     },
   },
   {
@@ -72,7 +80,8 @@ export const createStandardColumns = (
     header: "CABs",
     cell: ({ row }) => {
       const cbs = row.original.certificationBodies;
-      if (!cbs || cbs.length === 0) return <span className="text-muted-foreground">-</span>;
+      if (!cbs || cbs.length === 0)
+        return <span className="text-muted-foreground">-</span>;
       const label = cbs.map((cb) => cb.cabCode).join(", ");
       const full = cbs.map((cb) => `${cb.cabCode} - ${cb.cbName}`).join(", ");
       return (

@@ -21,7 +21,7 @@ export class AuthService {
     private jwtService: JwtService,
     private eventEmitter: EventEmitter2,
     private emailService: EmailService,
-  ) { }
+  ) {}
 
   async login(body: LoginDto) {
     const user = await this.userModel
@@ -137,9 +137,7 @@ export class AuthService {
   }
 
   async changePassword(userId: string, dto: ChangePasswordDto) {
-    const user = await this.userModel
-      .findById(userId)
-      .select('+password');
+    const user = await this.userModel.findById(userId).select('+password');
 
     if (!user) {
       throw new NotFoundException('User not found');

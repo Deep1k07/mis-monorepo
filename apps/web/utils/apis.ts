@@ -67,7 +67,11 @@ export function useEntities(page: number, ba: string, search?: string) {
 }
 
 // get all applications
-export function useApplications(page: number, search?: string, cabCode?: string) {
+export function useApplications(
+  page: number,
+  search?: string,
+  cabCode?: string,
+) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
   if (cabCode) params.set("cabCode", cabCode);
@@ -85,7 +89,11 @@ export function useApplications(page: number, search?: string, cabCode?: string)
 }
 
 // get draft applications (scope review)
-export function useDraftApplications(page: number, search?: string, scopeStatus?: string) {
+export function useDraftApplications(
+  page: number,
+  search?: string,
+  scopeStatus?: string,
+) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
   if (scopeStatus) params.set("scopeStatus", scopeStatus);
@@ -147,7 +155,11 @@ export function useCabById(id: string | undefined) {
 }
 
 // get all standards
-export function useStandards(page: number, certificationBody?: string, search?: string) {
+export function useStandards(
+  page: number,
+  certificationBody?: string,
+  search?: string,
+) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (certificationBody) params.set("certificationBody", certificationBody);
   if (search) params.set("search", search);
@@ -295,4 +307,3 @@ export function useUsers(page: number, search?: string) {
     mutate: mutate as () => Promise<any>,
   };
 }
-

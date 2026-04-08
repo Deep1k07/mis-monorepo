@@ -50,7 +50,13 @@ export default function ManageCabPage() {
               Manage certification bodies and their standards.
             </p>
           </div>
-          <Suspense fallback={<div className="flex items-center justify-center py-10 text-muted-foreground">Loading...</div>}>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-10 text-muted-foreground">
+                Loading...
+              </div>
+            }
+          >
             <ManageCabClient />
           </Suspense>
         </div>

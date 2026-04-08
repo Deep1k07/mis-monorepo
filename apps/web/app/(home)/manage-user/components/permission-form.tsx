@@ -28,10 +28,7 @@ const permissionSchema = z.object({
   name: z
     .string()
     .min(1, "Name is required")
-    .regex(
-      /^[a-z0-9:-]+$/,
-      "Use lowercase with colons (e.g. entity:read)",
-    ),
+    .regex(/^[a-z0-9:-]+$/, "Use lowercase with colons (e.g. entity:read)"),
   description: z.string().optional(),
   category: z.string().optional(),
   status: z.string().optional(),

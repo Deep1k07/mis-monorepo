@@ -60,7 +60,9 @@ export class CertificationBody {
   cabJurisdictions: Types.ObjectId[];
 
   @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CertificationStandard' }],
+    type: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'CertificationStandard' },
+    ],
     default: [],
   })
   standards: Types.ObjectId[];

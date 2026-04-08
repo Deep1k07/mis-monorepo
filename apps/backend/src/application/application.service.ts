@@ -1,40 +1,59 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Application, ApplicationDocument } from './schema/application.schema';
 import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { Entity } from 'src/entity/schema/entity.schema';
-import { CreateApplicationDto, StandardDto, UpdateApplicationDto } from './dto/application.dto';
+import {
+  CreateApplicationDto,
+  StandardDto,
+  UpdateApplicationDto,
+} from './dto/application.dto';
 import { CertificationBody } from 'src/certificationbody/schema/certificationBody.schema';
 import { escapeRegex } from 'src/utils/escapeRegex';
 
 @Injectable()
 export class ApplicationService {
   constructor(
-    @InjectModel(Application.name) private readonly applicationModel: Model<ApplicationDocument>,
+    @InjectModel(Application.name)
+    private readonly applicationModel: Model<ApplicationDocument>,
     @InjectModel(Entity.name) private readonly entityModel: Model<Entity>,
-    @InjectModel(CertificationBody.name) private readonly certificationBodyModel: Model<CertificationBody>
-  ) { }
+    @InjectModel(CertificationBody.name)
+    private readonly certificationBodyModel: Model<CertificationBody>,
+  ) {}
 
   async create(data: CreateApplicationDto, req: AuthRequest) {
     const user = req.user;
     // console.log("data>>>", data)
-    const cabPromise = this.certificationBodyModel.findOne({ cabCode: data.cab_code })
+    const cabPromise = this.certificationBodyModel
+      .findOne({ cabCode: data.cab_code })
       .populate('cabJurisdictions', 'code name');
-    const entityPromise = this.entityModel.findById(data.entity).lean()
+    const entityPromise = this.entityModel.findById(data.entity).lean();
     const existingApplicationPromise = this.applicationModel.aggregate([
       {
         $match: {
           $and: [
             { entity: data.entity },
             { cab_code: data.cab_code },
-            { certificateStatus: { $nin: ['suspended', 'withdrawn', 'terminate'] } },
+            {
+              certificateStatus: {
+                $nin: ['suspended', 'withdrawn', 'terminate'],
+              },
+            },
           ],
         },
       },
     ]);
 
-    let [entity, existingApplication, cabData] = await Promise.all([entityPromise, existingApplicationPromise, cabPromise])
+    let [entity, existingApplication, cabData] = await Promise.all([
+      entityPromise,
+      existingApplicationPromise,
+      cabPromise,
+    ]);
 
     if (!entity) {
       throw new NotFoundException('Entity not found');
@@ -42,7 +61,10 @@ export class ApplicationService {
 
     // ===================== CAB JURISDICTION CHECK =====================
     const selectedCountries: string[] = [];
-    if (Array.isArray(entity?.main_site_address) && entity.main_site_address.length > 0) {
+    if (
+      Array.isArray(entity?.main_site_address) &&
+      entity.main_site_address.length > 0
+    ) {
       selectedCountries.push(entity.main_site_address[0].country);
     }
     if (Array.isArray(entity?.additional_site_address)) {
@@ -53,7 +75,9 @@ export class ApplicationService {
 
     let cabFlag = true;
     for (const country of selectedCountries) {
-      const isAllowed = cabData?.cabJurisdictions?.some((jur: any) => jur?.code === country);
+      const isAllowed = cabData?.cabJurisdictions?.some(
+        (jur: any) => jur?.code === country,
+      );
       if (isAllowed) {
         cabFlag = false;
         break;
@@ -70,10 +94,9 @@ export class ApplicationService {
 
     if (cabFlag) {
       throw new BadRequestException(
-        `Can not apply for Certificate because Entity does not fall within ${data?.cab_code}'s jurisdiction.`
+        `Can not apply for Certificate because Entity does not fall within ${data?.cab_code}'s jurisdiction.`,
       );
     }
-
 
     let stadardLookup = {};
     data?.standards.forEach((val) => {
@@ -87,7 +110,10 @@ export class ApplicationService {
           if (stadardLookup[ele.code]) {
             if (!data?.secondary_certificate_language) {
               flag = true;
-            } else if (val?.secondary_certificate_language === data?.secondary_certificate_language) {
+            } else if (
+              val?.secondary_certificate_language ===
+              data?.secondary_certificate_language
+            ) {
               flag = true;
             }
           }
@@ -96,7 +122,7 @@ export class ApplicationService {
     }
     if (flag) {
       throw new BadRequestException(
-        `You have already applied for ${data?.standards[0]?.code} certificate with provided languages.`
+        `You have already applied for ${data?.standards[0]?.code} certificate with provided languages.`,
       );
     }
 
@@ -104,7 +130,7 @@ export class ApplicationService {
       ...data,
       user: user?.userId,
       appliedBy: user?.userId,
-    }
+    };
 
     const createdApplication = await this.applicationModel.create(payload);
     return createdApplication;
@@ -195,10 +221,7 @@ export class ApplicationService {
           },
         },
       ]),
-      this.applicationModel.aggregate([
-        ...pipeline,
-        { $count: 'total' },
-      ]),
+      this.applicationModel.aggregate([...pipeline, { $count: 'total' }]),
     ]);
 
     const total = countResult[0]?.total ?? 0;
@@ -219,9 +242,10 @@ export class ApplicationService {
     scopeStatus?: string,
   ) {
     const allowedStatuses = ['pending', 'rejected', 'completed'];
-    const statusFilter = scopeStatus && allowedStatuses.includes(scopeStatus)
-      ? scopeStatus
-      : { $in: ['pending'] };
+    const statusFilter =
+      scopeStatus && allowedStatuses.includes(scopeStatus)
+        ? scopeStatus
+        : { $in: ['pending'] };
 
     const skip = (page - 1) * limit;
 
@@ -244,17 +268,19 @@ export class ApplicationService {
       { $unwind: { path: '$entity', preserveNullAndEmptyArrays: true } },
       ...(search
         ? [
-          {
-            $match: {
-              $or: [
-                { 'entity.entity_name': new RegExp(escapeRegex(search), 'i') },
-                { 'entity.entity_id': new RegExp(escapeRegex(search), 'i') },
-                { cab_code: new RegExp(escapeRegex(search), 'i') },
-                { 'standards.code': new RegExp(escapeRegex(search), 'i') },
-              ],
+            {
+              $match: {
+                $or: [
+                  {
+                    'entity.entity_name': new RegExp(escapeRegex(search), 'i'),
+                  },
+                  { 'entity.entity_id': new RegExp(escapeRegex(search), 'i') },
+                  { cab_code: new RegExp(escapeRegex(search), 'i') },
+                  { 'standards.code': new RegExp(escapeRegex(search), 'i') },
+                ],
+              },
             },
-          },
-        ]
+          ]
         : []),
       { $sort: { createdAt: -1 as const } },
     ];
@@ -295,10 +321,7 @@ export class ApplicationService {
           },
         },
       ]),
-      this.applicationModel.aggregate([
-        ...pipeline,
-        { $count: 'total' },
-      ]),
+      this.applicationModel.aggregate([...pipeline, { $count: 'total' }]),
     ]);
 
     const total = countResult[0]?.total ?? 0;
@@ -316,7 +339,8 @@ export class ApplicationService {
       .findById(id)
       .populate({
         path: 'entity',
-        select: 'entity_id entity_name entity_name_english entity_trading_name business_associate email website employess_count main_site_address additional_site_address isDirectClient',
+        select:
+          'entity_id entity_name entity_name_english entity_trading_name business_associate email website employess_count main_site_address additional_site_address isDirectClient',
         populate: {
           path: 'business_associate',
           select: 'username email',
@@ -333,10 +357,14 @@ export class ApplicationService {
   }
 
   async update(req: AuthRequest, id: string, updateData: UpdateApplicationDto) {
-    let user = req.user
+    let user = req.user;
 
     const application = await this.applicationModel
-      .findByIdAndUpdate(id, { $set: { ...updateData, scope_manager: user.userId } }, { returnDocument: 'after' })
+      .findByIdAndUpdate(
+        id,
+        { $set: { ...updateData, scope_manager: user.userId } },
+        { returnDocument: 'after' },
+      )
       .populate('business_associate', 'username email userId')
       .exec();
 

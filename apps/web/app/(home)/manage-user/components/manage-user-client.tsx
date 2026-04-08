@@ -14,9 +14,7 @@ export function ManageUserClient() {
   return (
     <Tabs
       value={activeTab}
-      onValueChange={(tab) =>
-        set({ tab, page: undefined, search: undefined })
-      }
+      onValueChange={(tab) => set({ tab, page: undefined, search: undefined })}
       className="space-y-4"
     >
       <TabsList>

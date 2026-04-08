@@ -29,7 +29,13 @@ import { useBaById } from "@/utils/apis";
 import { BaForm } from "../../components/ba-form";
 import toast from "react-hot-toast";
 
-function StatusBadge({ label, value }: { label: string; value: string | undefined }) {
+function StatusBadge({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | undefined;
+}) {
   const status = value || "pending";
   const colorMap: Record<string, string> = {
     active: "bg-green-50 text-green-700 ring-green-600/20",
@@ -153,7 +159,9 @@ export function BaViewClient() {
                     <button
                       onClick={async () => {
                         await navigator.clipboard.writeText(ba.userId);
-                        toast.success("User ID copied to clipboard", { id: "ba-view" });
+                        toast.success("User ID copied to clipboard", {
+                          id: "ba-view",
+                        });
                       }}
                       className="hover:text-foreground transition-colors cursor-pointer"
                       title="Copy ID"
@@ -167,11 +175,7 @@ export function BaViewClient() {
               </div>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setEditOpen(true)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
             <Pencil className="h-4 w-4 mr-2" />
             Edit BA
           </Button>
@@ -195,21 +199,49 @@ export function BaViewClient() {
           <div>
             <h4 className="text-sm font-semibold mb-3">Registration Details</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <InfoRow icon={User} label="Contact Name" value={cab.contact_name} />
-              <InfoRow icon={Building} label="Registration Authority" value={cab.registration_authority} />
-              <InfoRow icon={Hash} label="Registration Number" value={cab.registration_number} />
-              <InfoRow icon={Calendar} label="Registration Date" value={cab.registration_date?.split("T")[0]} />
-              <InfoRow icon={CreditCard} label="Currency" value={cab.currency} />
+              <InfoRow
+                icon={User}
+                label="Contact Name"
+                value={cab.contact_name}
+              />
+              <InfoRow
+                icon={Building}
+                label="Registration Authority"
+                value={cab.registration_authority}
+              />
+              <InfoRow
+                icon={Hash}
+                label="Registration Number"
+                value={cab.registration_number}
+              />
+              <InfoRow
+                icon={Calendar}
+                label="Registration Date"
+                value={cab.registration_date?.split("T")[0]}
+              />
+              <InfoRow
+                icon={CreditCard}
+                label="Currency"
+                value={cab.currency}
+              />
               <InfoRow icon={CreditCard} label="GST" value={cab.gst} />
               <InfoRow icon={Globe} label="Website" value={cab.website} />
               <div className="flex flex-col gap-1">
-                <span className="text-xs text-muted-foreground">Certificate Language</span>
-                <span className="text-sm">{cab.certificateLanguage || "-"}</span>
+                <span className="text-xs text-muted-foreground">
+                  Certificate Language
+                </span>
+                <span className="text-sm">
+                  {cab.certificateLanguage || "-"}
+                </span>
               </div>
               {cab.otherCertificateLanguage && (
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs text-muted-foreground">Other Certificate Language</span>
-                  <span className="text-sm">{cab.otherCertificateLanguage}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Other Certificate Language
+                  </span>
+                  <span className="text-sm">
+                    {cab.otherCertificateLanguage}
+                  </span>
                 </div>
               )}
             </div>
@@ -248,9 +280,19 @@ export function BaViewClient() {
                 <div key={idx} className="rounded-lg border p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium">CAB: {cb.cabCode}</span>
-                      {cb.cbCode && <span className="text-xs text-muted-foreground">CB: {cb.cbCode}</span>}
-                      {cb.abCode && <span className="text-xs text-muted-foreground">AB: {cb.abCode}</span>}
+                      <span className="text-sm font-medium">
+                        CAB: {cb.cabCode}
+                      </span>
+                      {cb.cbCode && (
+                        <span className="text-xs text-muted-foreground">
+                          CB: {cb.cbCode}
+                        </span>
+                      )}
+                      {cb.abCode && (
+                        <span className="text-xs text-muted-foreground">
+                          AB: {cb.abCode}
+                        </span>
+                      )}
                     </div>
                     <StatusBadge label="" value={cb.status} />
                   </div>
@@ -260,29 +302,56 @@ export function BaViewClient() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="border-b bg-muted/50">
-                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Standard</th>
-                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Version</th>
-                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Status</th>
-                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Initial</th>
-                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Annual</th>
-                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">3 Year Fee</th>
-                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Start Date</th>
+                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                              Standard
+                            </th>
+                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                              Version
+                            </th>
+                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                              Status
+                            </th>
+                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                              Initial
+                            </th>
+                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                              Annual
+                            </th>
+                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                              3 Year Fee
+                            </th>
+                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                              Start Date
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {cb.standards.map((std: any, sIdx: number) => {
                             const rc = std.rateCard?.[0];
                             return (
-                              <tr key={sIdx} className="border-b last:border-b-0">
-                                <td className="px-3 py-2 font-mono text-xs">{std.code}</td>
+                              <tr
+                                key={sIdx}
+                                className="border-b last:border-b-0"
+                              >
+                                <td className="px-3 py-2 font-mono text-xs">
+                                  {std.code}
+                                </td>
                                 <td className="px-3 py-2">{std.version}</td>
                                 <td className="px-3 py-2">
                                   <StatusBadge label="" value={std.status} />
                                 </td>
-                                <td className="px-3 py-2">{rc?.initial ?? "-"}</td>
-                                <td className="px-3 py-2">{rc?.annual ?? "-"}</td>
-                                <td className="px-3 py-2">{rc?.recertification ?? "-"}</td>
-                                <td className="px-3 py-2">{rc?.startDate?.split("T")[0] ?? "-"}</td>
+                                <td className="px-3 py-2">
+                                  {rc?.initial ?? "-"}
+                                </td>
+                                <td className="px-3 py-2">
+                                  {rc?.annual ?? "-"}
+                                </td>
+                                <td className="px-3 py-2">
+                                  {rc?.recertification ?? "-"}
+                                </td>
+                                <td className="px-3 py-2">
+                                  {rc?.startDate?.split("T")[0] ?? "-"}
+                                </td>
                               </tr>
                             );
                           })}

@@ -26,7 +26,7 @@ import {
 @ApiCookieAuth()
 @Controller('role')
 export class RoleController {
-  constructor(private readonly roleService: RoleService) { }
+  constructor(private readonly roleService: RoleService) {}
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -49,10 +49,7 @@ export class RoleController {
   @ApiOperation({ summary: 'Create a new role' })
   @ApiResponse({ status: 201, description: 'Role created successfully' })
   @ApiResponse({ status: 400, description: 'Role already exists' })
-  async create(
-    @Body() body: CreateRoleDto,
-    @Req() req: AuthRequest,
-  ) {
+  async create(@Body() body: CreateRoleDto, @Req() req: AuthRequest) {
     return this.roleService.create(body, req);
   }
 

@@ -12,7 +12,10 @@ export class CreateRoleDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ type: [String], example: ['permissionId1', 'permissionId2'] })
+  @ApiPropertyOptional({
+    type: [String],
+    example: ['permissionId1', 'permissionId2'],
+  })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()

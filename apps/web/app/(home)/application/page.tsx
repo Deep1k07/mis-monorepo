@@ -51,7 +51,13 @@ export default async function ApplicationPage() {
               View and manage all initial applications.
             </p>
           </div>
-          <Suspense fallback={<div className="flex items-center justify-center py-10 text-muted-foreground">Loading...</div>}>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-10 text-muted-foreground">
+                Loading...
+              </div>
+            }
+          >
             <ApplicationClient />
           </Suspense>
         </div>

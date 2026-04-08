@@ -14,7 +14,10 @@ import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PaginatedQueryDto } from 'src/common/dto/paginated-query.dto';
 import { Application } from './schema/application.schema';
-import { CreateApplicationDto, UpdateApplicationDto } from './dto/application.dto';
+import {
+  CreateApplicationDto,
+  UpdateApplicationDto,
+} from './dto/application.dto';
 import {
   ApiCookieAuth,
   ApiOperation,
@@ -26,16 +29,13 @@ import {
 @ApiCookieAuth()
 @Controller('application')
 export class ApplicationController {
-  constructor(private readonly applicationService: ApplicationService) { }
+  constructor(private readonly applicationService: ApplicationService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new application' })
   @ApiResponse({ status: 201, description: 'Application created' })
-  async create(
-    @Req() req: AuthRequest,
-    @Body() body: CreateApplicationDto,
-  ) {
+  async create(@Req() req: AuthRequest, @Body() body: CreateApplicationDto) {
     return this.applicationService.create(body, req);
   }
 
@@ -64,7 +64,10 @@ export class ApplicationController {
   @Get('draft')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get draft applications for scope review' })
-  @ApiResponse({ status: 200, description: 'Paginated list of draft applications' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of draft applications',
+  })
   async findDraft(
     @Req() req: AuthRequest,
     @Query() query: PaginatedQueryDto,

@@ -37,12 +37,12 @@ const userSchema = z.object({
 
 const createUserSchema = userSchema.refine(
   (data) => data.password && data.password.length >= 6,
-  { message: "Password must be at least 6 characters", path: ["password"] }
+  { message: "Password must be at least 6 characters", path: ["password"] },
 );
 
 const editUserSchema = userSchema.refine(
   (data) => !data.password || data.password.length >= 6,
-  { message: "Password must be at least 6 characters", path: ["password"] }
+  { message: "Password must be at least 6 characters", path: ["password"] },
 );
 
 export type UserFormValues = z.infer<typeof userSchema>;
@@ -201,8 +201,8 @@ export function UserForm({
                       >
                         {(value: string | null) =>
                           value
-                            ? (roles.find((r: any) => r._id === value)
-                                ?.role ?? value)
+                            ? (roles.find((r: any) => r._id === value)?.role ??
+                              value)
                             : loadingRoles
                               ? "Loading..."
                               : "Select role"

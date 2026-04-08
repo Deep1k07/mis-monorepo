@@ -69,7 +69,9 @@ const baSchema = z.object({
   password: z.string().optional(),
   phone: z.string().min(1, "Phone is required"),
   contact_name: z.string().min(1, "Contact name is required"),
-  registration_authority: z.string().min(1, "Registration authority is required"),
+  registration_authority: z
+    .string()
+    .min(1, "Registration authority is required"),
   registration_number: z.string().min(1, "Registration number is required"),
   registration_date: z.string().min(1, "Registration date is required"),
   address: addressSchema,
@@ -116,7 +118,11 @@ function validateCbEntries(entries: CbEntry[]): string | null {
       if (!rc.annual || rc.annual.trim() === "" || Number(rc.annual) < 0) {
         return `Rate Card #${i + 1}, ${std.code}: Annual fee must be a non-negative number`;
       }
-      if (!rc.recertification || rc.recertification.trim() === "" || Number(rc.recertification) < 0) {
+      if (
+        !rc.recertification ||
+        rc.recertification.trim() === "" ||
+        Number(rc.recertification) < 0
+      ) {
         return `Rate Card #${i + 1}, ${std.code}: 3 Year Fee must be a non-negative number`;
       }
       if (!rc.startDate) {
@@ -276,25 +282,37 @@ export function BaForm({
 
     try {
       // Strip DB-only fields (_id, createdAt, updatedAt) from cab sub-documents
-      const cleanedCab = cbEntries.map(({ cabCode, cbCode, abCode, status, standards }) => ({
-        cabCode,
-        cbCode,
-        abCode,
-        status,
-        standards: standards.map(({ name, code, version, status: sStatus, rateCard }) => ({
-          name,
-          code,
-          version,
-          status: sStatus,
-          rateCard: rateCard.map(({ initial, annual, recertification, startDate, status: rStatus }) => ({
-            initial,
-            annual,
-            recertification,
-            startDate,
-            status: rStatus,
-          })),
-        })),
-      }));
+      const cleanedCab = cbEntries.map(
+        ({ cabCode, cbCode, abCode, status, standards }) => ({
+          cabCode,
+          cbCode,
+          abCode,
+          status,
+          standards: standards.map(
+            ({ name, code, version, status: sStatus, rateCard }) => ({
+              name,
+              code,
+              version,
+              status: sStatus,
+              rateCard: rateCard.map(
+                ({
+                  initial,
+                  annual,
+                  recertification,
+                  startDate,
+                  status: rStatus,
+                }) => ({
+                  initial,
+                  annual,
+                  recertification,
+                  startDate,
+                  status: rStatus,
+                }),
+              ),
+            }),
+          ),
+        }),
+      );
       const payload: any = { ...data, cab: cleanedCab };
       if (mode === "edit" && !payload.password) {
         delete payload.password;
@@ -339,7 +357,9 @@ export function BaForm({
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Username <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. john_doe" {...field} />
                   </FormControl>
@@ -352,7 +372,9 @@ export function BaForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Email <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -371,7 +393,11 @@ export function BaForm({
                 <FormItem>
                   <FormLabel>
                     Password
-                    {mode === "edit" ? " (leave blank to keep)" : <span className="text-destructive"> *</span>}
+                    {mode === "edit" ? (
+                      " (leave blank to keep)"
+                    ) : (
+                      <span className="text-destructive"> *</span>
+                    )}
                   </FormLabel>
                   <FormControl>
                     <div className="relative">
@@ -404,7 +430,9 @@ export function BaForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Phone <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="+91 9876543210" {...field} />
                   </FormControl>
@@ -452,7 +480,9 @@ export function BaForm({
               name="contact_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contact Name <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Contact Name <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Contact person name" {...field} />
                   </FormControl>
@@ -465,7 +495,10 @@ export function BaForm({
               name="registration_authority"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Registration Authority <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Registration Authority{" "}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. MCA" {...field} />
                   </FormControl>
@@ -478,7 +511,10 @@ export function BaForm({
               name="registration_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Registration Number <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Registration Number{" "}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Registration number" {...field} />
                   </FormControl>
@@ -491,7 +527,10 @@ export function BaForm({
               name="registration_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Registration Date <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Registration Date{" "}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -504,7 +543,9 @@ export function BaForm({
               name="currency"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Currency <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Currency <span className="text-destructive">*</span>
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -525,7 +566,9 @@ export function BaForm({
               name="gst"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>GST <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    GST <span className="text-destructive">*</span>
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -534,7 +577,9 @@ export function BaForm({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Applicable">Applicable</SelectItem>
-                      <SelectItem value="Not Applicable">Not Applicable</SelectItem>
+                      <SelectItem value="Not Applicable">
+                        Not Applicable
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -546,7 +591,10 @@ export function BaForm({
               name="certificateLanguage"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Certificate Language <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Certificate Language{" "}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -616,7 +664,9 @@ export function BaForm({
               name="address.street"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Street <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Street <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Street address" {...field} />
                   </FormControl>
@@ -629,7 +679,9 @@ export function BaForm({
               name="address.city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>City <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    City <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="City" {...field} />
                   </FormControl>
@@ -642,7 +694,9 @@ export function BaForm({
               name="address.state"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>State <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    State <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="State" {...field} />
                   </FormControl>
@@ -655,11 +709,21 @@ export function BaForm({
               name="address.country"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Country <span className="text-destructive">*</span></FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={countriesLoading}>
+                  <FormLabel>
+                    Country <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    disabled={countriesLoading}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder={countriesLoading ? "Loading..." : "Select country"} />
+                        <SelectValue
+                          placeholder={
+                            countriesLoading ? "Loading..." : "Select country"
+                          }
+                        />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -679,7 +743,9 @@ export function BaForm({
               name="address.postal_code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Postal Code <span className="text-destructive">*</span></FormLabel>
+                  <FormLabel>
+                    Postal Code <span className="text-destructive">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="Postal code" {...field} />
                   </FormControl>

@@ -26,17 +26,17 @@ import {
 @ApiCookieAuth()
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
-  @ApiResponse({ status: 400, description: 'Validation error or duplicate email' })
-  async create(
-    @Req() req: AuthRequest,
-    @Body() body: CreateUserDto,
-  ) {
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error or duplicate email',
+  })
+  async create(@Req() req: AuthRequest, @Body() body: CreateUserDto) {
     return this.userService.create(req, body);
   }
 

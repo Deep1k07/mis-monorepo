@@ -26,7 +26,7 @@ import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 @ApiCookieAuth()
 @Controller('permission')
 export class PermissionController {
-  constructor(private readonly permissionService: PermissionService) { }
+  constructor(private readonly permissionService: PermissionService) {}
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -41,7 +41,12 @@ export class PermissionController {
   @ApiOperation({ summary: 'Get all permissions with pagination' })
   @ApiResponse({ status: 200, description: 'Paginated list of permissions' })
   async getAll(@Req() req: AuthRequest, @Query() query: PaginatedQueryDto) {
-    return this.permissionService.getAll(req, query.page, query.limit, query.search);
+    return this.permissionService.getAll(
+      req,
+      query.page,
+      query.limit,
+      query.search,
+    );
   }
 
   @Post()

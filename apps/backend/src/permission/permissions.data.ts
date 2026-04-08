@@ -82,7 +82,13 @@ export const defaultPermissions = [
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
   },
-
+  {
+    name: 'application:reject:draft',
+    description: 'Can reject draft applications',
+    category: 'Application',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
 
   // Cab and Standards permissions
   {
@@ -139,7 +145,7 @@ export const defaultPermissions = [
 
   // User management permissions
   {
-    name: 'manage:users',  // must for manage user tab-> permissions/roles/users
+    name: 'manage:users', // must for manage user tab-> permissions/roles/users
     description: 'Can manage users',
     category: 'User Management',
     status: PermissionStatus.ACTIVE,

@@ -26,9 +26,24 @@ const stripLeadingZeros = ({ value }: { value: any }) =>
 
 class RateCardDto {
   @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) @Transform(stripLeadingZeros) initial?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) @Transform(stripLeadingZeros) annual?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) @Transform(stripLeadingZeros) recertification?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(5)
+  @Transform(stripLeadingZeros)
+  initial?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(5)
+  @Transform(stripLeadingZeros)
+  annual?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(5)
+  @Transform(stripLeadingZeros)
+  recertification?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() comments?: string;
@@ -66,20 +81,39 @@ export class UpdateBaDto {
   // ── User fields ──
   @ApiPropertyOptional() @IsOptional() @IsString() username?: string;
   @ApiPropertyOptional() @IsOptional() @IsEmail() email?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(6) password?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() phone?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
 
   // ── CabBA fields ──
   @ApiPropertyOptional() @IsOptional() @IsString() contact_name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() registration_authority?: string;
-  @ApiPropertyOptional() @IsString() @MinLength(5) @MaxLength(20) @Matches(/^\S+$/, { message: 'Registration number must not contain spaces' }) registration_number?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  registration_authority?: string;
+  @ApiPropertyOptional()
+  @IsString()
+  @MinLength(5)
+  @MaxLength(20)
+  @Matches(/^\S+$/, { message: 'Registration number must not contain spaces' })
+  registration_number?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() registration_date?: string;
-  @ApiPropertyOptional() @IsOptional() @ValidateNested() @Type(() => AddressDto) address?: AddressDto;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AddressDto)
+  address?: AddressDto;
   @ApiPropertyOptional() @IsOptional() @IsString() currency?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() gst?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() certificateLanguage?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() otherCertificateLanguage?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  otherCertificateLanguage?: string;
 
   @ApiPropertyOptional({ type: [CbDto] })
   @IsOptional()

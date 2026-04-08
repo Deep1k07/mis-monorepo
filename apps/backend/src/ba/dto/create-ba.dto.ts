@@ -26,9 +26,24 @@ const stripLeadingZeros = ({ value }: { value: any }) =>
 
 class RateCardDto {
   @ApiPropertyOptional() @IsOptional() @IsString() status?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) @Transform(stripLeadingZeros) initial?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) @Transform(stripLeadingZeros) annual?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(5) @Transform(stripLeadingZeros) recertification?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(5)
+  @Transform(stripLeadingZeros)
+  initial?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(5)
+  @Transform(stripLeadingZeros)
+  annual?: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  @MaxLength(5)
+  @Transform(stripLeadingZeros)
+  recertification?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() startDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() endDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() comments?: string;

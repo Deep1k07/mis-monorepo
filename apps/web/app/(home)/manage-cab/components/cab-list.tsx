@@ -87,7 +87,10 @@ export function CabList() {
       </Dialog>
 
       {/* Edit Dialog */}
-      <Dialog open={!!editCab} onOpenChange={(open) => !open && setEditCab(null)}>
+      <Dialog
+        open={!!editCab}
+        onOpenChange={(open) => !open && setEditCab(null)}
+      >
         <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Certification Body</DialogTitle>
@@ -107,9 +110,10 @@ export function CabList() {
                 abName: editCab.abName,
                 description: editCab.description,
                 status: editCab.status,
-                standards: editCab.standards?.map((s: any) =>
-                  typeof s === "object" ? s._id : s,
-                ) || [],
+                standards:
+                  editCab.standards?.map((s: any) =>
+                    typeof s === "object" ? s._id : s,
+                  ) || [],
               }}
               onSuccess={() => {
                 setEditCab(null);

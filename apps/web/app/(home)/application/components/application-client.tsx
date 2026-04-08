@@ -46,7 +46,12 @@ export function ApplicationClient() {
     [router],
   );
 
-  const { data, totalPages, total, isLoading: loading } = useApplications(page, search, cabCode || undefined);
+  const {
+    data,
+    totalPages,
+    total,
+    isLoading: loading,
+  } = useApplications(page, search, cabCode || undefined);
 
   return (
     <>
@@ -65,10 +70,7 @@ export function ApplicationClient() {
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
           filterSlot={
-            <Select
-              value={cabCode || null}
-              onValueChange={handleCabCodeChange}
-            >
+            <Select value={cabCode || null} onValueChange={handleCabCodeChange}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="CAB Code" />
               </SelectTrigger>

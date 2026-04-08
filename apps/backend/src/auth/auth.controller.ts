@@ -52,7 +52,11 @@ export class AuthController {
 
   @Post('verify-otp')
   @ApiOperation({ summary: 'Verify OTP after login' })
-  @ApiBody({ schema: { properties: { userId: { type: 'string' }, otp: { type: 'string' } } } })
+  @ApiBody({
+    schema: {
+      properties: { userId: { type: 'string' }, otp: { type: 'string' } },
+    },
+  })
   @ApiResponse({ status: 200, description: 'OTP verified successfully' })
   @ApiResponse({ status: 400, description: 'Invalid or expired OTP' })
   async verifyOtp(
@@ -87,9 +91,7 @@ export class AuthController {
   @Post('logout')
   @ApiOperation({ summary: 'Logout and clear auth cookie' })
   @ApiResponse({ status: 200, description: 'Logged out successfully' })
-  logout(
-    @Res({ passthrough: true }) res: Response,
-  ): { success: boolean } {
+  logout(@Res({ passthrough: true }) res: Response): { success: boolean } {
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -117,7 +119,10 @@ export class AuthController {
   async updateProfile(
     @Req() req: AuthRequest,
     @Body() body: UpdateProfileDto,
-  ): Promise<{ success: boolean; user: { firstName: string; lastName: string; email: string; phone: string } }> {
+  ): Promise<{
+    success: boolean;
+    user: { firstName: string; lastName: string; email: string; phone: string };
+  }> {
     return this.authService.updateProfile(req.user.userId, body);
   }
 

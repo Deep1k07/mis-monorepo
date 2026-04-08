@@ -17,7 +17,7 @@ export class EntityService {
     @InjectModel(Entity.name) private entityModel: Model<Entity>,
     @InjectModel(Application.name) private applicationModel: Model<Application>,
     private eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
   async getUniqueEntityId(entityModel: Model<Entity>): Promise<string> {
     while (true) {
       const id = generateAlphanumericCode();
@@ -86,12 +86,8 @@ export class EntityService {
       throw new BadRequestException('Direct Price is required');
     }
 
-    const {
-      entity_id,
-      name_slug,
-      isEntityEmailVerifiedStatus,
-      ...updateData
-    } = body;
+    const { entity_id, name_slug, isEntityEmailVerifiedStatus, ...updateData } =
+      body;
 
     if (body.entity_name) {
       updateData.entity_name = cleanString(body.entity_name);
@@ -108,11 +104,11 @@ export class EntityService {
     }
 
     if (updateData.main_site_address) {
-      updateData.main_site_address = updateData.main_site_address
+      updateData.main_site_address = updateData.main_site_address;
     }
 
     if (updateData.additional_site_address) {
-      updateData.additional_site_address = updateData.additional_site_address
+      updateData.additional_site_address = updateData.additional_site_address;
     }
     return this.entityModel.findOneAndUpdate(
       { entity_id: entityId },
@@ -122,23 +118,23 @@ export class EntityService {
   }
 
   async getById(id: string) {
-    const entity = await this.entityModel
-      .findOne({ entity_id: id })
-      .populate({
-        path: 'business_associate',
-        select: 'username email status phone userId cabCode cab',
-        populate: {
-          path: 'cab',
-          select: 'cab',
-        },
-      });
+    const entity = await this.entityModel.findOne({ entity_id: id }).populate({
+      path: 'business_associate',
+      select: 'username email status phone userId cabCode cab',
+      populate: {
+        path: 'cab',
+        select: 'cab',
+      },
+    });
     if (!entity) {
       throw new BadRequestException('Entity not found');
     }
 
     const applications = await this.applicationModel
       .find({ entity: entity._id })
-      .select('certificate_number cab_code standards current_issue valid_until certificateStatus scopeStatus qualityStatus')
+      .select(
+        'certificate_number cab_code standards current_issue valid_until certificateStatus scopeStatus qualityStatus',
+      )
       .sort({ createdAt: -1 })
       .exec();
 
