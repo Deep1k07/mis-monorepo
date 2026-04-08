@@ -39,7 +39,10 @@ export class CertificationbodyController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new certification body (CAB)' })
   @ApiResponse({ status: 201, description: 'CAB created successfully' })
-  @ApiResponse({ status: 400, description: 'CAB with this code already exists' })
+  @ApiResponse({
+    status: 400,
+    description: 'CAB with this code already exists',
+  })
   async createCab(
     @Body() body: CreateCabDto,
     @Req() req: AuthRequest,
@@ -51,9 +54,7 @@ export class CertificationbodyController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all CABs with pagination' })
   @ApiResponse({ status: 200, description: 'Paginated list of CABs' })
-  async getAllCabs(
-    @Query() query: PaginatedQueryDto,
-  ): Promise<{
+  async getAllCabs(@Query() query: PaginatedQueryDto): Promise<{
     data: CertificationBody[];
     total: number;
     page: number;
@@ -85,9 +86,7 @@ export class CertificationbodyController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all standards with pagination' })
   @ApiResponse({ status: 200, description: 'Paginated list of standards' })
-  async getAllStandards(
-    @Query() query: GetAllStandardsQueryDto,
-  ): Promise<{
+  async getAllStandards(@Query() query: GetAllStandardsQueryDto): Promise<{
     data: CertificationStandard[];
     total: number;
     page: number;

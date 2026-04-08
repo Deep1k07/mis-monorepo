@@ -7,9 +7,9 @@ export type CertificationStandardDocument =
 export enum Status {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
-  EXPIRED = 'expired'
+  EXPIRED = 'expired',
 }
-const regex = /^[0-9a-zA-Z]+$/;  //regex used for mssCod
+const regex = /^[0-9a-zA-Z]+$/; //regex used for mssCod
 @Schema({ timestamps: true })
 export class CertificationStandard {
   @Prop({
@@ -19,7 +19,7 @@ export class CertificationStandard {
     trim: true,
     minlength: 3,
     maxlength: 3,
-    match: regex
+    match: regex,
   })
   mssCode: string;
 
@@ -30,7 +30,7 @@ export class CertificationStandard {
   standardCode: string;
 
   @Prop({ required: true, trim: true }) // eg 2015 or 2025
-  version: string
+  version: string;
 
   @Prop({
     enum: Status,
@@ -47,8 +47,13 @@ export class CertificationStandard {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
   user: Types.ObjectId;
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CertificationBody' }], default: [] })
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'CertificationBody' }],
+    default: [],
+  })
   certificationBodies: Types.ObjectId[];
 }
 
-export const CertificationStandardSchema = SchemaFactory.createForClass(CertificationStandard);
+export const CertificationStandardSchema = SchemaFactory.createForClass(
+  CertificationStandard,
+);

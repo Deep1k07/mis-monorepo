@@ -46,91 +46,91 @@ const statusBadge = (status: string) => {
 export const createColumns = (
   onView: (app: ApplicationDef) => void,
 ): ColumnDef<ApplicationDef>[] => [
-    {
-      id: "entity_id",
-      header: "Entity ID",
-      cell: ({ row }) => {
-        return <span>{row.original.entity?.entity_id ?? "-"}</span>;
-      },
+  {
+    id: "entity_id",
+    header: "Entity ID",
+    cell: ({ row }) => {
+      return <span>{row.original.entity?.entity_id ?? "-"}</span>;
     },
-    {
-      id: "entity_name",
-      header: "Entity Name",
-      cell: ({ row }) => {
-        const name = row.original.entity?.entity_name ?? "-";
-        return (
-          <span className="block max-w-[200px] truncate" title={name}>
-            {name}
-          </span>
-        );
-      },
+  },
+  {
+    id: "entity_name",
+    header: "Entity Name",
+    cell: ({ row }) => {
+      const name = row.original.entity?.entity_name ?? "-";
+      return (
+        <span className="block max-w-[200px] truncate" title={name}>
+          {name}
+        </span>
+      );
     },
-    {
-      accessorKey: "cab_code",
-      header: "CAB Code",
+  },
+  {
+    accessorKey: "cab_code",
+    header: "CAB Code",
+  },
+  {
+    id: "business_associate",
+    header: "BA Name",
+    cell: ({ row }) => {
+      const ba = row.original.entity?.business_associate;
+      if (!ba) return <span className="text-muted-foreground">-</span>;
+      return <span>{typeof ba === "object" ? ba.username : ba}</span>;
     },
-    {
-      id: "business_associate",
-      header: "BA Name",
-      cell: ({ row }) => {
-        const ba = row.original.entity?.business_associate;
-        if (!ba) return <span className="text-muted-foreground">-</span>;
-        return <span>{typeof ba === "object" ? ba.username : ba}</span>;
-      },
+  },
+  {
+    accessorKey: "standards",
+    header: "Standards",
+    cell: ({ row }) => {
+      const standards = row.getValue("standards") as
+        | { code: string; name: string }[]
+        | undefined;
+      if (!standards || standards.length === 0)
+        return <span className="text-muted-foreground">-</span>;
+      return <span>{standards.map((s) => s.code).join(", ")}</span>;
     },
-    {
-      accessorKey: "standards",
-      header: "Standards",
-      cell: ({ row }) => {
-        const standards = row.getValue("standards") as
-          | { code: string; name: string }[]
-          | undefined;
-        if (!standards || standards.length === 0)
-          return <span className="text-muted-foreground">-</span>;
-        return <span>{standards.map((s) => s.code).join(", ")}</span>;
-      },
+  },
+  {
+    accessorKey: "scopeStatus",
+    header: "Scope Status",
+    cell: ({ row }) => statusBadge(row.getValue("scopeStatus") as string),
+  },
+  {
+    accessorKey: "qualityStatus",
+    header: "Quality Status",
+    cell: ({ row }) => statusBadge(row.getValue("qualityStatus") as string),
+  },
+  {
+    accessorKey: "certificateStatus",
+    header: "Application Status",
+    cell: ({ row }) => statusBadge(row.getValue("certificateStatus") as string),
+  },
+  {
+    accessorKey: "createdAt",
+    header: "Created At",
+    cell: ({ row }) => {
+      const date = row.getValue("createdAt") as string | undefined;
+      return (
+        <div className="text-muted-foreground">
+          {date?.split("T")[0] ?? "-"}
+        </div>
+      );
     },
-    {
-      accessorKey: "scopeStatus",
-      header: "Scope Status",
-      cell: ({ row }) => statusBadge(row.getValue("scopeStatus") as string),
+  },
+  {
+    id: "actions",
+    header: "",
+    cell: ({ row }) => {
+      const app = row.original;
+      return (
+        <button
+          onClick={() => onView(app)}
+          className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+          title="View details"
+        >
+          <Eye className="h-4 w-4" />
+        </button>
+      );
     },
-    {
-      accessorKey: "qualityStatus",
-      header: "Quality Status",
-      cell: ({ row }) => statusBadge(row.getValue("qualityStatus") as string),
-    },
-    {
-      accessorKey: "certificateStatus",
-      header: "Application Status",
-      cell: ({ row }) => statusBadge(row.getValue("certificateStatus") as string),
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Created At",
-      cell: ({ row }) => {
-        const date = row.getValue("createdAt") as string | undefined;
-        return (
-          <div className="text-muted-foreground">
-            {date?.split("T")[0] ?? "-"}
-          </div>
-        );
-      },
-    },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => {
-        const app = row.original;
-        return (
-          <button
-            onClick={() => onView(app)}
-            className="inline-flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
-            title="View details"
-          >
-            <Eye className="h-4 w-4" />
-          </button>
-        );
-      },
-    },
-  ];
+  },
+];

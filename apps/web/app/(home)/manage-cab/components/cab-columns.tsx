@@ -23,9 +23,7 @@ export const createCabColumns = (
     accessorKey: "cabCode",
     header: "CAB Code",
     cell: ({ row }) => (
-      <span className="font-mono font-medium">
-        {row.getValue("cabCode")}
-      </span>
+      <span className="font-mono font-medium">{row.getValue("cabCode")}</span>
     ),
   },
   {
@@ -36,7 +34,10 @@ export const createCabColumns = (
     accessorKey: "cbName",
     header: "CB Name",
     cell: ({ row }) => (
-      <span className="block max-w-[200px] truncate" title={row.getValue("cbName")}>
+      <span
+        className="block max-w-[200px] truncate"
+        title={row.getValue("cbName")}
+      >
         {row.getValue("cbName")}
       </span>
     ),
@@ -49,7 +50,10 @@ export const createCabColumns = (
     accessorKey: "abName",
     header: "AB Name",
     cell: ({ row }) => (
-      <span className="block max-w-[200px] truncate" title={row.getValue("abName")}>
+      <span
+        className="block max-w-[200px] truncate"
+        title={row.getValue("abName")}
+      >
         {row.getValue("abName")}
       </span>
     ),
@@ -78,9 +82,7 @@ export const createCabColumns = (
     cell: ({ row }) => {
       const standards = row.getValue("standards") as any[] | undefined;
       return (
-        <span className="text-muted-foreground">
-          {standards?.length ?? 0}
-        </span>
+        <span className="text-muted-foreground">{standards?.length ?? 0}</span>
       );
     },
   },

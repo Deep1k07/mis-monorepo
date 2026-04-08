@@ -38,7 +38,9 @@ export class UpdateUserDto {
   @IsOptional()
   reportingManager?: string;
 
-  @ApiPropertyOptional({ enum: ['active', 'inactive', 'pending', 'rejected', 'suspended'] })
+  @ApiPropertyOptional({
+    enum: ['active', 'inactive', 'pending', 'rejected', 'suspended'],
+  })
   @IsString()
   @IsOptional()
   status?: string;

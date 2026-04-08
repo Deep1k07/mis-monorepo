@@ -6,4 +6,4 @@ export const cleanString = (str: string) => {
     .replace(/\.+/g, '.')
     .replace(/\)+$/, ')')
     .trim();
-}
+};

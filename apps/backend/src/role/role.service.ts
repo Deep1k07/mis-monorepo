@@ -10,19 +10,28 @@ import type { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 export class RoleService {
   constructor(
     @InjectModel(UserRole.name) private userRoleModel: Model<UserRoleDocument>,
-  ) { }
+  ) {}
 
   async getAllRoles(req: AuthRequest) {
     const user = req.user;
-    if (!['manage:users', 'role:read'].some((p) => user.permissions.includes(p))) {
+    if (
+      !['manage:users', 'role:read'].some((p) => user.permissions.includes(p))
+    ) {
       throw new BadRequestException('You do not have permission to get roles');
     }
     return this.userRoleModel.find().exec();
   }
 
-  async getAll(req: AuthRequest, page: number = 1, limit: number = 10, search?: string) {
+  async getAll(
+    req: AuthRequest,
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ) {
     const user = req.user;
-    if (!['manage:users', 'role:read'].some((p) => user.permissions.includes(p))) {
+    if (
+      !['manage:users', 'role:read'].some((p) => user.permissions.includes(p))
+    ) {
       throw new BadRequestException('You do not have permission to get roles');
     }
     const skip = (page - 1) * limit;
@@ -55,8 +64,12 @@ export class RoleService {
 
   async create(body: CreateRoleDto, req: AuthRequest) {
     const user = req.user;
-    if (!['manage:users', 'role:create'].some((p) => user.permissions.includes(p))) {
-      throw new BadRequestException('You do not have permission to create a role');
+    if (
+      !['manage:users', 'role:create'].some((p) => user.permissions.includes(p))
+    ) {
+      throw new BadRequestException(
+        'You do not have permission to create a role',
+      );
     }
     const existing = await this.userRoleModel.findOne({ role: body.role });
     if (existing) {
@@ -71,8 +84,12 @@ export class RoleService {
 
   async update(req: AuthRequest, id: string, body: CreateRoleDto) {
     const user = req.user;
-    if (!['manage:users', 'role:update'].some((p) => user.permissions.includes(p))) {
-      throw new BadRequestException('You do not have permission to update a role');
+    if (
+      !['manage:users', 'role:update'].some((p) => user.permissions.includes(p))
+    ) {
+      throw new BadRequestException(
+        'You do not have permission to update a role',
+      );
     }
     const role = await this.userRoleModel.findById(id);
     if (!role) {

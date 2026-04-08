@@ -121,7 +121,9 @@ export function DataTable<TData, TValue>({
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search..."
-              value={onSearchChange ? (searchValue ?? "") : (globalFilter ?? "")}
+              value={
+                onSearchChange ? (searchValue ?? "") : (globalFilter ?? "")
+              }
               onChange={(event) => {
                 if (onSearchChange) {
                   onSearchChange(event.target.value);
@@ -187,9 +189,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {rowCount} row(s) total
-        </p>
+        <p className="text-sm text-muted-foreground">{rowCount} row(s) total</p>
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium">
             Page {currentPage} of {totalPages}

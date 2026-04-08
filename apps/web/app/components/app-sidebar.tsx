@@ -41,7 +41,12 @@ type NavItem = {
   icon: React.ElementType;
   isActive?: boolean;
   permission?: string | string[];
-  children?: { title: string; url: string; icon?: React.ElementType; permission?: string | string[] }[];
+  children?: {
+    title: string;
+    url: string;
+    icon?: React.ElementType;
+    permission?: string | string[];
+  }[];
 };
 
 const navItems: NavItem[] = [
@@ -98,7 +103,7 @@ const navItems: NavItem[] = [
     url: "/manage-user",
     icon: UserCog,
     isActive: false,
-    permission: ["manage:users"]
+    permission: ["manage:users"],
   },
 ];
 
@@ -190,8 +195,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <Sidebar {...props}>
         <SidebarHeader>
           <div className="flex items-center px-2 py-2">
-            <img src="/logo1.png" alt="Logo" className="h-8 w-auto dark:hidden" />
-            <img src="/logo.png" alt="Logo" className="h-8 w-auto hidden dark:block" />
+            <img
+              src="/logo1.png"
+              alt="Logo"
+              className="h-8 w-auto dark:hidden"
+            />
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-8 w-auto hidden dark:block"
+            />
           </div>
         </SidebarHeader>
         <SidebarContent>

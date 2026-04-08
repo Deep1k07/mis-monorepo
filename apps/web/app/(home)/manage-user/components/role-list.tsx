@@ -32,10 +32,7 @@ export function RoleList() {
     set({ search: value, page: 1 });
   };
 
-  const { data, totalPages, total, isLoading, mutate } = useRoles(
-    page,
-    search,
-  );
+  const { data, totalPages, total, isLoading, mutate } = useRoles(page, search);
 
   const columns = useMemo(
     () =>

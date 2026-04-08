@@ -162,7 +162,7 @@ export function EntityForm({
       console.error("Failed to save entity", error);
       toast.error(
         mode === "edit" ? "Failed to update entity" : "Failed to create entity",
-        { id: "entity-view" }
+        { id: "entity-view" },
       );
     }
   }

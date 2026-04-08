@@ -56,7 +56,13 @@ export default async function EntityPage() {
             </div>
             <EntityDialog />
           </div>
-          <Suspense fallback={<div className="flex items-center justify-center py-10 text-muted-foreground">Loading...</div>}>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center py-10 text-muted-foreground">
+                Loading...
+              </div>
+            }
+          >
             <EntityClient />
           </Suspense>
         </div>

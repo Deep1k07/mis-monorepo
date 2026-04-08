@@ -4,17 +4,33 @@ import mongoose, { HydratedDocument, Types } from 'mongoose';
 export type ApplicationDocument = HydratedDocument<Application>;
 
 export enum certificateStatusEnum {
-  'proceed', 'completed', 'hold', 'withdrawn', 'suspended', 'active', 'expired',
-  'lapsed', 'anulled', 'inactive', 'cancelled', 'hidden', 'terminate',
-
+  'proceed',
+  'completed',
+  'hold',
+  'withdrawn',
+  'suspended',
+  'active',
+  'expired',
+  'lapsed',
+  'anulled',
+  'inactive',
+  'cancelled',
+  'hidden',
+  'terminate',
 }
 
 export enum scopeStatusEnum {
-  'pending', 'rejected', 'transfer', 'completed'
+  'pending',
+  'rejected',
+  'transfer',
+  'completed',
 }
 
 export enum qualityStatusEnum {
-  'pending', 'rejected', 'proceed', 'completed'
+  'pending',
+  'rejected',
+  'proceed',
+  'completed',
 }
 
 @Schema({ _id: false })
@@ -24,7 +40,9 @@ class AppliedDraftCertificateLanguages {
   @Prop() s3DraftAnnexureDocxUrl: string;
   @Prop() s3DraftAnnexurePdfxUrl: string;
 }
-const AppliedDraftCertificateLanguagesSchema = SchemaFactory.createForClass(AppliedDraftCertificateLanguages);
+const AppliedDraftCertificateLanguagesSchema = SchemaFactory.createForClass(
+  AppliedDraftCertificateLanguages,
+);
 
 @Schema({ timestamps: true })
 export class AppliedDraftCertificate {
@@ -39,8 +57,9 @@ export class AppliedDraftCertificate {
   languages: Map<string, AppliedDraftCertificateLanguages>;
 }
 
-export const AppliedDraftCertificateSchema =
-  SchemaFactory.createForClass(AppliedDraftCertificate);
+export const AppliedDraftCertificateSchema = SchemaFactory.createForClass(
+  AppliedDraftCertificate,
+);
 
 @Schema({ _id: false })
 class AppliedFinalCertificateLanguages {
@@ -49,7 +68,9 @@ class AppliedFinalCertificateLanguages {
   @Prop() s3CertificateAnnexureDocxUrl: string;
   @Prop() s3CertificateAnnexurePdfxUrl: string;
 }
-const AppliedFinalCertificateLanguagesSchema = SchemaFactory.createForClass(AppliedFinalCertificateLanguages);
+const AppliedFinalCertificateLanguagesSchema = SchemaFactory.createForClass(
+  AppliedFinalCertificateLanguages,
+);
 
 @Schema({ timestamps: true })
 export class AppliedFinalCertificate {
@@ -64,18 +85,26 @@ export class AppliedFinalCertificate {
   languages: Map<string, AppliedFinalCertificateLanguages>;
 }
 
-export const AppliedFinalCertificateSchema =
-  SchemaFactory.createForClass(AppliedFinalCertificate);
+export const AppliedFinalCertificateSchema = SchemaFactory.createForClass(
+  AppliedFinalCertificate,
+);
 
 @Schema({ timestamps: true })
 export class Application {
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) user: Types.ObjectId;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' }) business_associate: Types.ObjectId;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) scope_manager: Types.ObjectId;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) quality_manager: Types.ObjectId;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) appliedBy: Types.ObjectId;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) certificate_manager: Types.ObjectId;
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) finance_manager: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
+  user: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  business_associate: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
+  scope_manager: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
+  quality_manager: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
+  appliedBy: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
+  certificate_manager: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
+  finance_manager: Types.ObjectId;
 
   @Prop({ required: true }) cab_code: string;
 
@@ -87,12 +116,13 @@ export class Application {
   ])
   standards: { code: string; name: string }[];
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Entity', required: true }) entity: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Entity', required: true })
+  entity: Types.ObjectId;
   @Prop() secondary_entity_name: string;
   @Prop() employess_count: string;
 
-
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) bulkUploadedBy: Types.ObjectId;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' })
+  bulkUploadedBy: Types.ObjectId;
 
   @Prop([
     {
@@ -163,8 +193,10 @@ export class Application {
   qualityStatus: string;
 
   @Prop({ enum: ['applied', 'final'], default: 'applied' }) baStatus: string;
-  @Prop({ enum: ['applied', 'final'], default: 'applied' }) baManagerStatus: string;
-  @Prop({ enum: ['applied', 'final'], default: 'applied' }) clientStatus: string;
+  @Prop({ enum: ['applied', 'final'], default: 'applied' })
+  baManagerStatus: string;
+  @Prop({ enum: ['applied', 'final'], default: 'applied' })
+  clientStatus: string;
 
   @Prop({ enum: ['pending', 'rejected', 'completed'], default: 'pending' })
   tallyStatus: string;
@@ -244,7 +276,11 @@ export class Application {
   @Prop([
     {
       url: { type: String, required: true },
-      status: { type: String, enum: ['active', 'inactive'], default: 'inactive' },
+      status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'inactive',
+      },
       datetime: { type: Date, default: Date.now },
       version: { type: String, required: true },
     },
@@ -254,7 +290,11 @@ export class Application {
   @Prop([
     {
       url: { type: String, required: true },
-      status: { type: String, enum: ['active', 'inactive'], default: 'inactive' },
+      status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'inactive',
+      },
       datetime: { type: Date, default: Date.now },
       version: { type: String, required: true },
     },

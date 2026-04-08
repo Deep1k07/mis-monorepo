@@ -5,7 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import * as z from "zod";
 import { useForm, useFieldArray } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
-import { ArrowLeft, Plus, Trash2, ChevronDown, ChevronUp, MapPin } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+  MapPin,
+} from "lucide-react";
 import {
   Form,
   FormControl,
@@ -26,11 +33,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import {
-  useEntityById,
-  useCountries,
-  useLanguages,
-} from "@/utils/apis";
+import { useEntityById, useCountries, useLanguages } from "@/utils/apis";
 import { createApplication } from "@/utils/mutations";
 import toast from "react-hot-toast";
 import EntityPage from "../../page";
@@ -43,48 +46,69 @@ const addressSchema = z.object({
   postal_code: z.string().optional(),
 });
 
-const applicationSchema = z.object({
-  certification_type: z.enum(["individual", "integrated"]),
-  cab_code: z.string().min(1, "CAB Code is required"),
-  standards: z
-    .array(
-      z.object({
-        code: z.string(),
-        name: z.string(),
-        _id: z.string(),
-      })
-    )
-    .min(1, "At least one standard is required"),
-  duration: z.string().min(1, "Duration is required"),
-  severity: z.enum(["normal", "urgent", "most_urgent"]).default("normal"),
-  risk: z.enum(["low", "medium", "high"]).default("low"),
-  annexure: z.boolean().default(false),
-  auditor_leader_name: z.string().min(1, "Auditor Leader Name is required"),
-  charges: z.string().optional(),
-  primary_certificate_language: z.string().min(1, "Language is required"),
-  drive_link: z.string().optional(),
-  scope: z.string().min(1, "Scope is required"),
-  secondary_entity_name: z.string().optional(),
-  secondary_certificate_language: z.string().optional(),
-  additional_scope: z.string().optional(),
-  apply_other_language: z.boolean().default(false),
-  additional_site_address: z.array(addressSchema).optional(),
-}).superRefine((data, ctx) => {
-  if (data.apply_other_language) {
-    if (!data.secondary_entity_name) {
-      ctx.addIssue({ code: "custom", path: ["secondary_entity_name"], message: "Secondary entity name is required" });
+const applicationSchema = z
+  .object({
+    certification_type: z.enum(["individual", "integrated"]),
+    cab_code: z.string().min(1, "CAB Code is required"),
+    standards: z
+      .array(
+        z.object({
+          code: z.string(),
+          name: z.string(),
+          _id: z.string(),
+        }),
+      )
+      .min(1, "At least one standard is required"),
+    duration: z.string().min(1, "Duration is required"),
+    severity: z.enum(["normal", "urgent", "most_urgent"]).default("normal"),
+    risk: z.enum(["low", "medium", "high"]).default("low"),
+    annexure: z.boolean().default(false),
+    auditor_leader_name: z.string().min(1, "Auditor Leader Name is required"),
+    charges: z.string().optional(),
+    primary_certificate_language: z.string().min(1, "Language is required"),
+    drive_link: z.string().optional(),
+    scope: z.string().min(1, "Scope is required"),
+    secondary_entity_name: z.string().optional(),
+    secondary_certificate_language: z.string().optional(),
+    additional_scope: z.string().optional(),
+    apply_other_language: z.boolean().default(false),
+    additional_site_address: z.array(addressSchema).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.apply_other_language) {
+      if (!data.secondary_entity_name) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["secondary_entity_name"],
+          message: "Secondary entity name is required",
+        });
+      }
+      if (!data.secondary_certificate_language) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["secondary_certificate_language"],
+          message: "Secondary language is required",
+        });
+      }
+      if (!data.additional_scope) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["additional_scope"],
+          message: "Additional scope is required",
+        });
+      }
+      if (
+        !data.additional_site_address ||
+        data.additional_site_address.length === 0
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["additional_site_address"],
+          message: "At least one additional address is required",
+        });
+      }
     }
-    if (!data.secondary_certificate_language) {
-      ctx.addIssue({ code: "custom", path: ["secondary_certificate_language"], message: "Secondary language is required" });
-    }
-    if (!data.additional_scope) {
-      ctx.addIssue({ code: "custom", path: ["additional_scope"], message: "Additional scope is required" });
-    }
-    if (!data.additional_site_address || data.additional_site_address.length === 0) {
-      ctx.addIssue({ code: "custom", path: ["additional_site_address"], message: "At least one additional address is required" });
-    }
-  }
-});
+  });
 
 type ApplicationFormValues = z.infer<typeof applicationSchema>;
 
@@ -152,7 +176,12 @@ export function ApplyCertificateClient() {
     setShowOtherLanguage(next);
     form.setValue("apply_other_language", next);
     if (!next) {
-      form.clearErrors(["secondary_entity_name", "secondary_certificate_language", "additional_scope", "additional_site_address"]);
+      form.clearErrors([
+        "secondary_entity_name",
+        "secondary_certificate_language",
+        "additional_scope",
+        "additional_site_address",
+      ]);
     }
   };
 
@@ -165,11 +194,11 @@ export function ApplyCertificateClient() {
   const currency = useMemo(() => {
     if (!entity?.business_associate?.cab) return "";
     return entity.business_associate.cab.currency === "USD" ? "$" : "₹";
-  }, [entity])
+  }, [entity]);
   const baCabs = useMemo(() => {
     if (!entity?.business_associate?.cab?.cab) return [];
     return entity.business_associate.cab.cab.filter(
-      (cb: any) => cb.status === "active"
+      (cb: any) => cb.status === "active",
     );
   }, [entity]);
 
@@ -188,11 +217,13 @@ export function ApplyCertificateClient() {
 
   // Get rate card for the selected standard
   const { initialRate, recertificationRate } = useMemo(() => {
-    if (selectedStandards.length === 0) return { initialRate: 0, recertificationRate: 0 };
+    if (selectedStandards.length === 0)
+      return { initialRate: 0, recertificationRate: 0 };
     const selected = selectedStandards[0];
     const std = cabStandards.find((s: any) => s.code === selected?.code);
     if (!std?.rateCard) return { initialRate: 0, recertificationRate: 0 };
-    const activeCard = std.rateCard.find((rc: any) => rc.status === "active") || std.rateCard[0];
+    const activeCard =
+      std.rateCard.find((rc: any) => rc.status === "active") || std.rateCard[0];
     if (!activeCard) return { initialRate: 0, recertificationRate: 0 };
     return {
       initialRate: parseFloat(activeCard.initial || "0") || 0,
@@ -201,7 +232,9 @@ export function ApplyCertificateClient() {
   }, [selectedStandards, cabStandards]);
 
   function selectStandard(std: any) {
-    form.setValue("standards", [{ code: std.code, name: std.name, _id: std.code }]);
+    form.setValue("standards", [
+      { code: std.code, name: std.name, _id: std.code },
+    ]);
     form.setValue("duration", "");
     form.setValue("charges", "");
   }
@@ -234,8 +267,7 @@ export function ApplyCertificateClient() {
       payload.secondary_certificate_language =
         data.secondary_certificate_language || "";
       payload.additional_scope = data.additional_scope || "";
-      payload.additional_site_address =
-        data.additional_site_address || [];
+      payload.additional_site_address = data.additional_site_address || [];
     }
 
     console.log(payload);
@@ -303,10 +335,12 @@ export function ApplyCertificateClient() {
             <span className="font-mono text-xs">{entity.entity_id}</span>
             <span className="mx-2 text-muted-foreground/50">|</span>
             <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${entity.isDirectClient
-                ? "bg-blue-50 text-blue-700 ring-blue-600/20"
-                : "bg-purple-50 text-purple-700 ring-purple-600/20"
-                }`}>
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
+                entity.isDirectClient
+                  ? "bg-blue-50 text-blue-700 ring-blue-600/20"
+                  : "bg-purple-50 text-purple-700 ring-purple-600/20"
+              }`}
+            >
               {entity.isDirectClient ? "Client" : "BAM"}
             </span>
           </p>
@@ -328,15 +362,21 @@ export function ApplyCertificateClient() {
             <p className="font-mono">{entity.entity_id}</p>
           </div>
           <div>
-            <span className="text-xs text-muted-foreground">Employees Count</span>
+            <span className="text-xs text-muted-foreground">
+              Employees Count
+            </span>
             <p>{entity.employess_count || "-"}</p>
           </div>
           <div>
-            <span className="text-xs text-muted-foreground">Business Associate</span>
+            <span className="text-xs text-muted-foreground">
+              Business Associate
+            </span>
             <p>{entity.business_associate?.username || "-"}</p>
           </div>
           <div className="sm:col-span-2">
-            <span className="text-xs text-muted-foreground">Main Site Address</span>
+            <span className="text-xs text-muted-foreground">
+              Main Site Address
+            </span>
             <div className="flex items-center gap-2 mt-1">
               <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
               <p>
@@ -356,25 +396,28 @@ export function ApplyCertificateClient() {
             entity.additional_site_address.length > 0 && (
               <div className="sm:col-span-3">
                 <span className="text-xs text-muted-foreground">
-                  Additional Site Addresses ({entity.additional_site_address.length})
+                  Additional Site Addresses (
+                  {entity.additional_site_address.length})
                 </span>
                 <div className="space-y-1.5 mt-1">
-                  {entity.additional_site_address.map((addr: any, i: number) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <p className="text-sm">
-                        {[
-                          addr.street,
-                          addr.city,
-                          addr.state,
-                          addr.postal_code,
-                          addr.country,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
-                      </p>
-                    </div>
-                  ))}
+                  {entity.additional_site_address.map(
+                    (addr: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <p className="text-sm">
+                          {[
+                            addr.street,
+                            addr.city,
+                            addr.state,
+                            addr.postal_code,
+                            addr.country,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
+                        </p>
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
             )}
@@ -409,10 +452,7 @@ export function ApplyCertificateClient() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Severity</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -433,10 +473,7 @@ export function ApplyCertificateClient() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Risk</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -507,7 +544,9 @@ export function ApplyCertificateClient() {
                         <SelectTrigger>
                           <SelectValue
                             placeholder={
-                              !baCabs.length ? "No CABs available" : "Select CAB"
+                              !baCabs.length
+                                ? "No CABs available"
+                                : "Select CAB"
                             }
                           />
                         </SelectTrigger>
@@ -533,7 +572,7 @@ export function ApplyCertificateClient() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 border rounded-lg bg-muted/30">
                   {cabStandards.map((std: any) => {
                     const isSelected = selectedStandards.some(
-                      (s) => s.code === std.code
+                      (s) => s.code === std.code,
                     );
                     return (
                       <label
@@ -541,8 +580,12 @@ export function ApplyCertificateClient() {
                         className={`flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-muted/50 ${isSelected ? "bg-primary/5 ring-1 ring-primary/20" : ""}`}
                         onClick={() => selectStandard(std)}
                       >
-                        <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? "border-primary" : "border-muted-foreground/40"}`}>
-                          {isSelected && <div className="h-2 w-2 rounded-full bg-primary" />}
+                        <div
+                          className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? "border-primary" : "border-muted-foreground/40"}`}
+                        >
+                          {isSelected && (
+                            <div className="h-2 w-2 rounded-full bg-primary" />
+                          )}
                         </div>
                         <span className="text-sm">
                           {std.code} - {std.name}
@@ -561,12 +604,22 @@ export function ApplyCertificateClient() {
                 {selectedStandards.length > 0 && (
                   <div className="flex gap-6 p-3 border rounded-lg bg-muted/20 text-sm">
                     <div>
-                      <span className="text-xs text-muted-foreground">Initial (1 Year)</span>
-                      <p className="font-medium">{currency}{initialRate.toFixed(2)}</p>
+                      <span className="text-xs text-muted-foreground">
+                        Initial (1 Year)
+                      </span>
+                      <p className="font-medium">
+                        {currency}
+                        {initialRate.toFixed(2)}
+                      </p>
                     </div>
                     <div>
-                      <span className="text-xs text-muted-foreground">Recertification (3 Year)</span>
-                      <p className="font-medium">{currency}{recertificationRate.toFixed(2)}</p>
+                      <span className="text-xs text-muted-foreground">
+                        Recertification (3 Year)
+                      </span>
+                      <p className="font-medium">
+                        {currency}
+                        {recertificationRate.toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -586,7 +639,10 @@ export function ApplyCertificateClient() {
                           onValueChange={(val) => {
                             field.onChange(val);
                             if (!manualCharges) {
-                              const rate = val === "1 Year" ? initialRate : recertificationRate;
+                              const rate =
+                                val === "1 Year"
+                                  ? initialRate
+                                  : recertificationRate;
                               form.setValue("charges", rate.toFixed(2));
                             }
                           }}
@@ -599,10 +655,12 @@ export function ApplyCertificateClient() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="1 Year">
-                              1 Year — {currency}{initialRate.toFixed(2)}
+                              1 Year — {currency}
+                              {initialRate.toFixed(2)}
                             </SelectItem>
                             <SelectItem value="3 Year">
-                              3 Year — {currency}{recertificationRate.toFixed(2)}
+                              3 Year — {currency}
+                              {recertificationRate.toFixed(2)}
                             </SelectItem>
                           </SelectContent>
                         </Select>
@@ -624,19 +682,28 @@ export function ApplyCertificateClient() {
                               onCheckedChange={(checked) => {
                                 setManualCharges(!!checked);
                                 if (!checked && selectedDuration) {
-                                  const rate = selectedDuration === "1 Year" ? initialRate : recertificationRate;
+                                  const rate =
+                                    selectedDuration === "1 Year"
+                                      ? initialRate
+                                      : recertificationRate;
                                   form.setValue("charges", rate.toFixed(2));
                                 }
                               }}
                             />
-                            <span className="text-xs text-muted-foreground">Add charges manually</span>
+                            <span className="text-xs text-muted-foreground">
+                              Add charges manually
+                            </span>
                           </label>
                         </div>
                         <FormControl>
                           <Input
                             {...field}
                             disabled={!manualCharges || !selectedDuration}
-                            placeholder={selectedDuration ? "Enter charges" : "Select duration first"}
+                            placeholder={
+                              selectedDuration
+                                ? "Enter charges"
+                                : "Select duration first"
+                            }
                           />
                         </FormControl>
                       </FormItem>
@@ -672,7 +739,9 @@ export function ApplyCertificateClient() {
                   <FormItem>
                     <FormLabel>
                       Drive Link{" "}
-                      <span className="text-xs text-muted-foreground">(optional)</span>
+                      <span className="text-xs text-muted-foreground">
+                        (optional)
+                      </span>
                     </FormLabel>
                     <FormControl>
                       <Input {...field} />
@@ -692,10 +761,7 @@ export function ApplyCertificateClient() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Primary Certificate Language</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue />
@@ -760,7 +826,7 @@ export function ApplyCertificateClient() {
                               .join(", ")}
                           </span>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -785,7 +851,9 @@ export function ApplyCertificateClient() {
                 }
               }}
             >
-              <h3 className="text-sm font-semibold">Apply in Other Languages</h3>
+              <h3 className="text-sm font-semibold">
+                Apply in Other Languages
+              </h3>
               {showOtherLanguage ? (
                 <ChevronUp className="h-4 w-4 text-muted-foreground" />
               ) : (
@@ -802,7 +870,10 @@ export function ApplyCertificateClient() {
                     name="secondary_entity_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Secondary Entity Name <span className="text-destructive">*</span></FormLabel>
+                        <FormLabel>
+                          Secondary Entity Name{" "}
+                          <span className="text-destructive">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -815,7 +886,10 @@ export function ApplyCertificateClient() {
                     name="secondary_certificate_language"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Secondary Certificate Language <span className="text-destructive">*</span></FormLabel>
+                        <FormLabel>
+                          Secondary Certificate Language{" "}
+                          <span className="text-destructive">*</span>
+                        </FormLabel>
                         <Select
                           onValueChange={field.onChange}
                           value={field.value}
@@ -844,7 +918,10 @@ export function ApplyCertificateClient() {
                   name="additional_scope"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Additional Scope <span className="text-destructive">*</span></FormLabel>
+                      <FormLabel>
+                        Additional Scope{" "}
+                        <span className="text-destructive">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Enter additional scope..."
@@ -864,11 +941,16 @@ export function ApplyCertificateClient() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-semibold">
-                        Additional Address (Other Language) <span className="text-destructive">*</span>
+                        Additional Address (Other Language){" "}
+                        <span className="text-destructive">*</span>
                       </h4>
-                      {form.formState.errors.additional_site_address?.message && (
+                      {form.formState.errors.additional_site_address
+                        ?.message && (
                         <p className="text-sm text-destructive mt-1">
-                          {form.formState.errors.additional_site_address.message as string}
+                          {
+                            form.formState.errors.additional_site_address
+                              .message as string
+                          }
                         </p>
                       )}
                     </div>

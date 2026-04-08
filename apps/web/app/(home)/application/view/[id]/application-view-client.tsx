@@ -145,8 +145,7 @@ export function ApplicationViewClient() {
       scope: app.scope || "",
       additional_scope: app.additional_scope || "",
       primary_certificate_language: app.primary_certificate_language || "",
-      secondary_certificate_language:
-        app.secondary_certificate_language || "",
+      secondary_certificate_language: app.secondary_certificate_language || "",
     });
     setEditOpen(true);
   };
@@ -225,7 +224,9 @@ export function ApplicationViewClient() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
                 <span className="font-mono">{entity?.entity_id || "-"}</span>
                 <button
-                  onClick={() => navigator.clipboard.writeText(entity?.entity_id || "")}
+                  onClick={() =>
+                    navigator.clipboard.writeText(entity?.entity_id || "")
+                  }
                   className="hover:text-foreground transition-colors"
                   title="Copy Entity ID"
                 >
@@ -331,9 +332,7 @@ export function ApplicationViewClient() {
 
         {/* Scope & Certification */}
         <div>
-          <h4 className="text-sm font-semibold mb-3">
-            Scope & Certification
-          </h4>
+          <h4 className="text-sm font-semibold mb-3">Scope & Certification</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <InfoRow icon={FileText} label="Scope" value={app.scope} />
             <InfoRow
@@ -402,26 +401,26 @@ export function ApplicationViewClient() {
           app.certificate_manager ||
           app.finance_manager ||
           app.appliedBy) && (
-            <div>
-              <h4 className="text-sm font-semibold mb-3">Assigned People</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <PersonInfo label="Scope Manager" person={app.scope_manager} />
-                <PersonInfo
-                  label="Quality Manager"
-                  person={app.quality_manager}
-                />
-                <PersonInfo
-                  label="Certificate Manager"
-                  person={app.certificate_manager}
-                />
-                <PersonInfo
-                  label="Finance Manager"
-                  person={app.finance_manager}
-                />
-                <PersonInfo label="Applied By" person={app.appliedBy} />
-              </div>
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Assigned People</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <PersonInfo label="Scope Manager" person={app.scope_manager} />
+              <PersonInfo
+                label="Quality Manager"
+                person={app.quality_manager}
+              />
+              <PersonInfo
+                label="Certificate Manager"
+                person={app.certificate_manager}
+              />
+              <PersonInfo
+                label="Finance Manager"
+                person={app.finance_manager}
+              />
+              <PersonInfo label="Applied By" person={app.appliedBy} />
             </div>
-          )}
+          </div>
+        )}
 
         {/* Main Address */}
         {mainAddress && (

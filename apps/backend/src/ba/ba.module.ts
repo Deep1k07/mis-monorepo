@@ -15,4 +15,4 @@ import { CabBA, CabBASchema } from './schema/cabBa.schema';
   providers: [BaService],
   controllers: [BaController],
 })
-export class BaModule { }
+export class BaModule {}

@@ -75,7 +75,8 @@ export function BaList() {
           <DialogHeader>
             <DialogTitle>Create Business Associate</DialogTitle>
             <DialogDescription>
-              Add a new business associate with account and registration details.
+              Add a new business associate with account and registration
+              details.
             </DialogDescription>
           </DialogHeader>
           <BaForm

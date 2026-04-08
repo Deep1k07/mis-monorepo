@@ -31,7 +31,9 @@ export class BaService {
       registration_number: body.registration_number,
     });
     if (existingReg) {
-      throw new BadRequestException('A BA with this registration number already exists');
+      throw new BadRequestException(
+        'A BA with this registration number already exists',
+      );
     }
 
     // Create CabBA document
@@ -107,10 +109,14 @@ export class BaService {
             _id: { $ne: user.cab },
           });
           if (existing) {
-            throw new BadRequestException('A BA with this registration number already exists');
+            throw new BadRequestException(
+              'A BA with this registration number already exists',
+            );
           }
         }
-        await this.cabBaModel.findByIdAndUpdate(user.cab, { $set: cabBaUpdate });
+        await this.cabBaModel.findByIdAndUpdate(user.cab, {
+          $set: cabBaUpdate,
+        });
       }
     }
 
@@ -179,11 +185,7 @@ export class BaService {
 
     if (search) {
       const regex = new RegExp(escapeRegex(search), 'i');
-      filter.$or = [
-        { username: regex },
-        { userId: regex },
-        { email: regex },
-      ];
+      filter.$or = [{ username: regex }, { userId: regex }, { email: regex }];
     }
 
     // If user doesn't have ba:read:all, restrict to their own BAs

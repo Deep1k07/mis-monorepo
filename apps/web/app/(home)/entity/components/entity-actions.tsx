@@ -128,10 +128,11 @@ export function EntityViewModal({
                   </button>
                   <span className="mx-1">-</span>
                   <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${entity.isDirectClient
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
+                      entity.isDirectClient
                         ? "bg-blue-50 text-blue-700 ring-blue-600/20"
                         : "bg-purple-50 text-purple-700 ring-purple-600/20"
-                      }`}
+                    }`}
                   >
                     {entity.isDirectClient ? "Direct Client" : "BAM"}
                   </span>

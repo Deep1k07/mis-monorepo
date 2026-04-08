@@ -44,7 +44,10 @@ export const createUserColumns = (
     accessorKey: "email",
     header: "Email",
     cell: ({ row }) => (
-      <span className="block max-w-[200px] truncate" title={row.getValue("email")}>
+      <span
+        className="block max-w-[200px] truncate"
+        title={row.getValue("email")}
+      >
         {row.getValue("email")}
       </span>
     ),
@@ -58,11 +61,7 @@ export const createUserColumns = (
     header: "Role",
     cell: ({ row }) => {
       const role = row.getValue("role") as any;
-      return (
-        <span className="text-muted-foreground">
-          {role?.role || "-"}
-        </span>
-      );
+      return <span className="text-muted-foreground">{role?.role || "-"}</span>;
     },
   },
   {

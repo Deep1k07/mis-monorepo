@@ -3,7 +3,6 @@ import mongoose, { Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Entity {
-
   @Prop({ enum: ['User', 'UserAccount'] })
   createdByModel: string;
 

@@ -90,7 +90,6 @@ export const defaultPermissions = [
     type: PermissionType.DEFAULT,
   },
 
-
   // Cab and Standards permissions
   {
     name: 'cab-standard:read',
@@ -146,7 +145,7 @@ export const defaultPermissions = [
 
   // User management permissions
   {
-    name: 'manage:users',  // must for manage user tab-> permissions/roles/users
+    name: 'manage:users', // must for manage user tab-> permissions/roles/users
     description: 'Can manage users',
     category: 'User Management',
     status: PermissionStatus.ACTIVE,

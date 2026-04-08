@@ -16,7 +16,12 @@ import { GetAllBaQueryDto } from './dto/get-all-ba-query.dto';
 import { CreateBaDto } from './dto/create-ba.dto';
 import { UpdateBaDto } from './dto/update-ba.dto';
 import { User } from './schema/ba.schema';
-import { ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CabBA } from './schema/cabBa.schema';
 
 @ApiTags('Business Associate')
@@ -29,10 +34,7 @@ export class BaController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a business associate' })
   @ApiResponse({ status: 201, description: 'Business associate created' })
-  async create(
-    @Req() req: AuthRequest,
-    @Body() body: CreateBaDto,
-  ) {
+  async create(@Req() req: AuthRequest, @Body() body: CreateBaDto) {
     return this.baService.create(req, body);
   }
 
@@ -40,10 +42,7 @@ export class BaController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Update a business associate' })
   @ApiResponse({ status: 200, description: 'Business associate updated' })
-  async update(
-    @Param('id') id: string,
-    @Body() body: UpdateBaDto,
-  ) {
+  async update(@Param('id') id: string, @Body() body: UpdateBaDto) {
     return this.baService.update(id, body);
   }
 
@@ -61,7 +60,10 @@ export class BaController {
   @Get('get-all-paginated')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all business associates (paginated)' })
-  @ApiResponse({ status: 200, description: 'Paginated list of business associates' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of business associates',
+  })
   async getAllPaginated(
     @Req() req: AuthRequest,
     @Query('page') page?: string,

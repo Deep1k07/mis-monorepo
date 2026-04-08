@@ -32,10 +32,7 @@ export function UserList() {
     set({ search: value, page: 1 });
   };
 
-  const { data, totalPages, total, isLoading, mutate } = useUsers(
-    page,
-    search,
-  );
+  const { data, totalPages, total, isLoading, mutate } = useUsers(page, search);
 
   const columns = useMemo(
     () =>
