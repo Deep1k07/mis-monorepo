@@ -10,6 +10,8 @@ import {
   Mail,
   Globe,
   ArrowLeft,
+  User,
+  Hash,
 } from "lucide-react";
 import {
   Dialog,
@@ -235,6 +237,18 @@ export function EntityViewClient() {
             )}
           </div>
         </div>
+
+        {/* Business Associate Details */}
+        {!entity.isDirectClient && entity.business_associate && typeof entity.business_associate === "object" && (
+          <div>
+            <h4 className="text-sm font-semibold mb-3">Business Associate</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-muted/40 rounded-lg">
+              <InfoRow icon={User} label="Username" value={entity.business_associate.username} />
+              <InfoRow icon={Mail} label="Email" value={entity.business_associate.email} />
+              <InfoRow icon={Hash} label="User ID" value={entity.business_associate.userId} />
+            </div>
+          </div>
+        )}
 
         {/* Main Address */}
         {mainAddress && (

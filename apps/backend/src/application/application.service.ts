@@ -115,12 +115,17 @@ export class ApplicationService {
     page: number = 1,
     limit: number = 10,
     search?: string,
+    cabCode?: string,
   ) {
     const { user } = req;
 
     const filter: any = {};
     if (!user.permissions.includes('application:read:all')) {
       filter.user = new Types.ObjectId(user.userId);
+    }
+
+    if (cabCode) {
+      filter.cab_code = cabCode;
     }
 
     if (search) {
