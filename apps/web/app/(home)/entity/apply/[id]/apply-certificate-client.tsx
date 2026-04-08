@@ -36,7 +36,6 @@ import { Separator } from "@/components/ui/separator";
 import { useEntityById, useCountries, useLanguages } from "@/utils/apis";
 import { createApplication } from "@/utils/mutations";
 import toast from "react-hot-toast";
-import EntityPage from "../../page";
 
 const addressSchema = z.object({
   street: z.string().min(1, "Street is required"),

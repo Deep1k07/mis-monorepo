@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Copy, MapPin, FileText, ExternalLink } from "lucide-react";
+import { ArrowLeft, Copy, MapPin, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ function formatAddress(addr: any) {
 export function DraftViewClient() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuthStore();
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const {

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { User, Mail, Phone, Shield, Eye, EyeOff } from "lucide-react";
+import { User, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/store/auth-store";
 import { apiFetch } from "@/lib/api-fetch";
 import {
@@ -26,7 +26,7 @@ export function ProfileModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { user, setUser, fetchUser } = useAuthStore();
+  const { user, fetchUser } = useAuthStore();
   const [tab, setTab] = useState<Tab>("profile");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{

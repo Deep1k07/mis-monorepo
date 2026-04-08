@@ -195,11 +195,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <Sidebar {...props}>
         <SidebarHeader>
           <div className="flex items-center px-2 py-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo1.png"
               alt="Logo"
               className="h-8 w-auto dark:hidden"
             />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.png"
               alt="Logo"
