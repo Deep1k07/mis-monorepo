@@ -3,6 +3,20 @@ import mongoose, { HydratedDocument, Types } from 'mongoose';
 
 export type ApplicationDocument = HydratedDocument<Application>;
 
+export enum certificateStatusEnum {
+  'proceed', 'completed', 'hold', 'withdrawn', 'suspended', 'active', 'expired',
+  'lapsed', 'anulled', 'inactive', 'cancelled', 'hidden', 'terminate',
+
+}
+
+export enum scopeStatusEnum {
+  'pending', 'rejected', 'transfer', 'completed'
+}
+
+export enum qualityStatusEnum {
+  'pending', 'rejected', 'proceed', 'completed'
+}
+
 @Schema({ _id: false })
 class AppliedDraftCertificateLanguages {
   @Prop() s3DraftDocxUrl: string;
@@ -102,7 +116,7 @@ export class Application {
       postal_code: String,
     },
   ])
-  additional_address_multiple: any[]; // also need to remove this because we now take it from entity refrence
+  additional_address_multiple: any[]; // also need to remove this in future because we now take it from entity refrence
 
   @Prop() email: string;
   @Prop() website: string;
@@ -131,23 +145,20 @@ export class Application {
   @Prop({ default: true }) isBaManagerApproved: boolean;
 
   @Prop({
-    enum: [
-      'proceed', 'completed', 'hold', 'withdrawn', 'suspended', 'active', 'expired',
-      'lapsed', 'anulled', 'inactive', 'cancelled', 'hidden', 'terminate',
-    ],
-    default: 'proceed',
+    enum: certificateStatusEnum,
+    default: certificateStatusEnum.proceed,
   })
   certificateStatus: string;
 
   @Prop({
-    enum: ['pending', 'rejected', 'transfer', 'completed'],
-    default: 'pending',
+    enum: scopeStatusEnum,
+    default: scopeStatusEnum.pending,
   })
   scopeStatus: string;
 
   @Prop({
-    enum: ['pending', 'rejected', 'proceed', 'completed'],
-    default: 'pending',
+    enum: qualityStatusEnum,
+    default: qualityStatusEnum.pending,
   })
   qualityStatus: string;
 
