@@ -80,23 +80,18 @@ export class Application {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'UserAccount' }) bulkUploadedBy: Types.ObjectId;
 
-  // @Prop({ required: true }) entity_id: string;
-  // @Prop({ required: true }) entity_name: string;
-  // @Prop() name_slug: string;
-  // @Prop({ required: true }) entity_name_english: string;
-  // @Prop({ required: true }) entity_trading_name: string;
+  @Prop([
+    {
+      street: String,
+      city: { type: String, default: '' },
+      state: { type: String, default: '' },
+      country: String,
+      postal_code: String,
+    },
+  ])
+  additional_site_address: any[]; // need to update this from additional_site_address to additional_site_address_other
 
-
-  // @Prop([
-  //   {
-  //     street: String,
-  //     city: { type: String, default: '' },
-  //     state: { type: String, default: '' },
-  //     country: String,
-  //     postal_code: String,
-  //   },
-  // ])
-  // main_site_address: any[];
+  @Prop() additional_address: string;
 
   @Prop([
     {
@@ -107,20 +102,7 @@ export class Application {
       postal_code: String,
     },
   ])
-  additional_site_address: any[];
-
-  @Prop() additional_address: string;
-
-  // @Prop([
-  //   {
-  //     street: String,
-  //     city: { type: String, default: '' },
-  //     state: { type: String, default: '' },
-  //     country: String,
-  //     postal_code: String,
-  //   },
-  // ])
-  // additional_address_multiple: any[];
+  additional_address_multiple: any[]; // also need to remove this because we now take it from entity refrence
 
   @Prop() email: string;
   @Prop() website: string;

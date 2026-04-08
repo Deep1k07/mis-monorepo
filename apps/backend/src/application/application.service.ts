@@ -216,7 +216,7 @@ export class ApplicationService {
     const allowedStatuses = ['pending', 'rejected', 'completed'];
     const statusFilter = scopeStatus && allowedStatuses.includes(scopeStatus)
       ? scopeStatus
-      : { $in: ['pending', 'rejected'] };
+      : { $in: ['pending'] };
 
     const skip = (page - 1) * limit;
 

@@ -14,6 +14,7 @@ const regex = /^[0-9a-zA-Z]+$/;  //regex used for mssCod
 export class CertificationStandard {
   @Prop({
     required: true,
+    unique: true,
     uppercase: true,
     trim: true,
     minlength: 3,
