@@ -30,6 +30,7 @@ export function DraftViewClient() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuthStore();
+  const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const {
     application: app,
@@ -164,6 +165,14 @@ export function DraftViewClient() {
               <>
                 <span className="mx-1">|</span>
                 <span className="font-mono">{app.cab_code}</span>
+                <span className="mx-1">|</span>
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${app.scopeStatus === 'rejected'
+                    ? "bg-red-50 text-red-700 ring-red-600/20"
+                    : "bg-green-50 text-green-700 ring-green-600/20"
+                    }`}>
+                  {app.scopeStatus}
+                </span>
               </>
             )}
           </div>
@@ -266,7 +275,10 @@ export function DraftViewClient() {
 
       {/* Scope (editable) */}
       <div>
-        <h4 className="text-sm font-semibold mb-3">Scope</h4>
+        <h4 className="text-sm font-semibold mb-3">Scope
+          <span className="text-red-500"> * </span>
+          {app.scopeStatus === 'rejected' && <span className="text-red-400">{` Scope Modified (${app?.isScopeModified || 0}) times`}</span>}
+        </h4>
         <Textarea
           value={scope}
           onChange={(e) => setScope(e.target.value)}
@@ -309,11 +321,11 @@ export function DraftViewClient() {
             />
           </div>
           <div className="grid gap-1.5 sm:col-span-2">
-            <Label htmlFor="comment">Comment</Label>
+            <Label htmlFor="comment">Scope Comment</Label>
             <Textarea
               id="comment"
               placeholder="Enter comment (required for rejection)"
-              value={comment}
+              value={comment || app.scope_comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
             />
@@ -321,20 +333,26 @@ export function DraftViewClient() {
         </div>
 
         <div className="flex gap-3 mt-6">
-          <Button
-            onClick={() => handleAction("approve")}
-            disabled={submitting}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            {submitting ? "Processing..." : "Approve"}
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => handleAction("reject")}
-            disabled={submitting}
-          >
-            {submitting ? "Processing..." : "Reject"}
-          </Button>
+          {
+            hasPermission("application:approve:draft") && app?.scopeStatus === "rejected" && (
+              <Button
+                onClick={() => handleAction("approve")}
+                disabled={submitting}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {submitting ? "Processing..." : "Approve"}
+              </Button>
+            )
+          }
+          {hasPermission("application:reject:draft") && (
+            <Button
+              variant="destructive"
+              onClick={() => handleAction("reject")}
+              disabled={submitting}
+            >
+              {submitting ? "Processing..." : "Reject"}
+            </Button>
+          )}
         </div>
       </div>
     </div>
