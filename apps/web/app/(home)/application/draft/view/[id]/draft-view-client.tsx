@@ -72,7 +72,7 @@ export function DraftViewClient() {
 
     setSubmitting(true);
     try {
-      const isScopeModified = scope.trim() !== originalScope.trim() ? 1 : 0;
+      const isScopeModified = scope.trim() !== originalScope.trim() ? (app?.isScopeModified || 0) + 1 : 0; // increment if scope is modified
       const payload: any = {
         audit1,
         audit2,

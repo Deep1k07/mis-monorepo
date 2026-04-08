@@ -48,6 +48,13 @@ export const defaultPermissions = [
 
   // Application permissions
   {
+    name: 'manage:application:initial',
+    description: 'Can manage initial applications',
+    category: 'Application',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
     name: 'application:read',
     description: 'Can view own applications',
     category: 'Application',

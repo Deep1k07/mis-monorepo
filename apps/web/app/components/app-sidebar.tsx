@@ -63,13 +63,13 @@ const navItems: NavItem[] = [
     url: "/application",
     icon: FileText,
     isActive: false,
-    permission: ["application:read", "application:read:all"],
+    permission: ["manage:application:initial"],
     children: [
       {
         title: "All Application",
         url: "/application",
         icon: List,
-        permission: "application:read",
+        permission: ["application:read", "application:read:all"],
       },
       {
         title: "Draft Application",

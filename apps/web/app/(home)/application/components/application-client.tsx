@@ -4,9 +4,16 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table";
 import { createColumns } from "./columns";
-import { useApplications } from "@/utils/apis";
+import { useApplications, useAllCabsList } from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
 import { useQueryParams } from "@/utils/useQueryParams";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export function ApplicationClient() {
   const router = useRouter();
@@ -15,6 +22,9 @@ export function ApplicationClient() {
   const page = getNumber("page", 1);
   const searchInput = get("search");
   const search = useDebounce(searchInput);
+  const cabCode = get("cabCode");
+
+  const { cabs } = useAllCabsList();
 
   const handleSearchChange = (value: string) => {
     set({ search: value, page: 1 });
@@ -22,6 +32,10 @@ export function ApplicationClient() {
 
   const handlePageChange = (newPage: number) => {
     set({ page: newPage });
+  };
+
+  const handleCabCodeChange = (value: string | null) => {
+    set({ cabCode: value === "all" ? "" : (value ?? ""), page: 1 });
   };
 
   const columns = useMemo(
@@ -32,7 +46,7 @@ export function ApplicationClient() {
     [router],
   );
 
-  const { data, totalPages, total, isLoading: loading } = useApplications(page, search);
+  const { data, totalPages, total, isLoading: loading } = useApplications(page, search, cabCode || undefined);
 
   return (
     <>
@@ -50,6 +64,24 @@ export function ApplicationClient() {
           onPageChange={handlePageChange}
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
+          filterSlot={
+            <Select
+              value={cabCode || null}
+              onValueChange={handleCabCodeChange}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="CAB Code" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {cabs.map((cab: any) => (
+                  <SelectItem key={cab._id} value={cab.cabCode}>
+                    {cab.cabCode}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
         />
       )}
     </>

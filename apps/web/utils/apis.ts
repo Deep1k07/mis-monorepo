@@ -67,9 +67,10 @@ export function useEntities(page: number, ba: string, search?: string) {
 }
 
 // get all applications
-export function useApplications(page: number, search?: string) {
+export function useApplications(page: number, search?: string, cabCode?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
+  if (cabCode) params.set("cabCode", cabCode);
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/application?${params}`,
   );

@@ -137,7 +137,7 @@ export class EntityService {
     }
 
     const applications = await this.applicationModel
-      .find({ entity_id: id })
+      .find({ entity: entity._id })
       .select('certificate_number cab_code standards current_issue valid_until certificateStatus scopeStatus qualityStatus')
       .sort({ createdAt: -1 })
       .exec();

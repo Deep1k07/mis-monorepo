@@ -32,8 +32,8 @@ export function DraftApplicationClient() {
     set({ page: newPage });
   };
 
-  const handleScopeStatusChange = (value: string) => {
-    set({ scopeStatus: value === "all" ? "" : value, page: 1 });
+  const handleScopeStatusChange = (value: string | null) => {
+    set({ scopeStatus: value === "all" ? "" : (value ?? ""), page: 1 });
   };
 
   const columns = useMemo(
@@ -69,7 +69,7 @@ export function DraftApplicationClient() {
           onSearchChange={handleSearchChange}
           filterSlot={
             <Select
-              value={scopeStatus || "all"}
+              value={scopeStatus || null}
               onValueChange={handleScopeStatusChange}
             >
               <SelectTrigger className="w-[180px]">
