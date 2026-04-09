@@ -15,6 +15,8 @@ import {
 } from './dto/application.dto';
 import { CertificationBody } from 'src/certificationbody/schema/certificationBody.schema';
 import { escapeRegex } from 'src/utils/escapeRegex';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DRAFT_APPROVED_EVENT } from 'src/certificate/certificate.listener';
 
 @Injectable()
 export class ApplicationService {
@@ -24,6 +26,7 @@ export class ApplicationService {
     @InjectModel(Entity.name) private readonly entityModel: Model<Entity>,
     @InjectModel(CertificationBody.name)
     private readonly certificationBodyModel: Model<CertificationBody>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async create(data: CreateApplicationDto, req: AuthRequest) {
@@ -370,6 +373,13 @@ export class ApplicationService {
 
     if (!application) {
       throw new NotFoundException('Application not found');
+    }
+
+    // Trigger certificate generation when draft application is approved
+    if (updateData.scopeStatus === 'completed') {
+      this.eventEmitter.emit(DRAFT_APPROVED_EVENT, {
+        applicationId: id,
+      });
     }
 
     return application;

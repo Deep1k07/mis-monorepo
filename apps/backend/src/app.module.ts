@@ -15,6 +15,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { CacheModule } from '@nestjs/cache-manager';
 import { CertificationbodyModule } from './certificationbody/certificationbody.module';
 import { UserModule } from './user/user.module';
+import { CertificateModule } from './certificate/certificate.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { UserModule } from './user/user.module';
     EmailModule,
     CertificationbodyModule,
     UserModule,
+    CertificateModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -39,6 +39,7 @@
     "mongoose": "^9.3.0",
     "nanoid": "^5.1.7",
     "otplib": "^13.3.0",
+    "puppeteer": "^24.40.0",
     "reflect-metadata": "^0.2.2",
     "resend": "^6.9.4",
     "rxjs": "^7.8.1"
