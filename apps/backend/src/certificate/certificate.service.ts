@@ -60,12 +60,12 @@ export class CertificateService {
     );
 
     const version = String(
-      (application.appliedDraftCertificates?.length || 0) + 1,
+      (application.draftCertificate?.length || 0) + 1,
     );
 
     await this.applicationModel.findByIdAndUpdate(applicationId, {
       $push: {
-        appliedDraftCertificates: {
+        draftCertificate: {
           version,
           status: 'active',
           type: 'normal',
@@ -150,14 +150,14 @@ export class CertificateService {
 
     // Dynamic font sizes based on content length
     const entityNameFontSize = this.calcFontSize(entityName.length, {
-      max: 22,
+      max: 25,
       min: 12,
       shrinkAfter: 25,
       charsPerStep: 10,
       stepSize: 2,
     });
     const scopeFontSize = this.calcFontSize(scope.length, {
-      max: 14,
+      max: 16,
       min: 9,
       shrinkAfter: 80,
       charsPerStep: 40,
@@ -254,12 +254,7 @@ export class CertificateService {
     return additionalAddresses
       .map((addr, index) => {
         const formatted = this.formatAddress(addr);
-        const label =
-          additionalAddresses.length > 1
-            ? `Additional Site ${index + 1}`
-            : 'Additional Site';
-        return `<p class="additional-site-heading">${label}</p>
-        <p class="address-text">${this.escapeHtml(formatted)}</p>`;
+        return `<p class="address-text">${this.escapeHtml(formatted)}</p>`;
       })
       .join('');
   }
