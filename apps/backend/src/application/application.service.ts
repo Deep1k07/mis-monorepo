@@ -49,7 +49,7 @@ export class ApplicationService {
       },
     ]);
 
-    let [entity, existingApplication, cabData] = await Promise.all([
+    const [entity, existingApplication, cabData] = await Promise.all([
       entityPromise,
       existingApplicationPromise,
       cabPromise,
@@ -126,7 +126,7 @@ export class ApplicationService {
       );
     }
 
-    let payload = {
+    const payload = {
       ...data,
       user: user?.userId,
       appliedBy: user?.userId,
@@ -357,7 +357,7 @@ export class ApplicationService {
   }
 
   async update(req: AuthRequest, id: string, updateData: UpdateApplicationDto) {
-    let user = req.user;
+    const user = req.user;
 
     const application = await this.applicationModel
       .findByIdAndUpdate(
