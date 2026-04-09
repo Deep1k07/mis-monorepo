@@ -340,16 +340,16 @@ export function DraftViewClient() {
         </div>
 
         <div className="flex gap-3 mt-6">
-          {hasPermission("application:approve:draft") &&
-            app?.scopeStatus === "rejected" && (
-              <Button
-                onClick={() => handleAction("approve")}
-                disabled={submitting}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                {submitting ? "Processing..." : "Approve"}
-              </Button>
-            )}
+          {(hasPermission("application:approve:draft") ||
+            app?.scopeStatus === "rejected") && (
+            <Button
+              onClick={() => handleAction("approve")}
+              disabled={submitting}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {submitting ? "Processing..." : "Approve"}
+            </Button>
+          )}
           {hasPermission("application:reject:draft") && (
             <Button
               variant="destructive"

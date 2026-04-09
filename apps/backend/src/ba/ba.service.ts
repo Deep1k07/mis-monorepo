@@ -140,9 +140,9 @@ export class BaService {
   }
 
   async getAll(req: AuthRequest, searchTerm: string) {
-    let user = req.user;
+    const user = req.user;
     if (user.permissions.includes('ba:read:all')) {
-      let result = await this.userModel
+      const result = await this.userModel
         .find({
           $and: [
             {
@@ -157,7 +157,7 @@ export class BaService {
 
       return result;
     }
-    let result = await this.userModel
+    const result = await this.userModel
       .find({
         $and: [
           { user: user.userId },

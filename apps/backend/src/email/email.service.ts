@@ -53,7 +53,7 @@ export class EmailService {
   @OnEvent('entity:created')
   async sendMailForEntity(payload: EntityEmailDto) {
     const { to, type, entityData } = payload;
-    let domain = {
+    const domain = {
       TCU: 'info@tnvmail.com',
       TSI: 'info@tnvmail.com',
       GAU: 'info@guardianmail.org',
@@ -61,13 +61,13 @@ export class EmailService {
     };
     let subject = '';
     let htmlContent = '';
-    let guardian = ['GAU', 'GAI'];
-    let domainEmail =
+    const guardian = ['GAU', 'GAI'];
+    const domainEmail =
       this.configService.getOrThrow<string>('NODE_ENV') === 'production'
         ? domain[entityData?.email_cab_code]
         : this.configService.getOrThrow<string>('EMAIL_DEV');
-    let isGuardian = guardian?.includes(entityData?.email_cab_code);
-    let isTnv = entityData?.email_cab_code === 'TCU';
+    const isGuardian = guardian?.includes(entityData?.email_cab_code);
+    const isTnv = entityData?.email_cab_code === 'TCU';
 
     if (type === 'create_entity') {
       subject = `Verification for ${entityData?.entity_name}`;

@@ -47,7 +47,7 @@ export class JwtAuthGuard implements CanActivate {
         : [];
 
       // attach user to request
-      let userPayload = {
+      const userPayload = {
         userId: user?._id?.toString(),
         firstName: user?.firstName,
         lastName: user?.lastName,
