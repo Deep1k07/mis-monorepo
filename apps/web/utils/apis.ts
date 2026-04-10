@@ -201,6 +201,18 @@ export function useAllCabsList() {
   };
 }
 
+export function useStandardCodes() {
+  const { data, error, isLoading, mutate } = useSWR(
+    `${BASE_URL}/certificationbody/standard/code`,
+  );
+  return {
+    standardCodes: (data ?? []) as { standardCode: string; code: string }[],
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
 // ─── BA (paginated) ───
 
 export function useBAs(page: number, search?: string) {

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@400;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 794px;
+      height: 1123px;
+      font-family: 'Open Sans', Arial, sans-serif;
+      position: relative;
+      overflow: hidden;
+      color: #1a1a2e;
+    }
+
+    .certificate-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 794px;
+      height: 1123px;
+      z-index: -1;
+    }
+
+    /* ========== DRAFT WATERMARK ========== */
+    .draft-watermark {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-35deg);
+      font-size: 20px;
+      font-weight: 650;
+      color: rgba(0, 80, 180, 0.18);
+      white-space: nowrap;
+      z-index: 10;
+      pointer-events: none;
+      letter-spacing: 2px;
+      font-style: italic;
+    }
+
+    /* ========== CONTENT AREA ========== */
+    .content-area {
+      position: absolute;
+      top: 250px;
+      bottom: 320px;
+      left: 90px;
+      right: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
+
+    /* ========== TYPOGRAPHY ========== */
+    .certify-text {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 14px;
+      color: #333;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .entity-name {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: #1a1a2e;
+      text-align: center;
+      margin-bottom: 16px;
+      white-space: nowrap;
+    }
+
+    .address-text {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 16px;
+      color: #222;
+      text-align: center;
+      line-height: 1.55;
+      max-width: 580px;
+      margin-bottom: 8px;
+    }
+
+    .additional-site-heading {
+      font-size: 11px;
+      font-weight: 600;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 6px;
+      margin-bottom: 3px;
+      text-align: center;
+    }
+
+    .conforming-text {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 15px;
+      color: #333;
+      text-align: center;
+      margin-top: 18px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .standard-code {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: #1a1a2e;
+      text-align: center;
+      margin-top: 6px;
+      margin-bottom: 4px;
+    }
+
+    .standard-name {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .scope-heading {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a2e;
+      text-align: center;
+      margin-top: 8px;
+      margin-bottom: 12px;
+    }
+
+    .scope-text {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 17px;
+      font-weight: 650;
+      color: #1a1a2e;
+      text-align: center;
+      line-height: 1.6;
+      max-width: 600px;
+      margin-bottom: 14px;
+    }
+
+    /* ========== INFO TABLE ========== */
+    .info-table-wrapper {
+      position: absolute;
+      bottom: 252px;
+      left: 68px;
+      right: 52px;
+    }
+
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 11px;
+      border: 0.5px solid #aaa;
+    }
+
+    .info-table td {
+      padding: 5px 8px;
+      border: none;
+      color: #222;
+      vertical-align: middle;
+    }
+
+    .info-table .label-cell {
+      font-weight: 610;
+      width: 28%;
+      color: #111;
+    }
+
+    .info-table .value-cell {
+      width: 22%;
+      text-align: center;
+    }
+
+    /* ========== BOTTOM SECTION ========== */
+    .bottom-section {
+      position: absolute;
+      bottom: 50px;
+      left: 68px;
+      right: 52px;
+    }
+
+    .bottom-note {
+      font-size: 8px;
+      font-style: italic;
+      color: #333;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .bottom-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 8.5px;
+      border: 0.5px solid #aaa;
+    }
+
+    .bottom-table td {
+      padding: 3px 6px;
+      border: none;
+      color: #222;
+      vertical-align: middle;
+    }
+
+    .bottom-table .label-cell {
+      font-weight: 600;
+      color: #111;
+    }
+
+    .bottom-table .value-cell {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <img class="certificate-bg" src="{{BACKGROUND_IMAGE}}" />
+
+  <!-- DRAFT WATERMARK -->
+  <div class="draft-watermark">Draft copy must be returned within 15 days</div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content-area">
+    <p class="certify-text">This is to certify that the {{STANDARD_NAMES_TEXT}} of</p>
+
+    <p class="entity-name" style="font-size:{{ENTITY_NAME_FONT_SIZE}}">{{ENTITY_NAME}}</p>
+
+    <!-- Main Site Address -->
+    <p class="address-text">{{MAIN_SITE_ADDRESS}}</p>
+
+    <!-- Additional Site Addresses -->
+    {{ADDITIONAL_SITE_ADDRESSES_SECTION}}
+
+    <p class="conforming-text">
+      has been assessed and registered by TNV as conforming<br />
+      to the requirements of:
+    </p>
+
+    <!-- Standard Code (large) -->
+    {{STANDARDS_SECTION}}
+
+    <p class="scope-heading">For the following Scope</p>
+
+    <p class="scope-text" style="font-size:{{SCOPE_FONT_SIZE}}">{{SCOPE}}</p>
+  </div>
+
+  <!-- INFO TABLE -->
+  <div class="info-table-wrapper">
+    <table class="info-table">
+      <tr>
+        <td class="label-cell">Certificate Number</td>
+        <td class="value-cell">{{CERTIFICATE_NUMBER}}</td>
+        <td class="label-cell">Initial Registration Date</td>
+        <td class="value-cell">{{INITIAL_ISSUE}}</td>
+      </tr>
+      <tr>
+        <td class="label-cell">Current Issue Date</td>
+        <td class="value-cell">{{CURRENT_ISSUE}}</td>
+        <td class="label-cell">Validity of this Certificate</td>
+        <td class="value-cell">{{VALID_UNTIL}}</td>
+      </tr>
+      <tr>
+        <td class="label-cell">1<sup>st</sup> Surveillance Date</td>
+        <td class="value-cell">{{FIRST_SURVEILLANCE}}</td>
+        <td class="label-cell">Recertification due on</td>
+        <td class="value-cell">{{RECERTIFICATION_DUE}}</td>
+      </tr>
+      <tr>
+        <td class="label-cell">2<sup>nd</sup> Surveillance Date</td>
+        <td class="value-cell">{{SECOND_SURVEILLANCE}}</td>
+        <td class="label-cell">Revision No./Date</td>
+        <td class="value-cell">{{REVISION_NO}}</td>
+      </tr>
+      <tr>
+        <td class="label-cell">Issue No.</td>
+        <td class="value-cell">{{ISSUE_NO}}</td>
+        <td class="label-cell">IAF code</td>
+        <td class="value-cell">{{IAF_CODE}}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- BOTTOM SECTION -->
+  <div class="bottom-section">
+    <p class="bottom-note">*This is for information only, not a part of certificate.</p>
+    <table class="bottom-table">
+      <tr>
+        <td class="label-cell">Stage 1 Audit (MANDAYS)</td>
+        <td class="value-cell">{{AUDIT1}}</td>
+        <td class="label-cell">Stage 2 Audit (MANDAYS)</td>
+        <td class="value-cell">{{AUDIT2}}</td>
+      </tr>
+      <tr>
+        <td class="label-cell">Audit Team Leader Name</td>
+        <td class="value-cell" colspan="3">{{AUDITOR_LEADER_NAME}}</td>
+      </tr>
+    </table>
+  </div>
+</body>
+
+</html>

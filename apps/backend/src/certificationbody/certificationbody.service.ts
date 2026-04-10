@@ -21,7 +21,7 @@ export class CetificationbodyService {
     private certificationBodyModel: Model<CertificationBodyDocument>,
     @InjectModel(CertificationStandard.name)
     private certificationStandardModel: Model<CertificationStandardDocument>,
-  ) {}
+  ) { }
 
   // ─── CAB Methods ───
 
@@ -269,5 +269,11 @@ export class CetificationbodyService {
       { $set: body },
       { returnDocument: 'after' },
     );
+  }
+
+
+  async getCode() {
+    const codes = await this.certificationStandardModel.find({ status: 'active' }).select('standardCode code')
+    return codes;
   }
 }

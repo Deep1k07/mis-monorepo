@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useApplicationById } from "@/utils/apis";
+import { useApplicationById, useStandardCodes } from "@/utils/apis";
 import { useAuthStore } from "@/store/auth-store";
 import { updateApplication } from "@/utils/mutations";
 import toast from "react-hot-toast";
@@ -31,6 +31,8 @@ export function DraftViewClient() {
     mutate,
   } = useApplicationById(params.id as string);
 
+  const { standardCodes } = useStandardCodes(); // use this for showing Soa/Iaf/Samp
+
   const [scope, setScope] = useState("");
   const [originalScope, setOriginalScope] = useState("");
   const [audit1, setAudit1] = useState("");
@@ -43,8 +45,32 @@ export function DraftViewClient() {
   if (app && !scopeInitialized) {
     setScope(app.scope || "");
     setOriginalScope(app.scope || "");
+    setAudit1(app.audit1 || "");
+    setAudit2(app.audit2 || "");
+    setIafCode(app.iaf_code || "");
+    setComment(app.scope_comment || "");
     setScopeInitialized(true);
   }
+
+  const isLocked = app?.scopeStatus === "completed";
+
+  // Resolve which code type (iaf/soa/samp) applies based on the
+  // application's first standard code matched against the standardCodes list.
+  const applicationStandardCode = app?.standards?.[0]?.code || "";
+  const matchedStandard = standardCodes.find((s) =>
+    s.standardCode
+      ?.toLowerCase()
+      .includes(applicationStandardCode.split(':')[0].toLowerCase()),
+  );
+
+  const codeType = (matchedStandard?.code || "iaf").toLowerCase();
+
+  const codeLabelMap: Record<string, string> = {
+    iaf: "IAF Code / FCC",
+    soa: "SOA",
+    samp: "SAMP",
+  };
+  const codeLabel = codeLabelMap[codeType] || "IAF Code / FCC";
 
   const handleAction = async (action: "approve" | "reject") => {
     if (!audit1.trim()) {
@@ -56,7 +82,7 @@ export function DraftViewClient() {
       return;
     }
     if (!iafCode.trim()) {
-      toast.error("IAF Code / FCC is required");
+      toast.error(`${codeLabel} is required`);
       return;
     }
     if (action === "reject" && !comment.trim()) {
@@ -163,11 +189,10 @@ export function DraftViewClient() {
                 <span className="font-mono">{app.cab_code}</span>
                 <span className="mx-1">|</span>
                 <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-                    app.scopeStatus === "rejected"
-                      ? "bg-red-50 text-red-700 ring-red-600/20"
-                      : "bg-green-50 text-green-700 ring-green-600/20"
-                  }`}
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${app.scopeStatus === "rejected"
+                    ? "bg-red-50 text-red-700 ring-red-600/20"
+                    : "bg-green-50 text-green-700 ring-green-600/20"
+                    }`}
                 >
                   {app.scopeStatus}
                 </span>
@@ -285,6 +310,7 @@ export function DraftViewClient() {
           onChange={(e) => setScope(e.target.value)}
           rows={3}
           placeholder="Enter scope"
+          disabled={isLocked}
         />
       </div>
 
@@ -303,6 +329,7 @@ export function DraftViewClient() {
               placeholder="Enter stage-1 man-day"
               value={audit1}
               onChange={(e) => setAudit1(e.target.value)}
+              disabled={isLocked}
             />
           </div>
           <div className="grid gap-1.5">
@@ -314,17 +341,19 @@ export function DraftViewClient() {
               placeholder="Enter stage-2 man-day"
               value={audit2}
               onChange={(e) => setAudit2(e.target.value)}
+              disabled={isLocked}
             />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="iafCode">
-              IAF Code / FCC <span className="text-red-500">*</span>
+              {codeLabel} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="iafCode"
-              placeholder="Enter IAF Code / FCC"
+              placeholder={`Enter ${codeLabel}`}
               value={iafCode}
               onChange={(e) => setIafCode(e.target.value)}
+              disabled={isLocked}
             />
           </div>
           <div className="grid gap-1.5 sm:col-span-2">
@@ -332,34 +361,37 @@ export function DraftViewClient() {
             <Textarea
               id="comment"
               placeholder="Enter comment (required for rejection)"
-              value={comment || app.scope_comment}
+              value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
+              disabled={isLocked}
             />
           </div>
         </div>
 
-        <div className="flex gap-3 mt-6">
-          {(hasPermission("application:approve:draft") ||
-            app?.scopeStatus === "rejected") && (
-            <Button
-              onClick={() => handleAction("approve")}
-              disabled={submitting}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              {submitting ? "Processing..." : "Approve"}
-            </Button>
-          )}
-          {hasPermission("application:reject:draft") && (
-            <Button
-              variant="destructive"
-              onClick={() => handleAction("reject")}
-              disabled={submitting}
-            >
-              {submitting ? "Processing..." : "Reject"}
-            </Button>
-          )}
-        </div>
+        {!isLocked && (
+          <div className="flex gap-3 mt-6">
+            {(hasPermission("application:approve:draft") ||
+              app?.scopeStatus === "rejected") && (
+                <Button
+                  onClick={() => handleAction("approve")}
+                  disabled={submitting}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {submitting ? "Processing..." : "Approve"}
+                </Button>
+              )}
+            {hasPermission("application:reject:draft") && (
+              <Button
+                variant="destructive"
+                onClick={() => handleAction("reject")}
+                disabled={submitting}
+              >
+                {submitting ? "Processing..." : "Reject"}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

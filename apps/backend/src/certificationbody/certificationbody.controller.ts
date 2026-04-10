@@ -31,7 +31,7 @@ import {
 export class CertificationbodyController {
   constructor(
     private readonly certificationbodyService: CetificationbodyService,
-  ) {}
+  ) { }
 
   // ─── CAB Endpoints ───
 
@@ -99,6 +99,14 @@ export class CertificationbodyController {
       query.certificationBody,
       query.search,
     );
+  }
+
+  @Get('standard/code')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get standard codes' })
+  @ApiResponse({ status: 200, description: 'List of standard codes' })
+  async getCode() {
+    return this.certificationbodyService.getCode();
   }
 
   @Get('standard/:id')
