@@ -43,8 +43,13 @@ export function DraftViewClient() {
   if (app && !scopeInitialized) {
     setScope(app.scope || "");
     setOriginalScope(app.scope || "");
+    setAudit1(app.audit1 || "");
+    setAudit2(app.audit2 || "");
+    setIafCode(app.iaf_code || "");
     setScopeInitialized(true);
   }
+
+  const isLocked = app?.scopeStatus === "completed";
 
   const handleAction = async (action: "approve" | "reject") => {
     if (!audit1.trim()) {
@@ -285,6 +290,7 @@ export function DraftViewClient() {
           onChange={(e) => setScope(e.target.value)}
           rows={3}
           placeholder="Enter scope"
+          disabled={isLocked}
         />
       </div>
 
@@ -303,6 +309,7 @@ export function DraftViewClient() {
               placeholder="Enter stage-1 man-day"
               value={audit1}
               onChange={(e) => setAudit1(e.target.value)}
+              disabled={isLocked}
             />
           </div>
           <div className="grid gap-1.5">
@@ -314,6 +321,7 @@ export function DraftViewClient() {
               placeholder="Enter stage-2 man-day"
               value={audit2}
               onChange={(e) => setAudit2(e.target.value)}
+              disabled={isLocked}
             />
           </div>
           <div className="grid gap-1.5">
@@ -325,6 +333,7 @@ export function DraftViewClient() {
               placeholder="Enter IAF Code / FCC"
               value={iafCode}
               onChange={(e) => setIafCode(e.target.value)}
+              disabled={isLocked}
             />
           </div>
           <div className="grid gap-1.5 sm:col-span-2">
@@ -335,31 +344,34 @@ export function DraftViewClient() {
               value={comment || app.scope_comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
+              disabled={isLocked}
             />
           </div>
         </div>
 
-        <div className="flex gap-3 mt-6">
-          {(hasPermission("application:approve:draft") ||
-            app?.scopeStatus === "rejected") && (
-            <Button
-              onClick={() => handleAction("approve")}
-              disabled={submitting}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              {submitting ? "Processing..." : "Approve"}
-            </Button>
-          )}
-          {hasPermission("application:reject:draft") && (
-            <Button
-              variant="destructive"
-              onClick={() => handleAction("reject")}
-              disabled={submitting}
-            >
-              {submitting ? "Processing..." : "Reject"}
-            </Button>
-          )}
-        </div>
+        {!isLocked && (
+          <div className="flex gap-3 mt-6">
+            {(hasPermission("application:approve:draft") ||
+              app?.scopeStatus === "rejected") && (
+              <Button
+                onClick={() => handleAction("approve")}
+                disabled={submitting}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {submitting ? "Processing..." : "Approve"}
+              </Button>
+            )}
+            {hasPermission("application:reject:draft") && (
+              <Button
+                variant="destructive"
+                onClick={() => handleAction("reject")}
+                disabled={submitting}
+              >
+                {submitting ? "Processing..." : "Reject"}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

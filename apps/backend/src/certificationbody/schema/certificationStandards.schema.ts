@@ -9,6 +9,13 @@ export enum Status {
   INACTIVE = 'inactive',
   EXPIRED = 'expired',
 }
+
+export enum Code {
+  SOA = 'soa',
+  SAMP = 'samp',
+  IAF = 'iaf',
+}
+
 const regex = /^[0-9a-zA-Z]+$/; //regex used for mssCod
 @Schema({ timestamps: true })
 export class CertificationStandard {
@@ -52,6 +59,12 @@ export class CertificationStandard {
     default: [],
   })
   certificationBodies: Types.ObjectId[];
+
+  @Prop({
+    enum: Code,
+    default: Code.IAF,
+  })
+  code: string;
 }
 
 export const CertificationStandardSchema = SchemaFactory.createForClass(

@@ -31,7 +31,7 @@ import {
 export class CertificationbodyController {
   constructor(
     private readonly certificationbodyService: CetificationbodyService,
-  ) {}
+  ) { }
 
   // ─── CAB Endpoints ───
 
@@ -147,5 +147,13 @@ export class CertificationbodyController {
     @Req() req: AuthRequest,
   ) {
     return this.certificationbodyService.updateCab(id, body, req);
+  }
+
+  @Get('standard/code')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get all standards with pagination' })
+  @ApiResponse({ status: 200, description: 'Paginated list of standards' })
+  async getCode() {
+    return this.certificationbodyService.getCode();
   }
 }
