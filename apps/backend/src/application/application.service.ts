@@ -395,8 +395,6 @@ export class ApplicationService {
       { $sort: { createdAt: -1 as const } },
     ];
 
-    console.log("pipeline", { ...pipeline })
-
     const [data, countResult] = await Promise.all([
       this.applicationModel.aggregate([
         ...pipeline,
