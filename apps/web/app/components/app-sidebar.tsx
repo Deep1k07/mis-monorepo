@@ -82,6 +82,12 @@ const navItems: NavItem[] = [
         icon: List,
         permission: "application:read:draft",
       },
+      {
+        title: "Final Application",
+        url: "/application/final",
+        icon: List,
+        permission: "application:read:final",
+      },
     ],
   },
   {

@@ -27,7 +27,7 @@ export class ApplicationService {
     @InjectModel(CertificationBody.name)
     private readonly certificationBodyModel: Model<CertificationBody>,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async create(data: CreateApplicationDto, req: AuthRequest) {
     const user = req.user;
@@ -271,19 +271,19 @@ export class ApplicationService {
       { $unwind: { path: '$entity', preserveNullAndEmptyArrays: true } },
       ...(search
         ? [
-            {
-              $match: {
-                $or: [
-                  {
-                    'entity.entity_name': new RegExp(escapeRegex(search), 'i'),
-                  },
-                  { 'entity.entity_id': new RegExp(escapeRegex(search), 'i') },
-                  { cab_code: new RegExp(escapeRegex(search), 'i') },
-                  { 'standards.code': new RegExp(escapeRegex(search), 'i') },
-                ],
-              },
+          {
+            $match: {
+              $or: [
+                {
+                  'entity.entity_name': new RegExp(escapeRegex(search), 'i'),
+                },
+                { 'entity.entity_id': new RegExp(escapeRegex(search), 'i') },
+                { cab_code: new RegExp(escapeRegex(search), 'i') },
+                { 'standards.code': new RegExp(escapeRegex(search), 'i') },
+              ],
             },
-          ]
+          },
+        ]
         : []),
       { $sort: { createdAt: -1 as const } },
     ];
@@ -338,6 +338,144 @@ export class ApplicationService {
       page,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async findFinal(
+    req: AuthRequest,
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ) {
+    const user = req.user;
+    const skip = (page - 1) * limit;
+
+    console.log("req.user.userId", req.user.userId)
+
+    const filter: any = {};
+    if (!user.permissions.includes('application:read:final')) {
+      filter.user = new Types.ObjectId(user.userId);
+      filter.certificateStatus = { $nin: ['hold', 'terminate'] }
+    } else {
+      filter.qualityStatus = 'pending',
+        filter.certificateStatus = 'proceed'
+    }
+
+    const pipeline: any[] = [
+      {
+        $match: {
+          ...filter,
+          scopeStatus: 'completed',
+        },
+      },
+      {
+        $lookup: {
+          from: 'entities',
+          localField: 'entity',
+          foreignField: '_id',
+          as: 'entity',
+        },
+      },
+      { $unwind: { path: '$entity', preserveNullAndEmptyArrays: true } },
+      ...(search
+        ? [
+          {
+            $match: {
+              $or: [
+                {
+                  'entity.entity_name': new RegExp(escapeRegex(search), 'i'),
+                },
+                { 'entity.entity_id': new RegExp(escapeRegex(search), 'i') },
+                { cab_code: new RegExp(escapeRegex(search), 'i') },
+                { 'standards.code': new RegExp(escapeRegex(search), 'i') },
+              ],
+            },
+          },
+        ]
+        : []),
+      { $sort: { createdAt: -1 as const } },
+    ];
+
+    console.log("pipeline", { ...pipeline })
+
+    const [data, countResult] = await Promise.all([
+      this.applicationModel.aggregate([
+        ...pipeline,
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'entity.business_associate',
+            foreignField: '_id',
+            as: 'entity.business_associate',
+          },
+        },
+        {
+          $unwind: {
+            path: '$entity.business_associate',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            cab_code: 1,
+            standards: 1,
+            scope: 1,
+            scopeStatus: 1,
+            qualityStatus: 1,
+            certificateStatus: 1,
+            audit1: 1,
+            audit2: 1,
+            iaf_code: 1,
+            createdAt: 1,
+            'entity._id': 1,
+            'entity.entity_id': 1,
+            'entity.entity_name': 1,
+            'entity.isDirectClient': 1,
+            'entity.business_associate._id': 1,
+            'entity.business_associate.username': 1,
+          },
+        },
+      ]),
+      this.applicationModel.aggregate([...pipeline, { $count: 'total' }]),
+    ]);
+
+    const total = countResult[0]?.total ?? 0;
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async updateFinal(
+    req: AuthRequest,
+    id: string,
+    action: 'approve' | 'reject',
+    comment?: string,
+  ) {
+    const update: any = { quality_manager: req.user.userId };
+
+    if (action === 'approve') {
+      update.qualityStatus = 'completed';
+      update.certificateStatus = 'completed';
+    } else {
+      update.qualityStatus = 'rejected';
+    }
+
+    if (comment) update.quality_comment = comment;
+
+    const application = await this.applicationModel
+      .findByIdAndUpdate(id, { $set: update }, { returnDocument: 'after' })
+      .exec();
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    return application;
   }
 
   async findById(id: string) {
