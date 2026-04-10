@@ -87,18 +87,32 @@ export class CertificateService {
   private buildCertificateHtml(application: any, entity: any): string {
     let template = fs.readFileSync(this.templatePath, 'utf-8');
 
-    // Background image as base64 data URI
-    const bgImagePath = path.resolve(
+    // Pick background image based on cab_code (e.g. TCU.png, TSI.png, GAU.png, GAI.png)
+    const cabCode = (application.cab_code || '').toUpperCase();
+    const draftTemplatesDir = path.resolve(
+      process.cwd(),
+      'src',
+      'certificate',
+      'templates',
+      'darft',
+    );
+    const cabBgPath = path.join(draftTemplatesDir, `${cabCode}.png`);
+    const fallbackBgPath = path.resolve(
       process.cwd(),
       'src',
       'certificate',
       'templates',
       'draft-bg.png',
     );
+    const bgImagePath = fs.existsSync(cabBgPath) ? cabBgPath : fallbackBgPath;
+
     let backgroundImage = '';
     if (fs.existsSync(bgImagePath)) {
       const bgBuffer = fs.readFileSync(bgImagePath);
       backgroundImage = `data:image/png;base64,${bgBuffer.toString('base64')}`;
+      this.logger.log(
+        `Using certificate background: ${path.basename(bgImagePath)} (cab_code: ${cabCode})`,
+      );
     } else {
       this.logger.warn(
         `Certificate background image not found at ${bgImagePath}`,
@@ -150,17 +164,17 @@ export class CertificateService {
 
     // Dynamic font sizes based on content length
     const entityNameFontSize = this.calcFontSize(entityName.length, {
-      max: 25,
-      min: 12,
+      max: 30,
+      min: 14,
       shrinkAfter: 25,
       charsPerStep: 10,
       stepSize: 2,
     });
     const scopeFontSize = this.calcFontSize(scope.length, {
-      max: 16,
+      max: 18,
       min: 9,
-      shrinkAfter: 80,
-      charsPerStep: 40,
+      shrinkAfter: 60,
+      charsPerStep: 25,
       stepSize: 1,
     });
 

@@ -46,6 +46,7 @@ export function DraftViewClient() {
     setAudit1(app.audit1 || "");
     setAudit2(app.audit2 || "");
     setIafCode(app.iaf_code || "");
+    setComment(app.scope_comment || "");
     setScopeInitialized(true);
   }
 
@@ -168,11 +169,10 @@ export function DraftViewClient() {
                 <span className="font-mono">{app.cab_code}</span>
                 <span className="mx-1">|</span>
                 <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-                    app.scopeStatus === "rejected"
-                      ? "bg-red-50 text-red-700 ring-red-600/20"
-                      : "bg-green-50 text-green-700 ring-green-600/20"
-                  }`}
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${app.scopeStatus === "rejected"
+                    ? "bg-red-50 text-red-700 ring-red-600/20"
+                    : "bg-green-50 text-green-700 ring-green-600/20"
+                    }`}
                 >
                   {app.scopeStatus}
                 </span>
@@ -341,7 +341,7 @@ export function DraftViewClient() {
             <Textarea
               id="comment"
               placeholder="Enter comment (required for rejection)"
-              value={comment || app.scope_comment}
+              value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               disabled={isLocked}
@@ -353,14 +353,14 @@ export function DraftViewClient() {
           <div className="flex gap-3 mt-6">
             {(hasPermission("application:approve:draft") ||
               app?.scopeStatus === "rejected") && (
-              <Button
-                onClick={() => handleAction("approve")}
-                disabled={submitting}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                {submitting ? "Processing..." : "Approve"}
-              </Button>
-            )}
+                <Button
+                  onClick={() => handleAction("approve")}
+                  disabled={submitting}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {submitting ? "Processing..." : "Approve"}
+                </Button>
+              )}
             {hasPermission("application:reject:draft") && (
               <Button
                 variant="destructive"
