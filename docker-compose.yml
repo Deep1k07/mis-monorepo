@@ -1,0 +1,79 @@
+# =====================================================================
+# MIS — full-stack docker compose
+# Run:    docker compose up --build
+# Stop:   docker compose down
+# Reset:  docker compose down -v   (also wipes the mongo volume)
+# =====================================================================
+
+services:
+  # ─── MongoDB ─────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: mis-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - mis-net
+
+  # ─── Backend (NestJS) ────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: mis-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    env_file:
+      - apps/backend/.env
+    ports:
+      - "3003:3003"
+    volumes:
+      # Persist generated certificate PDFs across container restarts
+      - backend-certs:/repo/apps/backend/generated-certificates
+    networks:
+      - mis-net
+
+  # ─── Web (Next.js) ───────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Baked into the client bundle at build time. Override for prod:
+        #   docker compose build --build-arg NEXT_PUBLIC_BACKEND_URL=https://api.example.com
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-http://localhost:3003}
+    container_name: mis-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      HOSTNAME: 0.0.0.0
+    ports:
+      - "3002:3002"
+    networks:
+      - mis-net
+
+# ─── Volumes ────────────────────────────────────────────────────────
+volumes:
+  mongo-data:
+    name: mis-mongo-data
+  backend-certs:
+    name: mis-backend-certs
+
+# ─── Networks ───────────────────────────────────────────────────────
+networks:
+  mis-net:
+    driver: bridge
