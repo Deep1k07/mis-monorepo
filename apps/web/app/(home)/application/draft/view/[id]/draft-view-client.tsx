@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useApplicationById } from "@/utils/apis";
+import { useApplicationById, useStandardCodes } from "@/utils/apis";
 import { useAuthStore } from "@/store/auth-store";
 import { updateApplication } from "@/utils/mutations";
 import toast from "react-hot-toast";
@@ -31,6 +31,8 @@ export function DraftViewClient() {
     mutate,
   } = useApplicationById(params.id as string);
 
+  const { standardCodes } = useStandardCodes(); // use this for showing Soa/Iaf/Samp
+
   const [scope, setScope] = useState("");
   const [originalScope, setOriginalScope] = useState("");
   const [audit1, setAudit1] = useState("");
@@ -52,6 +54,24 @@ export function DraftViewClient() {
 
   const isLocked = app?.scopeStatus === "completed";
 
+  // Resolve which code type (iaf/soa/samp) applies based on the
+  // application's first standard code matched against the standardCodes list.
+  const applicationStandardCode = app?.standards?.[0]?.code || "";
+  const matchedStandard = standardCodes.find((s) =>
+    s.standardCode
+      ?.toLowerCase()
+      .includes(applicationStandardCode.split(':')[0].toLowerCase()),
+  );
+
+  const codeType = (matchedStandard?.code || "iaf").toLowerCase();
+
+  const codeLabelMap: Record<string, string> = {
+    iaf: "IAF Code / FCC",
+    soa: "SOA",
+    samp: "SAMP",
+  };
+  const codeLabel = codeLabelMap[codeType] || "IAF Code / FCC";
+
   const handleAction = async (action: "approve" | "reject") => {
     if (!audit1.trim()) {
       toast.error("Stage-1 Man-day is required");
@@ -62,7 +82,7 @@ export function DraftViewClient() {
       return;
     }
     if (!iafCode.trim()) {
-      toast.error("IAF Code / FCC is required");
+      toast.error(`${codeLabel} is required`);
       return;
     }
     if (action === "reject" && !comment.trim()) {
@@ -326,11 +346,11 @@ export function DraftViewClient() {
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="iafCode">
-              IAF Code / FCC <span className="text-red-500">*</span>
+              {codeLabel} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="iafCode"
-              placeholder="Enter IAF Code / FCC"
+              placeholder={`Enter ${codeLabel}`}
               value={iafCode}
               onChange={(e) => setIafCode(e.target.value)}
               disabled={isLocked}

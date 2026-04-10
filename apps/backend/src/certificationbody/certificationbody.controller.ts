@@ -101,6 +101,14 @@ export class CertificationbodyController {
     );
   }
 
+  @Get('standard/code')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get standard codes' })
+  @ApiResponse({ status: 200, description: 'List of standard codes' })
+  async getCode() {
+    return this.certificationbodyService.getCode();
+  }
+
   @Get('standard/:id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get standard by ID' })
@@ -147,13 +155,5 @@ export class CertificationbodyController {
     @Req() req: AuthRequest,
   ) {
     return this.certificationbodyService.updateCab(id, body, req);
-  }
-
-  @Get('standard/code')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get all standards with pagination' })
-  @ApiResponse({ status: 200, description: 'Paginated list of standards' })
-  async getCode() {
-    return this.certificationbodyService.getCode();
   }
 }

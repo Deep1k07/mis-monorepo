@@ -273,7 +273,7 @@ export class CetificationbodyService {
 
 
   async getCode() {
-    const codes = this.certificationStandardModel.find({ status: 'active' }).select('standardCode code')
+    const codes = await this.certificationStandardModel.find({ status: 'active' }).select('standardCode code')
     return codes;
   }
 }
