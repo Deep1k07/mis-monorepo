@@ -29,7 +29,7 @@ import {
 @ApiCookieAuth()
 @Controller('application')
 export class ApplicationController {
-  constructor(private readonly applicationService: ApplicationService) {}
+  constructor(private readonly applicationService: ApplicationService) { }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -108,6 +108,15 @@ export class ApplicationController {
       query.limit,
       query.search,
     );
+  }
+
+  @Patch('request-final/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Toggle baManagerStatus between applied and final' })
+  @ApiResponse({ status: 200, description: 'BA Manager status toggled' })
+  @ApiResponse({ status: 404, description: 'Application not found' })
+  async toggleBaManagerStatus(@Param('id') id: string) {
+    return this.applicationService.toggleBaManagerStatus(id);
   }
 
   @Patch('final/:id')

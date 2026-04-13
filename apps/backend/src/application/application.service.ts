@@ -349,15 +349,14 @@ export class ApplicationService {
     const user = req.user;
     const skip = (page - 1) * limit;
 
-    console.log("req.user.userId", req.user.userId)
-
     const filter: any = {};
-    if (!user.permissions.includes('application:read:final')) {
-      filter.user = new Types.ObjectId(user.userId);
-      filter.certificateStatus = { $nin: ['hold', 'terminate'] }
-    } else {
+    if (user.permissions.includes('application:read:final')) { // for quality manager
       filter.qualityStatus = 'pending',
         filter.certificateStatus = 'proceed'
+      filter.baManagerStatus = 'applied'
+    } else {
+      filter.user = new Types.ObjectId(user.userId);
+      filter.certificateStatus = { $nin: ['hold', 'terminate'] }
     }
 
     const pipeline: any[] = [
@@ -474,6 +473,43 @@ export class ApplicationService {
     }
 
     return application;
+  }
+
+  async toggleBaManagerStatus(id: string) {
+    const application = await this.applicationModel.findById(id);
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    const blockedStatuses = [
+      'hold',
+      'active',
+      'completed',
+      'suspended',
+      'withdrawn',
+      'pending',
+      'rejected',
+      'transfer',
+    ];
+
+    if (blockedStatuses.includes(application.certificateStatus)) {
+      throw new BadRequestException(
+        `Cannot apply for final when certificate status is "${application.certificateStatus}"`,
+      );
+    }
+
+    const newStatus =
+      application.baManagerStatus === 'final' ? 'applied' : 'final';
+
+    const updated = await this.applicationModel
+      .findByIdAndUpdate(
+        id,
+        { $set: { baManagerStatus: newStatus } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+
+    return updated;
   }
 
   async findById(id: string) {
