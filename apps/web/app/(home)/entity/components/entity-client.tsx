@@ -3,7 +3,7 @@
 import { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table";
-import { createColumns } from "./columns";
+import { createColumns, defaultEntityColumnVisibility } from "./columns";
 import {
   Select,
   SelectContent,
@@ -93,6 +93,7 @@ export function EntityClient() {
       searchValue={searchInput}
       onSearchChange={handleSearchChange}
       filterSlot={filterSlot}
+      initialColumnVisibility={defaultEntityColumnVisibility}
     />
   );
 }

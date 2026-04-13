@@ -5,6 +5,7 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
+  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -12,7 +13,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Search } from "lucide-react";
+import { Check, Search, Settings2 } from "lucide-react";
 
 import {
   Table,
@@ -36,6 +37,7 @@ interface DataTableProps<TData, TValue> {
   onSearchChange?: (value: string) => void;
   filterSlot?: React.ReactNode;
   actionSlot?: React.ReactNode;
+  initialColumnVisibility?: VisibilityState;
 }
 
 export function DataTable<TData, TValue>({
@@ -49,6 +51,7 @@ export function DataTable<TData, TValue>({
   onSearchChange,
   filterSlot,
   actionSlot,
+  initialColumnVisibility,
 }: DataTableProps<TData, TValue>) {
   const isServerPagination =
     pageCount !== undefined && onPageChange !== undefined;
@@ -58,6 +61,22 @@ export function DataTable<TData, TValue>({
     [],
   );
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>(initialColumnVisibility ?? {});
+  const [columnsOpen, setColumnsOpen] = React.useState(false);
+  const columnsRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (columnsRef.current && !columnsRef.current.contains(e.target as Node)) {
+        setColumnsOpen(false);
+      }
+    }
+    if (columnsOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [columnsOpen]);
 
   const table = useReactTable({
     data,
@@ -71,10 +90,12 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
+    onColumnVisibilityChange: setColumnVisibility,
     state: {
       sorting,
       columnFilters,
       globalFilter,
+      columnVisibility,
       ...(isServerPagination
         ? { pagination: { pageIndex: (page ?? 1) - 1, pageSize: 10 } }
         : {}),
@@ -136,7 +157,52 @@ export function DataTable<TData, TValue>({
           </div>
           {filterSlot}
         </div>
-        {actionSlot}
+        <div className="flex items-center gap-2">
+          {initialColumnVisibility && (
+            <div className="relative" ref={columnsRef}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setColumnsOpen((prev) => !prev)}
+              >
+                <Settings2 className="h-4 w-4" />
+                Columns
+              </Button>
+              {columnsOpen && (
+                <div className="absolute right-0 top-full z-50 mt-1 w-[180px] rounded-md border bg-popover p-1 shadow-md">
+                  <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                    Toggle columns
+                  </p>
+                  <div className="my-1 h-px bg-border" />
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                      const isVisible = column.getIsVisible();
+                      return (
+                        <button
+                          key={column.id}
+                          onClick={() => column.toggleVisibility(!isVisible)}
+                          className="flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm capitalize hover:bg-accent hover:text-accent-foreground"
+                        >
+                          <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border border-primary">
+                            {isVisible && (
+                              <Check className="h-3 w-3 text-primary" />
+                            )}
+                          </span>
+                          {typeof column.columnDef.header === "string"
+                            ? column.columnDef.header
+                            : column.id.replace(/_/g, " ")}
+                        </button>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          )}
+          {actionSlot}
+        </div>
       </div>
       <div className="rounded-lg border bg-card">
         <Table>
