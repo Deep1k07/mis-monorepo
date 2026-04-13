@@ -1,0 +1,46 @@
+# Dependencies
+**/node_modules
+**/.pnpm-store
+
+# Build artifacts
+**/dist
+**/.next
+**/.turbo
+**/out
+**/build
+
+# Generated outputs
+apps/backend/generated-certificates
+apps/backend/docs
+
+# Logs
+**/*.log
+**/npm-debug.log*
+**/pnpm-debug.log*
+**/yarn-debug.log*
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+**/.DS_Store
+
+# Git
+.git
+.gitignore
+.github
+
+# Environment files (mounted via compose, not baked in)
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Tests
+**/coverage
+**/*.spec.ts
+**/*.test.ts
+
+# Misc
+README.md
+**/README.md
+Screenshot*.png

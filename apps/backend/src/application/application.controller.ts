@@ -86,6 +86,47 @@ export class ApplicationController {
     );
   }
 
+  @Get('final')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get final applications for quality review' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of final applications',
+  })
+  async findFinal(
+    @Req() req: AuthRequest,
+    @Query() query: PaginatedQueryDto,
+  ): Promise<{
+    data: Application[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    return this.applicationService.findFinal(
+      req,
+      query.page,
+      query.limit,
+      query.search,
+    );
+  }
+
+  @Patch('final/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Approve or reject a final application' })
+  @ApiResponse({ status: 200, description: 'Final application updated' })
+  async updateFinal(
+    @Req() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() body: { action: 'approve' | 'reject'; comment?: string },
+  ) {
+    return this.applicationService.updateFinal(
+      req,
+      id,
+      body.action,
+      body.comment,
+    );
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get application by ID' })

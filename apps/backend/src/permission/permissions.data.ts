@@ -89,6 +89,27 @@ export const defaultPermissions = [
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
   },
+  {
+    name: 'application:read:final',
+    description: 'Can view final applications',
+    category: 'Application',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'application:approve:final',
+    description: 'Can approve final applications',
+    category: 'Application',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'application:reject:final',
+    description: 'Can reject final applications',
+    category: 'Application',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
 
   // Cab and Standards permissions
   {

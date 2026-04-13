@@ -46,6 +46,18 @@ export const updateApplication = async (id: string, data: any) => {
   return response;
 };
 
+export const updateFinalApplication = async (
+  id: string,
+  data: { action: "approve" | "reject"; comment?: string },
+) => {
+  const response = await apiFetch(`${BASE_URL}/application/final/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response;
+};
+
 // ─── BA ───
 
 export const createBa = async (data: any) => {
