@@ -27,4 +27,14 @@ export class PaginatedQueryDto {
   @IsOptional()
   @IsString()
   cabCode?: string;
+
+  @ApiPropertyOptional({ description: 'Business associate id filter' })
+  @IsOptional()
+  @IsString()
+  ba?: string;
+
+  @ApiPropertyOptional({ description: 'Country filter (matches main site country)' })
+  @IsOptional()
+  @IsString()
+  country?: string;
 }

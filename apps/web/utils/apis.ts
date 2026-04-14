@@ -71,10 +71,14 @@ export function useApplications(
   page: number,
   search?: string,
   cabCode?: string,
+  ba?: string,
+  country?: string,
 ) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
   if (cabCode) params.set("cabCode", cabCode);
+  if (ba) params.set("ba", ba);
+  if (country) params.set("country", country);
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/application?${params}`,
   );

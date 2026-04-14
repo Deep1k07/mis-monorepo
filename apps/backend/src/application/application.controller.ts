@@ -59,6 +59,8 @@ export class ApplicationController {
       query.limit,
       query.search,
       query.cabCode,
+      query.ba,
+      query.country,
     );
   }
 

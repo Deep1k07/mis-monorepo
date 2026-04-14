@@ -145,6 +145,8 @@ export class ApplicationService {
     limit: number = 10,
     search?: string,
     cabCode?: string,
+    ba?: string,
+    country?: string,
   ) {
     const { user } = req;
 
@@ -155,6 +157,14 @@ export class ApplicationService {
 
     if (cabCode) {
       filter.cab_code = cabCode;
+    }
+
+    if (ba && Types.ObjectId.isValid(ba)) {
+      filter['entity.business_associate'] = new Types.ObjectId(ba);
+    }
+
+    if (country) {
+      filter['entity.main_site_address.0.country'] = country;
     }
 
     if (search) {
