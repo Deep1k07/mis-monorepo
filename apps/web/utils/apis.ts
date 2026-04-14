@@ -115,9 +115,14 @@ export function useDraftApplications(
 }
 
 // get final applications (quality review)
-export function useFinalApplications(page: number, search?: string) {
+export function useFinalApplications(
+  page: number,
+  search?: string,
+  qualityStatus?: string,
+) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
+  if (qualityStatus) params.set("qualityStatus", qualityStatus);
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/application/final?${params}`,
   );

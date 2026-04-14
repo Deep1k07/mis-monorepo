@@ -271,12 +271,19 @@ export class ApplicationService {
 
     const skip = (page - 1) * limit;
 
+    const filter: any = {};
+    if(scopeStatus){
+      filter.scopeStatus = statusFilter;
+    }else{
+      filter.scopeStatus = 'pending'
+      filter.certificateStatus = 'proceed';
+      filter.isBaManagerApproved = true;
+    }
+
     const pipeline: any[] = [
       {
         $match: {
-          scopeStatus: statusFilter,
-          certificateStatus: 'proceed',
-          isBaManagerApproved: true,
+          ...filter
         },
       },
       {
@@ -450,18 +457,32 @@ export class ApplicationService {
     page: number = 1,
     limit: number = 10,
     search?: string,
+    qualityStatus?: string,
   ) {
     const user = req.user;
     const skip = (page - 1) * limit;
 
+    const allowedQualityStatuses = ['pending', 'completed', 'rejected'];
+    const qualityStatusFilter =
+      qualityStatus && allowedQualityStatuses.includes(qualityStatus)
+        ? qualityStatus
+        : undefined;
+
     const filter: any = {};
     if (user.permissions.includes('application:read:final')) { // for quality manager
-      filter.qualityStatus = 'pending',
-        filter.certificateStatus = 'proceed'
+      filter.certificateStatus = 'proceed'
       filter.baManagerStatus = 'applied'
+      if(qualityStatus){
+        filter.qualityStatus = qualityStatusFilter ?? 'pending';
+        delete filter.certificateStatus;
+        delete filter.baManagerStatus;
+      }
     } else {
       filter.user = new Types.ObjectId(user.userId);
       filter.certificateStatus = { $nin: ['hold', 'terminate'] }
+      if (qualityStatusFilter) {
+        filter.qualityStatus = qualityStatusFilter;
+      }
     }
 
     const pipeline: any[] = [

@@ -110,6 +110,7 @@ export class ApplicationController {
       query.page,
       query.limit,
       query.search,
+      query.qualityStatus,
     );
   }
 

@@ -7,6 +7,19 @@ import { createFinalColumns } from "./columns";
 import { useFinalApplications } from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
 import { useQueryParams } from "@/utils/useQueryParams";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const QUALITY_STATUS_OPTIONS = [
+  { value: "pending", label: "Pending" },
+  { value: "completed", label: "Completed" },
+  { value: "rejected", label: "Rejected" },
+];
 
 export function FinalApplicationClient() {
   const router = useRouter();
@@ -15,6 +28,7 @@ export function FinalApplicationClient() {
   const page = getNumber("page", 1);
   const searchInput = get("search");
   const search = useDebounce(searchInput);
+  const qualityStatus = get("qualityStatus");
 
   const handleSearchChange = (value: string) => {
     set({ search: value, page: 1 });
@@ -22,6 +36,13 @@ export function FinalApplicationClient() {
 
   const handlePageChange = (newPage: number) => {
     set({ page: newPage });
+  };
+
+  const handleQualityStatusChange = (value: string | null) => {
+    set({
+      qualityStatus: !value || value === "all" ? undefined : value,
+      page: 1,
+    });
   };
 
   const columns = useMemo(
@@ -37,7 +58,7 @@ export function FinalApplicationClient() {
     totalPages,
     total,
     isLoading: loading,
-  } = useFinalApplications(page, search);
+  } = useFinalApplications(page, search, qualityStatus || undefined);
 
   return (
     <>
@@ -55,6 +76,30 @@ export function FinalApplicationClient() {
           onPageChange={handlePageChange}
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
+          filterSlot={
+            <Select
+              value={qualityStatus || "all"}
+              onValueChange={handleQualityStatusChange}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue>
+                  {qualityStatus
+                    ? (QUALITY_STATUS_OPTIONS.find(
+                        (o) => o.value === qualityStatus,
+                      )?.label ?? qualityStatus)
+                    : "Quality Status"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Quality Statuses</SelectItem>
+                {QUALITY_STATUS_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
         />
       )}
     </>

@@ -23,6 +23,11 @@ export class PaginatedQueryDto {
   @IsString()
   scopeStatus?: string;
 
+  @ApiPropertyOptional({ description: 'Quality status filter' })
+  @IsOptional()
+  @IsString()
+  qualityStatus?: string;
+
   @ApiPropertyOptional({ description: 'CAB code filter' })
   @IsOptional()
   @IsString()
