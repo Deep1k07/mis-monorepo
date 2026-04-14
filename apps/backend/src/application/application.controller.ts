@@ -111,15 +111,39 @@ export class ApplicationController {
     );
   }
 
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get application by ID' })
+  @ApiResponse({ status: 200, description: 'Application found' })
+  @ApiResponse({ status: 404, description: 'Application not found' })
+  async findById(@Param('id') id: string): Promise<Application> {
+    return this.applicationService.findById(id);
+  }
+
+  // update application and generate draft
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Update application by ID and Generate Draft' })
+  @ApiResponse({ status: 200, description: 'Application updated' })
+  @ApiResponse({ status: 404, description: 'Application not found' })
+  async update(
+    @Req() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() body: UpdateApplicationDto,
+  ): Promise<Application> {
+    return this.applicationService.updateAndGenerateDraft(req, id, body);
+  }
+
   @Patch('request-final/:id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Toggle baManagerStatus between applied and final' })
   @ApiResponse({ status: 200, description: 'BA Manager status toggled' })
   @ApiResponse({ status: 404, description: 'Application not found' })
-  async toggleBaManagerStatus(@Param('id') id: string) {
-    return this.applicationService.toggleBaManagerStatus(id);
+  async applyForFinal(@Param('id') id: string) {
+    return this.applicationService.applyForFinal(id);
   }
 
+  // update application and generate certificate
   @Patch('final/:id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Approve or reject a final application' })
@@ -130,27 +154,5 @@ export class ApplicationController {
     @Body() body: UpdateFinalApplicationDto,
   ) {
     return this.applicationService.updateFinal(req, id, body);
-  }
-
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get application by ID' })
-  @ApiResponse({ status: 200, description: 'Application found' })
-  @ApiResponse({ status: 404, description: 'Application not found' })
-  async findById(@Param('id') id: string): Promise<Application> {
-    return this.applicationService.findById(id);
-  }
-
-  @Patch(':id')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Update application by ID' })
-  @ApiResponse({ status: 200, description: 'Application updated' })
-  @ApiResponse({ status: 404, description: 'Application not found' })
-  async update(
-    @Req() req: AuthRequest,
-    @Param('id') id: string,
-    @Body() body: UpdateApplicationDto,
-  ): Promise<Application> {
-    return this.applicationService.update(req, id, body);
   }
 }

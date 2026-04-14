@@ -340,7 +340,93 @@ export class ApplicationService {
     };
   }
 
-  async findFinal(
+  async applyForFinal(id: string) {
+    const application = await this.applicationModel.findById(id);
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    const blockedStatuses = [
+      'hold',
+      'active',
+      'completed',
+      'suspended',
+      'withdrawn',
+      'pending',
+      'rejected',
+      'transfer',
+    ];
+
+    if (blockedStatuses.includes(application.certificateStatus)) {
+      throw new BadRequestException(
+        `Cannot apply for final when certificate status is "${application.certificateStatus}"`,
+      );
+    }
+
+    const newStatus =
+      application.baManagerStatus === 'final' ? 'applied' : 'final';
+
+    const updated = await this.applicationModel
+      .findByIdAndUpdate(
+        id,
+        { $set: { baManagerStatus: newStatus } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+
+    return updated;
+  }
+
+  async findById(id: string) {
+    const application = await this.applicationModel
+      .findById(id)
+      .populate({
+        path: 'entity',
+        select:
+          'entity_id entity_name entity_name_english entity_trading_name business_associate email website employess_count main_site_address additional_site_address isDirectClient',
+        populate: {
+          path: 'business_associate',
+          select: 'username email',
+        },
+      })
+      .populate('appliedBy', 'firstName lastName email')
+      .exec();
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    return application;
+  }
+
+  // update application and generate draft
+  async updateAndGenerateDraft(req: AuthRequest, id: string, updateData: UpdateApplicationDto) {
+    const user = req.user;
+
+    const application = await this.applicationModel
+      .findByIdAndUpdate(
+        id,
+        { $set: { ...updateData, scope_manager: user.userId } },
+        { returnDocument: 'after' },
+      )
+      .populate('business_associate', 'username email userId')
+      .exec();
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    // Trigger certificate generation when draft application is approved
+    if (updateData.scopeStatus === 'completed') {
+      this.eventEmitter.emit(DRAFT_APPROVED_EVENT, {
+        applicationId: id,
+      });
+    }
+
+    return application;
+  }
+
+    async findFinal(
     req: AuthRequest,
     page: number = 1,
     limit: number = 10,
@@ -447,6 +533,7 @@ export class ApplicationService {
     };
   }
 
+  // update final and generate final certificate
   async updateFinal(
     req: AuthRequest,
     id: string,
@@ -458,6 +545,7 @@ export class ApplicationService {
     if (action === 'approve') {
       update.qualityStatus = 'completed';
       update.certificateStatus = 'completed';
+      update.baManagerStatus = 'final'
       if (audit1 !== undefined) update.audit1 = audit1;
       if (audit2 !== undefined) update.audit2 = audit2;
       if (iaf_code !== undefined) update.iaf_code = iaf_code;
@@ -473,91 +561,6 @@ export class ApplicationService {
 
     if (!application) {
       throw new NotFoundException('Application not found');
-    }
-
-    return application;
-  }
-
-  async toggleBaManagerStatus(id: string) {
-    const application = await this.applicationModel.findById(id);
-    if (!application) {
-      throw new NotFoundException('Application not found');
-    }
-
-    const blockedStatuses = [
-      'hold',
-      'active',
-      'completed',
-      'suspended',
-      'withdrawn',
-      'pending',
-      'rejected',
-      'transfer',
-    ];
-
-    if (blockedStatuses.includes(application.certificateStatus)) {
-      throw new BadRequestException(
-        `Cannot apply for final when certificate status is "${application.certificateStatus}"`,
-      );
-    }
-
-    const newStatus =
-      application.baManagerStatus === 'final' ? 'applied' : 'final';
-
-    const updated = await this.applicationModel
-      .findByIdAndUpdate(
-        id,
-        { $set: { baManagerStatus: newStatus } },
-        { returnDocument: 'after' },
-      )
-      .exec();
-
-    return updated;
-  }
-
-  async findById(id: string) {
-    const application = await this.applicationModel
-      .findById(id)
-      .populate({
-        path: 'entity',
-        select:
-          'entity_id entity_name entity_name_english entity_trading_name business_associate email website employess_count main_site_address additional_site_address isDirectClient',
-        populate: {
-          path: 'business_associate',
-          select: 'username email',
-        },
-      })
-      .populate('appliedBy', 'firstName lastName email')
-      .exec();
-
-    if (!application) {
-      throw new NotFoundException('Application not found');
-    }
-
-    return application;
-  }
-
-  async update(req: AuthRequest, id: string, updateData: UpdateApplicationDto) {
-    const user = req.user;
-
-    const application = await this.applicationModel
-      .findByIdAndUpdate(
-        id,
-        { $set: { ...updateData, scope_manager: user.userId } },
-        { returnDocument: 'after' },
-      )
-      .populate('business_associate', 'username email userId')
-      .exec();
-
-    if (!application) {
-      throw new NotFoundException('Application not found');
-    }
-
-    // Trigger certificate generation when draft application is approved
-    if (updateData.scopeStatus === 'completed') {
-      this.eventEmitter.emit(DRAFT_APPROVED_EVENT, {
-        applicationId: id,
-      });
     }
 
     return application;
