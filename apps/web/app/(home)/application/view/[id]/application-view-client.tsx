@@ -306,7 +306,7 @@ export function ApplicationViewClient() {
               value={app.certificateStatus}
             />
             <StatusBadge label="Manual Status" value={app.manualStatus} />
-            <StatusBadge label="Final Certificate Requested" value={app.baManagerStatus === 'applied' ? 'Requested' : 'Not Requested'} />
+            <StatusBadge label="Final Certificate Requested" value={app.baManagerStatus === 'applied' ? 'Requested' : app.baManagerStatus === 'final' ? 'Completed' : 'Not Requested'} />
           </div>
         </div>
 
