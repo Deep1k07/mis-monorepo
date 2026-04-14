@@ -63,6 +63,13 @@ export class CertificateService {
       (application.draftCertificate?.length || 0) + 1,
     );
 
+    // Mark every existing draft inactive before pushing the new active one
+    // so only the most recently generated draft has status: 'active'.
+    await this.applicationModel.updateOne(
+      { _id: applicationId, 'draftCertificate.0': { $exists: true } },
+      { $set: { 'draftCertificate.$[].status': 'inactive' } },
+    );
+
     await this.applicationModel.findByIdAndUpdate(applicationId, {
       $push: {
         draftCertificate: {
