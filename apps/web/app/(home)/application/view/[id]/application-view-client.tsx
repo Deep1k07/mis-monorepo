@@ -288,7 +288,7 @@ export function ApplicationViewClient() {
               <Send className="h-4 w-4 mr-2" />
               {toggling
                 ? "Applying..."
-                : app.baManagerStatus === "applied"
+                : app.baManagerStatus === "final"
                   ? "Cancel Applied"
                   : "Apply for Final"}
             </Button>
@@ -306,7 +306,7 @@ export function ApplicationViewClient() {
               value={app.certificateStatus}
             />
             <StatusBadge label="Manual Status" value={app.manualStatus} />
-            <StatusBadge label="Final Certificate Requested" value={app.baManagerStatus === 'applied' ? 'Requested' : app.baManagerStatus === 'final' ? 'Completed' : 'Not Requested'} />
+            <StatusBadge label="Final Certificate Requested" value={app.baManagerStatus === 'final' ? 'Requested' : 'Not Requested'} />
           </div>
         </div>
 

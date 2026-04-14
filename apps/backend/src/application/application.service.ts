@@ -372,6 +372,17 @@ export class ApplicationService {
       throw new NotFoundException('Application not found');
     }
 
+    const blockedScopeStatus = [
+      'pending', 
+      'rejected'
+    ]
+
+    if(blockedScopeStatus.includes(application.scopeStatus)){
+      throw new BadRequestException(
+        `Cannot apply for final when scope status is "${application.scopeStatus}"`,
+      );
+    }
+      
     const blockedStatuses = [
       'hold',
       'active',
@@ -471,15 +482,23 @@ export class ApplicationService {
     const filter: any = {};
     if (user.permissions.includes('application:read:final')) { // for quality manager
       filter.certificateStatus = 'proceed'
-      filter.baManagerStatus = 'applied'
-      if(qualityStatus){
+      filter.qualityStatus = 'pending'
+      filter.$or = [
+        { baManagerStatus: 'final' },
+        { clientStatus: 'final' }
+      ]
+      if(qualityStatusFilter){
         filter.qualityStatus = qualityStatusFilter ?? 'pending';
         delete filter.certificateStatus;
-        delete filter.baManagerStatus;
+        // delete filter.baManagerStatus;
       }
     } else {
       filter.user = new Types.ObjectId(user.userId);
       filter.certificateStatus = { $nin: ['hold', 'terminate'] }
+      filter.$or = [
+        { baManagerStatus: 'final' },
+        { clientStatus: 'final' }
+      ]
       if (qualityStatusFilter) {
         filter.qualityStatus = qualityStatusFilter;
       }
