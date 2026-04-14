@@ -17,6 +17,7 @@ import { Application } from './schema/application.schema';
 import {
   CreateApplicationDto,
   UpdateApplicationDto,
+  UpdateFinalApplicationDto,
 } from './dto/application.dto';
 import {
   ApiCookieAuth,
@@ -126,14 +127,9 @@ export class ApplicationController {
   async updateFinal(
     @Req() req: AuthRequest,
     @Param('id') id: string,
-    @Body() body: { action: 'approve' | 'reject'; comment?: string },
+    @Body() body: UpdateFinalApplicationDto,
   ) {
-    return this.applicationService.updateFinal(
-      req,
-      id,
-      body.action,
-      body.comment,
-    );
+    return this.applicationService.updateFinal(req, id, body);
   }
 
   @Get(':id')

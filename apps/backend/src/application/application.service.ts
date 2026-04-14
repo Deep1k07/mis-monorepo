@@ -12,6 +12,7 @@ import {
   CreateApplicationDto,
   StandardDto,
   UpdateApplicationDto,
+  UpdateFinalApplicationDto,
 } from './dto/application.dto';
 import { CertificationBody } from 'src/certificationbody/schema/certificationBody.schema';
 import { escapeRegex } from 'src/utils/escapeRegex';
@@ -450,14 +451,17 @@ export class ApplicationService {
   async updateFinal(
     req: AuthRequest,
     id: string,
-    action: 'approve' | 'reject',
-    comment?: string,
+    data: UpdateFinalApplicationDto,
   ) {
+    const { action, comment, audit1, audit2, iaf_code } = data;
     const update: any = { quality_manager: req.user.userId };
 
     if (action === 'approve') {
       update.qualityStatus = 'completed';
       update.certificateStatus = 'completed';
+      if (audit1 !== undefined) update.audit1 = audit1;
+      if (audit2 !== undefined) update.audit2 = audit2;
+      if (iaf_code !== undefined) update.iaf_code = iaf_code;
     } else {
       update.qualityStatus = 'rejected';
     }

@@ -48,7 +48,13 @@ export const updateApplication = async (id: string, data: any) => {
 
 export const updateFinalApplication = async (
   id: string,
-  data: { action: "approve" | "reject"; comment?: string },
+  data: {
+    action: "approve" | "reject";
+    comment?: string;
+    audit1?: string;
+    audit2?: string;
+    iaf_code?: string;
+  },
 ) => {
   const response = await apiFetch(`${BASE_URL}/application/final/${id}`, {
     method: "PATCH",
