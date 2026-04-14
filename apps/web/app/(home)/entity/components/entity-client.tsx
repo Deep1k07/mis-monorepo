@@ -4,13 +4,7 @@ import { useMemo, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table";
 import { createColumns, defaultEntityColumnVisibility } from "./columns";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 import { useAllBa, useEntities } from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
 import { useQueryParams } from "@/utils/useQueryParams";
@@ -54,28 +48,17 @@ export function EntityClient() {
   } = useEntities(page, baFilter, search);
 
   const filterSlot = mounted ? (
-    <Select
-      value={baFilter || "all"}
-      onValueChange={(value) => {
-        set({ ba: value === "all" ? undefined : value, page: 1 });
+    <SearchableSelect
+      value={baFilter}
+      onChange={(value) => {
+        set({ ba: value ?? undefined, page: 1 });
       }}
-    >
-      <SelectTrigger className="w-[220px]">
-        <SelectValue>
-          {baFilter
-            ? bams?.find((b) => b._id === baFilter)?.username
-            : "All Business Associates"}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="all">All Business Associates</SelectItem>
-        {bams?.map((ba) => (
-          <SelectItem key={ba._id} value={ba._id}>
-            {ba.username}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+      options={bams?.map((b) => ({ value: b._id, label: b.username })) ?? []}
+      placeholder="Business Associate"
+      searchPlaceholder="Search BA..."
+      allLabel="All Business Associates"
+      triggerClassName="w-[240px]"
+    />
   ) : null;
 
   return loading ? (

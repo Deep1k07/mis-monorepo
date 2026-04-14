@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 
 export function ApplicationClient() {
   const router = useRouter();
@@ -110,47 +111,29 @@ export function ApplicationClient() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select
-                value={baFilter || "all"}
-                onValueChange={handleBaChange}
-              >
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue>
-                    {baFilter
-                      ? bams?.find((b) => b._id === baFilter)?.username
-                      : "All Business Associates"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Business Associates</SelectItem>
-                  {bams?.map((ba) => (
-                    <SelectItem key={ba._id} value={ba._id}>
-                      {ba.username}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={countryFilter || "all"}
-                onValueChange={handleCountryChange}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Country">
-                    {countryFilter
-                      ? (countries?.find((c) => c.code === countryFilter)
-                          ?.name ?? countryFilter)
-                      : "All Countries"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Countries</SelectItem>
-                  {countries?.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                value={baFilter}
+                onChange={handleBaChange}
+                options={
+                  bams?.map((b) => ({ value: b._id, label: b.username })) ?? []
+                }
+                placeholder="Business Associate"
+                searchPlaceholder="Search BA..."
+                allLabel="All Business Associates"
+                triggerClassName="w-[240px]"
+              />
+              <SearchableSelect
+                value={countryFilter}
+                onChange={handleCountryChange}
+                options={
+                  countries?.map((c) => ({ value: c.code, label: c.name })) ??
+                  []
+                }
+                placeholder="Country"
+                searchPlaceholder="Search country..."
+                allLabel="All Countries"
+                triggerClassName="w-[200px]"
+              />
             </div>
           }
           initialColumnVisibility={defaultApplicationColumnVisibility}
