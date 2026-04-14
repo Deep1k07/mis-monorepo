@@ -38,6 +38,7 @@ interface DataTableProps<TData, TValue> {
   filterSlot?: React.ReactNode;
   actionSlot?: React.ReactNode;
   initialColumnVisibility?: VisibilityState;
+  storageKey?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -52,6 +53,7 @@ export function DataTable<TData, TValue>({
   filterSlot,
   actionSlot,
   initialColumnVisibility,
+  storageKey,
 }: DataTableProps<TData, TValue>) {
   const isServerPagination =
     pageCount !== undefined && onPageChange !== undefined;
@@ -62,7 +64,28 @@ export function DataTable<TData, TValue>({
   );
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>(initialColumnVisibility ?? {});
+    React.useState<VisibilityState>(() => {
+      if (typeof window === "undefined" || !storageKey) {
+        return initialColumnVisibility ?? {};
+      }
+      try {
+        const stored = window.localStorage.getItem(storageKey);
+        if (stored) {
+          return {
+            ...(initialColumnVisibility ?? {}),
+            ...(JSON.parse(stored) as VisibilityState),
+          };
+        }
+      } catch {}
+      return initialColumnVisibility ?? {};
+    });
+
+  React.useEffect(() => {
+    if (!storageKey || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(columnVisibility));
+    } catch {}
+  }, [columnVisibility, storageKey]);
   const [columnsOpen, setColumnsOpen] = React.useState(false);
   const columnsRef = React.useRef<HTMLDivElement>(null);
 

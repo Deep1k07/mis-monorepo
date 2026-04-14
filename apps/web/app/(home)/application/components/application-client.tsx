@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table";
-import { createColumns } from "./columns";
+import { createColumns, defaultApplicationColumnVisibility } from "./columns";
 import { useApplications, useAllCabsList } from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
 import { useQueryParams } from "@/utils/useQueryParams";
@@ -84,6 +84,8 @@ export function ApplicationClient() {
               </SelectContent>
             </Select>
           }
+          initialColumnVisibility={defaultApplicationColumnVisibility}
+          storageKey="application-list-columns"
         />
       )}
     </>

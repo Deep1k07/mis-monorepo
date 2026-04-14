@@ -94,6 +94,7 @@ export function EntityClient() {
       onSearchChange={handleSearchChange}
       filterSlot={filterSlot}
       initialColumnVisibility={defaultEntityColumnVisibility}
+      storageKey="entity-list-columns"
     />
   );
 }
