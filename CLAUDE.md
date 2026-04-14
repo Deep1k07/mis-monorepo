@@ -94,11 +94,11 @@ Users have a role (ref to UserRole), roles have a `permissions[]` string array. 
 
 ## Docker
 
-`docker compose up --build` starts MongoDB (27017), backend (3003), and web (3002). See `DOCKER.md` for details. After first run, seed permissions: `docker compose exec backend node dist/permission/seed-permissions.js`
+`docker compose up --build` starts MongoDB (27017), backend (3003), and web (3002). See `DOCKER.md` for details. After first run, seed permissions: `docker compose exec backend pnpm seed:permissions` (the script runs via ts-node against `src/permission/seed-permissions.ts`).
 
 ## Pre-commit Hooks
 
-Husky + lint-staged runs on commit: ESLint `--fix` and Prettier on `*.{ts,tsx}`, Prettier on `*.{md,json}`.
+Husky is installed and `.lintstagedrc.json` defines rules (ESLint `--fix` + Prettier on `*.{ts,tsx}`, Prettier on `*.{md,json}`), but no pre-commit hook file is currently wired in `.husky/` — commits do not run lint-staged until a hook (e.g. `.husky/pre-commit` invoking `pnpm exec lint-staged`) is added.
 
 ## Testing
 

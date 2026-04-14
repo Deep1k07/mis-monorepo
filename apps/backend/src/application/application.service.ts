@@ -32,7 +32,6 @@ export class ApplicationService {
 
   async create(data: CreateApplicationDto, req: AuthRequest) {
     const user = req.user;
-    // console.log("data>>>", data)
     const cabPromise = this.certificationBodyModel
       .findOne({ cabCode: data.cab_code })
       .populate('cabJurisdictions', 'code name');
