@@ -6,14 +6,25 @@ import {
   ApplicationDocument,
 } from '../application/schema/application.schema';
 import { Entity } from '../entity/schema/entity.schema';
+import {
+  CertificationStandard,
+  CertificationStandardDocument,
+} from '../certificationbody/schema/certificationStandards.schema';
+import {
+  CertificateType,
+  generateCertificateNumber,
+} from './utils/generate-certificate-number';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
 
+type CertificateMode = 'draft' | 'final';
+
 @Injectable()
 export class CertificateService {
   private readonly logger = new Logger(CertificateService.name);
-  private readonly templatePath: string;
+  private readonly draftTemplatePath: string;
+  private readonly finalTemplatePath: string;
   private readonly outputDir: string;
 
   constructor(
@@ -21,12 +32,11 @@ export class CertificateService {
     private readonly applicationModel: Model<ApplicationDocument>,
     @InjectModel(Entity.name)
     private readonly entityModel: Model<Entity>, // needed for module registration
+    @InjectModel(CertificationStandard.name)
+    private readonly certificationStandardModel: Model<CertificationStandardDocument>,
   ) {
-    this.templatePath = path.resolve(
-      __dirname,
-      'templates',
-      'draft.html',
-    );
+    this.draftTemplatePath = path.resolve(__dirname, 'templates', 'draft.html');
+    this.finalTemplatePath = path.resolve(__dirname, 'templates', 'final.html');
     this.outputDir = path.resolve(process.cwd(), 'generated-certificates');
     if (!fs.existsSync(this.outputDir)) {
       fs.mkdirSync(this.outputDir, { recursive: true });
@@ -48,7 +58,7 @@ export class CertificateService {
       throw new NotFoundException('Entity not found for this application');
     }
 
-    const html = this.buildCertificateHtml(application, entity);
+    const html = this.buildCertificateHtml(application, entity, 'draft');
     const pdfBuffer = await this.generatePdfFromHtml(html);
 
     const fileName = `draft-certificate-${applicationId}-${Date.now()}.pdf`;
@@ -91,8 +101,133 @@ export class CertificateService {
     return filePath;
   }
 
-  private buildCertificateHtml(application: any, entity: any): string {
-    let template = fs.readFileSync(this.templatePath, 'utf-8');
+  async generateFinalCertificate(applicationId: string): Promise<string> {
+    const application = await this.applicationModel
+      .findById(applicationId)
+      .populate('entity')
+      .exec();
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    const entity = application.entity as any;
+    if (!entity) {
+      throw new NotFoundException('Entity not found for this application');
+    }
+
+    const primaryStandard = application.standards?.[0];
+    if (!primaryStandard) {
+      throw new NotFoundException(
+        'Application has no standards; cannot generate certificate number',
+      );
+    }
+
+    const standardDoc = await this.certificationStandardModel
+      .findOne({ standardCode: primaryStandard.code })
+      .lean();
+    const mssCode = standardDoc?.mssCode || '';
+    if (!mssCode) {
+      this.logger.warn(
+        `mssCode not found for standardCode "${primaryStandard.code}"; certificate number will omit it`,
+      );
+    }
+
+    const country = entity.main_site_address?.[0]?.country;
+    const computed = generateCertificateNumber(
+      {
+        entity_id: entity.entity_id,
+        cab_code: application.cab_code,
+        type: application.type as CertificateType,
+        valid_until: application.valid_until,
+        newCertificateNo: application.certificate_number || undefined,
+      },
+      country,
+      mssCode,
+    );
+
+    // Persist the computed certificate metadata onto the application so it
+    // renders in lists and stays available for subsequent regenerations.
+    await this.applicationModel.updateOne(
+      { _id: applicationId },
+      {
+        $set: {
+          certificate_number: computed.certificationNumber,
+          initial_issue: application.initial_issue || computed.curr_date,
+          current_issue: computed.curr_date,
+          valid_until: computed.expiryDate,
+          first_surveillance: computed.firstSurvalance,
+          second_surveillance: computed.secondSurvalance,
+          recertification_due: computed.rec,
+          issue_no: application.issue_no || '01',
+          revision_no: application.revision_no || '00',
+          finalCreatedAt: application.finalCreatedAt || new Date(),
+          finalUpdatedAt: new Date(),
+        },
+      },
+    );
+
+    // Re-read so the rendered HTML reflects the persisted values.
+    const updatedApplication = await this.applicationModel
+      .findById(applicationId)
+      .populate('entity')
+      .exec();
+    const updatedEntity = updatedApplication!.entity as any;
+
+    const html = this.buildCertificateHtml(
+      updatedApplication,
+      updatedEntity,
+      'final',
+    );
+    const pdfBuffer = await this.generatePdfFromHtml(html);
+
+    const fileName = `final-certificate-${applicationId}-${Date.now()}.pdf`;
+    const filePath = path.join(this.outputDir, fileName);
+    fs.writeFileSync(filePath, pdfBuffer);
+
+    this.logger.log(
+      `Final certificate generated for application ${applicationId}: ${filePath}`,
+    );
+
+    const version = String(
+      (updatedApplication!.finalCertificate?.length || 0) + 1,
+    );
+
+    // Mark every existing final certificate inactive before pushing the new one.
+    await this.applicationModel.updateOne(
+      { _id: applicationId, 'finalCertificate.0': { $exists: true } },
+      { $set: { 'finalCertificate.$[].status': 'inactive' } },
+    );
+
+    await this.applicationModel.findByIdAndUpdate(applicationId, {
+      $push: {
+        finalCertificate: {
+          version,
+          status: 'active',
+          type: 'normal',
+          languages: {
+            [updatedApplication!.primary_certificate_language || 'en']: {
+              s3CertificatePdfxUrl: filePath,
+              s3CertificateDocxUrl: '',
+              s3CertificateAnnexureDocxUrl: '',
+              s3CertificateAnnexurePdfxUrl: '',
+            },
+          },
+        },
+      },
+    });
+
+    return filePath;
+  }
+
+  private buildCertificateHtml(
+    application: any,
+    entity: any,
+    mode: CertificateMode,
+  ): string {
+    const templatePath =
+      mode === 'final' ? this.finalTemplatePath : this.draftTemplatePath;
+    let template = fs.readFileSync(templatePath, 'utf-8');
 
     // Pick background image based on cab_code (e.g. TCU.png, TSI.png, GAU.png, GAI.png)
     const cabCode = (application.cab_code || '').toUpperCase();
@@ -150,19 +285,22 @@ export class CertificateService {
     // Scope
     const scope = application.scope || '';
 
-    // Draft certificate: show XXXXXXXXXX for all table values
-    // except IAF code and revision no which may have real values
+    // Draft: show XXXXXXXXXX for table values that aren't assigned yet.
+    // Final: fill every cell with the real persisted value.
     const placeholder = 'XXXXXXXXXX';
-    const certificateNumber = placeholder;
-    const initialIssue = placeholder;
-    const currentIssue = placeholder;
-    const validUntil = placeholder;
-    const firstSurveillance = placeholder;
-    const secondSurveillance = placeholder;
-    const recertificationDue = placeholder;
-    const revisionNo = application.revision_no || placeholder;
-    const issueNo = placeholder;
-    const iafCode = application.iaf_code || placeholder;
+    const orPlaceholder = (value: string | undefined): string =>
+      mode === 'final' ? (value ?? '') : value || placeholder;
+
+    const certificateNumber = orPlaceholder(application.certificate_number);
+    const initialIssue = orPlaceholder(application.initial_issue);
+    const currentIssue = orPlaceholder(application.current_issue);
+    const validUntil = orPlaceholder(application.valid_until);
+    const firstSurveillance = orPlaceholder(application.first_surveillance);
+    const secondSurveillance = orPlaceholder(application.second_surveillance);
+    const recertificationDue = orPlaceholder(application.recertification_due);
+    const revisionNo = application.revision_no || (mode === 'final' ? '' : placeholder);
+    const issueNo = orPlaceholder(application.issue_no);
+    const iafCode = application.iaf_code || (mode === 'final' ? '' : placeholder);
 
     // Bottom section
     const audit1 = application.audit1 || '';

@@ -6,6 +6,10 @@ import {
   ApplicationSchema,
 } from '../application/schema/application.schema';
 import { Entity, EntitySchema } from '../entity/schema/entity.schema';
+import {
+  CertificationStandard,
+  CertificationStandardSchema,
+} from '../certificationbody/schema/certificationStandards.schema';
 import { CertificateEventListener } from './certificate.listener';
 
 @Module({
@@ -13,6 +17,7 @@ import { CertificateEventListener } from './certificate.listener';
     MongooseModule.forFeature([
       { name: Application.name, schema: ApplicationSchema },
       { name: Entity.name, schema: EntitySchema },
+      { name: CertificationStandard.name, schema: CertificationStandardSchema },
     ]),
   ],
   providers: [CertificateService, CertificateEventListener],

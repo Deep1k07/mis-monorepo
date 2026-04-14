@@ -17,7 +17,10 @@ import {
 import { CertificationBody } from 'src/certificationbody/schema/certificationBody.schema';
 import { escapeRegex } from 'src/utils/escapeRegex';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { DRAFT_APPROVED_EVENT } from 'src/certificate/certificate.listener';
+import {
+  DRAFT_APPROVED_EVENT,
+  FINAL_APPROVED_EVENT,
+} from 'src/certificate/certificate.listener';
 
 @Injectable()
 export class ApplicationService {
@@ -620,6 +623,10 @@ export class ApplicationService {
 
     if (!application) {
       throw new NotFoundException('Application not found');
+    }
+
+    if (action === 'approve') {
+      this.eventEmitter.emit(FINAL_APPROVED_EVENT, { applicationId: id });
     }
 
     return application;
