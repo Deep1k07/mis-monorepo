@@ -19,6 +19,14 @@ export type ApplicationDef = {
   scopeStatus: string;
   baStatus: string;
   createdAt?: string;
+  audit1?: string;
+  audit2?: string;
+  initial_issue?: string;
+  current_issue?: string;
+  certificate_number?: string;
+  valid_until?: string;
+  first_surveillance?: string;
+  second_surveillance?: string;
 };
 
 const statusBadge = (status: string) => {
@@ -63,6 +71,15 @@ export const createColumns = (
           {name}
         </span>
       );
+    },
+  },
+  {
+    accessorKey: "certificate_number",
+    header: "Certificate No.",
+    cell: ({ row }) => {
+      const value = row.getValue("certificate_number") as string | undefined;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value}</span>;
     },
   },
   {
@@ -118,8 +135,72 @@ export const createColumns = (
     },
   },
   {
+    accessorKey: "initial_issue",
+    header: "Initial Issue",
+    cell: ({ row }) => {
+      const value = row.getValue("initial_issue") as string | undefined;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value.split("T")[0] ?? value}</span>;
+    },
+  },
+  {
+    accessorKey: "current_issue",
+    header: "Current Issue",
+    cell: ({ row }) => {
+      const value = row.getValue("current_issue") as string | undefined;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value.split("T")[0] ?? value}</span>;
+    },
+  },
+  {
+    accessorKey: "valid_until",
+    header: "Valid Until",
+    cell: ({ row }) => {
+      const value = row.getValue("valid_until") as string | undefined;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value.split("T")[0] ?? value}</span>;
+    },
+  },
+  {
+    accessorKey: "audit1",
+    header: "Audit 1",
+    cell: ({ row }) => {
+      const value = row.getValue("audit1") as string | undefined;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value.split("T")[0] ?? value}</span>;
+    },
+  },
+  {
+    accessorKey: "audit2",
+    header: "Audit 2",
+    cell: ({ row }) => {
+      const value = row.getValue("audit2") as string | undefined;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value.split("T")[0] ?? value}</span>;
+    },
+  },
+  {
+    accessorKey: "first_surveillance",
+    header: "1st Surveillance",
+    cell: ({ row }) => {
+      const value = row.getValue("first_surveillance") as string | undefined;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value.split("T")[0] ?? value}</span>;
+    },
+  },
+  {
+    accessorKey: "second_surveillance",
+    header: "2nd Surveillance",
+    cell: ({ row }) => {
+      const value = row.getValue("second_surveillance") as string | undefined;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value.split("T")[0] ?? value}</span>;
+    },
+  },
+  {
     id: "actions",
     header: "",
+    enableHiding: false,
     cell: ({ row }) => {
       const app = row.original;
       return (
@@ -134,3 +215,24 @@ export const createColumns = (
     },
   },
 ];
+
+export const defaultApplicationColumnVisibility: Record<string, boolean> = {
+  entity_id: true,
+  entity_name: true,
+  cab_code: true,
+  business_associate: true,
+  standards: true,
+  scopeStatus: true,
+  qualityStatus: true,
+  certificateStatus: true,
+  createdAt: true,
+  email: false,
+  certificate_number: false,
+  initial_issue: false,
+  current_issue: false,
+  valid_until: false,
+  audit1: false,
+  audit2: false,
+  first_surveillance: false,
+  second_surveillance: false,
+};

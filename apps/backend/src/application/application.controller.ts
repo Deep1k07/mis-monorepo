@@ -17,6 +17,7 @@ import { Application } from './schema/application.schema';
 import {
   CreateApplicationDto,
   UpdateApplicationDto,
+  UpdateFinalApplicationDto,
 } from './dto/application.dto';
 import {
   ApiCookieAuth,
@@ -29,7 +30,7 @@ import {
 @ApiCookieAuth()
 @Controller('application')
 export class ApplicationController {
-  constructor(private readonly applicationService: ApplicationService) {}
+  constructor(private readonly applicationService: ApplicationService) { }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -58,6 +59,8 @@ export class ApplicationController {
       query.limit,
       query.search,
       query.cabCode,
+      query.ba,
+      query.country,
     );
   }
 
@@ -107,23 +110,7 @@ export class ApplicationController {
       query.page,
       query.limit,
       query.search,
-    );
-  }
-
-  @Patch('final/:id')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Approve or reject a final application' })
-  @ApiResponse({ status: 200, description: 'Final application updated' })
-  async updateFinal(
-    @Req() req: AuthRequest,
-    @Param('id') id: string,
-    @Body() body: { action: 'approve' | 'reject'; comment?: string },
-  ) {
-    return this.applicationService.updateFinal(
-      req,
-      id,
-      body.action,
-      body.comment,
+      query.qualityStatus,
     );
   }
 
@@ -136,9 +123,10 @@ export class ApplicationController {
     return this.applicationService.findById(id);
   }
 
+  // update application and generate draft
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Update application by ID' })
+  @ApiOperation({ summary: 'Update application by ID and Generate Draft' })
   @ApiResponse({ status: 200, description: 'Application updated' })
   @ApiResponse({ status: 404, description: 'Application not found' })
   async update(
@@ -146,6 +134,28 @@ export class ApplicationController {
     @Param('id') id: string,
     @Body() body: UpdateApplicationDto,
   ): Promise<Application> {
-    return this.applicationService.update(req, id, body);
+    return this.applicationService.updateAndGenerateDraft(req, id, body);
+  }
+
+  @Patch('request-final/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Toggle baManagerStatus between applied and final' })
+  @ApiResponse({ status: 200, description: 'BA Manager status toggled' })
+  @ApiResponse({ status: 404, description: 'Application not found' })
+  async applyForFinal(@Param('id') id: string) {
+    return this.applicationService.applyForFinal(id);
+  }
+
+  // update application and generate certificate
+  @Patch('final/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Approve or reject a final application' })
+  @ApiResponse({ status: 200, description: 'Final application updated' })
+  async updateFinal(
+    @Req() req: AuthRequest,
+    @Param('id') id: string,
+    @Body() body: UpdateFinalApplicationDto,
+  ) {
+    return this.applicationService.updateFinal(req, id, body);
   }
 }

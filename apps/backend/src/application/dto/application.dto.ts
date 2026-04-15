@@ -167,3 +167,26 @@ export class UpdateApplicationDto {
   @IsNotEmpty()
   scopeStatus?: string;
 }
+
+export class UpdateFinalApplicationDto {
+  @ApiProperty({ enum: ['approve', 'reject'] })
+  @IsEnum(['approve', 'reject'])
+  action!: 'approve' | 'reject';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  comment?: string;
+
+  @IsNotEmpty()
+  @IsString()
+  audit1: string;
+
+  @IsNotEmpty()
+  @IsString()
+  audit2: string;
+
+  @IsNotEmpty()
+  @IsString()
+  iaf_code: string;
+}

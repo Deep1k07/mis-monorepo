@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@400;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 794px;
+      height: 1123px;
+      font-family: 'Open Sans', Arial, sans-serif;
+      position: relative;
+      overflow: hidden;
+      color: #1a1a2e;
+    }
+
+    .certificate-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 794px;
+      height: 1123px;
+      z-index: -1;
+    }
+
+    .draft-watermark {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-35deg);
+      font-size: 20px;
+      font-weight: 650;
+      color: rgba(0, 80, 180, 0.18);
+      white-space: nowrap;
+      z-index: 10;
+      pointer-events: none;
+      letter-spacing: 2px;
+      font-style: italic;
+    }
+
+    .annexure-header {
+      position: absolute;
+      top: 210px;
+      left: 80px;
+      right: 80px;
+      text-align: center;
+    }
+
+    .annexure-title {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 25px;
+      font-weight: 650;
+      color: #1a1a2e;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    .annexure-subtitle {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 13px;
+      color: #444;
+      margin-bottom: 4px;
+    }
+
+    .annexure-entity {
+      font-family: 'Libre Baskerville', Georgia, serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+
+    .annexure-cert-number {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 12px;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .scope-heading {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a2e;
+      text-align: center;
+      margin-top: 24px;
+      margin-bottom: 10px;
+    }
+
+    .scope-area {
+      position: absolute;
+      top: 380px;
+      bottom: 120px;
+      left: 80px;
+      right: 80px;
+      overflow: hidden;
+    }
+
+    .scope-text {
+      font-family: 'Open Sans', Arial, sans-serif;
+      font-size: {{SCOPE_FONT_SIZE}};
+      font-weight: 500;
+      color: #1a1a2e;
+      text-align: justify;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+  <img class="certificate-bg" src="{{BACKGROUND_IMAGE}}" />
+
+  {{WATERMARK}}
+
+  <div class="annexure-header">
+    <p class="annexure-title">Annexure I</p>
+    <p class="annexure-subtitle">to the Certificate of Registration</p>
+    <p class="annexure-entity">{{ENTITY_NAME}}</p>
+    /* <p class="annexure-cert-number">Certificate No: {{CERTIFICATE_NUMBER}}</p> */
+    <p class="scope-heading">Scope of Certification</p>
+  </div>
+
+  <div class="scope-area">
+    <p class="scope-text">{{SCOPE}}</p>
+  </div>
+</body>
+
+</html>

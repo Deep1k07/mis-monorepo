@@ -88,6 +88,32 @@ export const createColumns = (
     },
   },
   {
+    accessorKey: "entity_name_english",
+    header: "Name (English)",
+    cell: ({ row }) => {
+      const name = row.getValue("entity_name_english") as string | undefined;
+      if (!name) return <span className="text-muted-foreground">-</span>;
+      return (
+        <span className="block max-w-[200px] truncate" title={name}>
+          {name}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "entity_trading_name",
+    header: "Trading Name",
+    cell: ({ row }) => {
+      const name = row.getValue("entity_trading_name") as string | undefined;
+      if (!name) return <span className="text-muted-foreground">-</span>;
+      return (
+        <span className="block max-w-[200px] truncate" title={name}>
+          {name}
+        </span>
+      );
+    },
+  },
+  {
     accessorKey: "email",
     header: "Email",
   },
@@ -144,6 +170,55 @@ export const createColumns = (
     },
   },
   {
+    accessorKey: "website",
+    header: "Website",
+    cell: ({ row }) => {
+      const url = row.getValue("website") as string | undefined;
+      if (!url) return <span className="text-muted-foreground">-</span>;
+      return (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline max-w-[200px] truncate block"
+          title={url}
+        >
+          {url}
+        </a>
+      );
+    },
+  },
+  {
+    accessorKey: "direct_price",
+    header: "Price",
+    cell: ({ row }) => {
+      const price = row.getValue("direct_price") as string | undefined;
+      if (!price) return <span className="text-muted-foreground">-</span>;
+      return <span>{price}</span>;
+    },
+  },
+  {
+    accessorKey: "employess_count",
+    header: "Employees",
+    cell: ({ row }) => {
+      const count = row.getValue("employess_count") as string | undefined;
+      if (!count) return <span className="text-muted-foreground">-</span>;
+      return <span>{count}</span>;
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
+      return (
+        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize bg-gray-50 text-gray-700 ring-1 ring-inset ring-gray-600/20">
+          {status}
+        </span>
+      );
+    },
+  },
+  {
     accessorKey: "createdAt",
     header: "Created At",
     cell: ({ row }) => {
@@ -158,6 +233,7 @@ export const createColumns = (
   {
     id: "actions",
     header: "",
+    enableHiding: false,
     cell: ({ row }) => {
       const entity = row.original;
       return (
@@ -172,3 +248,19 @@ export const createColumns = (
     },
   },
 ];
+
+export const defaultEntityColumnVisibility: Record<string, boolean> = {
+  entity_id: true,
+  entity_name: true,
+  entity_name_english: false,
+  entity_trading_name: false,
+  email: true,
+  isEntityEmailVerifiedStatus: true,
+  isDirectClient: true,
+  business_associate: true,
+  website: false,
+  direct_price: false,
+  employess_count: false,
+  status: false,
+  createdAt: true,
+};

@@ -12,6 +12,7 @@ import {
   Users,
   FileText,
   Shield,
+  Send,
 } from "lucide-react";
 import {
   Dialog,
@@ -128,6 +129,7 @@ export function ApplicationViewClient() {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [toggling, setToggling] = useState(false);
 
   const {
     application: app,
@@ -172,6 +174,30 @@ export function ApplicationViewClient() {
       toast.error("Something went wrong");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleToggleBaManagerStatus = async () => {
+    setToggling(true);
+    try {
+      const res = await apiFetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/application/request-final/${params.id}`,
+        { method: "PATCH" },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        toast.success(
+          `Status updated to "${data.baManagerStatus}"`,
+        );
+        mutate();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Failed to update status");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setToggling(false);
     }
   };
 
@@ -253,6 +279,19 @@ export function ApplicationViewClient() {
               <Pencil className="h-4 w-4 mr-2" />
               Edit Application
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleBaManagerStatus}
+              disabled={toggling}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              {toggling
+                ? "Applying..."
+                : app.baManagerStatus === "final"
+                  ? "Cancel Applied"
+                  : "Apply for Final"}
+            </Button>
           </div>
         </div>
 
@@ -266,11 +305,8 @@ export function ApplicationViewClient() {
               label="Certificate Status"
               value={app.certificateStatus}
             />
-            <StatusBadge label="Quality Status" value={app.qualityStatus} />
-            <StatusBadge label="BA Status" value={app.baStatus} />
             <StatusBadge label="Manual Status" value={app.manualStatus} />
-            <StatusBadge label="Severity" value={app.severity} />
-            <StatusBadge label="Risk" value={app.risk} />
+            <StatusBadge label="Final Certificate Requested" value={app.baManagerStatus === 'final' ? 'Requested' : 'Not Requested'} />
           </div>
         </div>
 
@@ -400,26 +436,26 @@ export function ApplicationViewClient() {
           app.certificate_manager ||
           app.finance_manager ||
           app.appliedBy) && (
-          <div>
-            <h4 className="text-sm font-semibold mb-3">Assigned People</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <PersonInfo label="Scope Manager" person={app.scope_manager} />
-              <PersonInfo
-                label="Quality Manager"
-                person={app.quality_manager}
-              />
-              <PersonInfo
-                label="Certificate Manager"
-                person={app.certificate_manager}
-              />
-              <PersonInfo
-                label="Finance Manager"
-                person={app.finance_manager}
-              />
-              <PersonInfo label="Applied By" person={app.appliedBy} />
+            <div>
+              <h4 className="text-sm font-semibold mb-3">Assigned People</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <PersonInfo label="Scope Manager" person={app.scope_manager} />
+                <PersonInfo
+                  label="Quality Manager"
+                  person={app.quality_manager}
+                />
+                <PersonInfo
+                  label="Certificate Manager"
+                  person={app.certificate_manager}
+                />
+                <PersonInfo
+                  label="Finance Manager"
+                  person={app.finance_manager}
+                />
+                <PersonInfo label="Applied By" person={app.appliedBy} />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Main Address */}
         {mainAddress && (

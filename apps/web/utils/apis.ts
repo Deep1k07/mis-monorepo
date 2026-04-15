@@ -71,10 +71,14 @@ export function useApplications(
   page: number,
   search?: string,
   cabCode?: string,
+  ba?: string,
+  country?: string,
 ) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
   if (cabCode) params.set("cabCode", cabCode);
+  if (ba) params.set("ba", ba);
+  if (country) params.set("country", country);
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/application?${params}`,
   );
@@ -111,9 +115,14 @@ export function useDraftApplications(
 }
 
 // get final applications (quality review)
-export function useFinalApplications(page: number, search?: string) {
+export function useFinalApplications(
+  page: number,
+  search?: string,
+  qualityStatus?: string,
+) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
+  if (qualityStatus) params.set("qualityStatus", qualityStatus);
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/application/final?${params}`,
   );

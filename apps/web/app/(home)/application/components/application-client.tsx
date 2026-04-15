@@ -3,8 +3,13 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table";
-import { createColumns } from "./columns";
-import { useApplications, useAllCabsList } from "@/utils/apis";
+import { createColumns, defaultApplicationColumnVisibility } from "./columns";
+import {
+  useApplications,
+  useAllCabsList,
+  useAllBa,
+  useCountries,
+} from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
 import { useQueryParams } from "@/utils/useQueryParams";
 import {
@@ -14,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/searchable-select";
 
 export function ApplicationClient() {
   const router = useRouter();
@@ -23,8 +29,12 @@ export function ApplicationClient() {
   const searchInput = get("search");
   const search = useDebounce(searchInput);
   const cabCode = get("cabCode");
+  const baFilter = get("ba");
+  const countryFilter = get("country");
 
   const { cabs } = useAllCabsList();
+  const { bams } = useAllBa();
+  const { countries } = useCountries();
 
   const handleSearchChange = (value: string) => {
     set({ search: value, page: 1 });
@@ -36,6 +46,14 @@ export function ApplicationClient() {
 
   const handleCabCodeChange = (value: string | null) => {
     set({ cabCode: value === "all" ? "" : (value ?? ""), page: 1 });
+  };
+
+  const handleBaChange = (value: string | null) => {
+    set({ ba: !value || value === "all" ? undefined : value, page: 1 });
+  };
+
+  const handleCountryChange = (value: string | null) => {
+    set({ country: !value || value === "all" ? undefined : value, page: 1 });
   };
 
   const columns = useMemo(
@@ -51,7 +69,13 @@ export function ApplicationClient() {
     totalPages,
     total,
     isLoading: loading,
-  } = useApplications(page, search, cabCode || undefined);
+  } = useApplications(
+    page,
+    search,
+    cabCode || undefined,
+    baFilter || undefined,
+    countryFilter || undefined,
+  );
 
   return (
     <>
@@ -70,20 +94,50 @@ export function ApplicationClient() {
           searchValue={searchInput}
           onSearchChange={handleSearchChange}
           filterSlot={
-            <Select value={cabCode || null} onValueChange={handleCabCodeChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="CAB Code" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                {cabs.map((cab: any) => (
-                  <SelectItem key={cab._id} value={cab.cabCode}>
-                    {cab.cabCode}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={cabCode || null}
+                onValueChange={handleCabCodeChange}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="CAB Code" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {cabs.map((cab: any) => (
+                    <SelectItem key={cab._id} value={cab.cabCode}>
+                      {cab.cabCode}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <SearchableSelect
+                value={baFilter}
+                onChange={handleBaChange}
+                options={
+                  bams?.map((b) => ({ value: b._id, label: b.username })) ?? []
+                }
+                placeholder="Business Associate"
+                searchPlaceholder="Search BA..."
+                allLabel="All Business Associates"
+                triggerClassName="w-[240px]"
+              />
+              <SearchableSelect
+                value={countryFilter}
+                onChange={handleCountryChange}
+                options={
+                  countries?.map((c) => ({ value: c.code, label: c.name })) ??
+                  []
+                }
+                placeholder="Country"
+                searchPlaceholder="Search country..."
+                allLabel="All Countries"
+                triggerClassName="w-[200px]"
+              />
+            </div>
           }
+          initialColumnVisibility={defaultApplicationColumnVisibility}
+          storageKey="application-list-columns"
         />
       )}
     </>

@@ -6,14 +6,26 @@ import {
   ApplicationDocument,
 } from '../application/schema/application.schema';
 import { Entity } from '../entity/schema/entity.schema';
+import {
+  CertificationStandard,
+  CertificationStandardDocument,
+} from '../certificationbody/schema/certificationStandards.schema';
+import {
+  CertificateType,
+  generateCertificateNumber,
+} from './utils/generate-certificate-number';
 import * as puppeteer from 'puppeteer';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
+type CertificateMode = 'draft' | 'final';
 
 @Injectable()
 export class CertificateService {
   private readonly logger = new Logger(CertificateService.name);
-  private readonly templatePath: string;
+  private readonly draftTemplatePath: string;
+  private readonly finalTemplatePath: string;
+  private readonly annexureTemplatePath: string;
   private readonly outputDir: string;
 
   constructor(
@@ -21,11 +33,15 @@ export class CertificateService {
     private readonly applicationModel: Model<ApplicationDocument>,
     @InjectModel(Entity.name)
     private readonly entityModel: Model<Entity>, // needed for module registration
+    @InjectModel(CertificationStandard.name)
+    private readonly certificationStandardModel: Model<CertificationStandardDocument>,
   ) {
-    this.templatePath = path.resolve(
+    this.draftTemplatePath = path.resolve(__dirname, 'templates', 'draft.html');
+    this.finalTemplatePath = path.resolve(__dirname, 'templates', 'final.html');
+    this.annexureTemplatePath = path.resolve(
       __dirname,
       'templates',
-      'draft.html',
+      'annexure.html',
     );
     this.outputDir = path.resolve(process.cwd(), 'generated-certificates');
     if (!fs.existsSync(this.outputDir)) {
@@ -48,19 +64,34 @@ export class CertificateService {
       throw new NotFoundException('Entity not found for this application');
     }
 
-    const html = this.buildCertificateHtml(application, entity);
-    const pdfBuffer = await this.generatePdfFromHtml(html);
-
+    const mainHtml = this.buildCertificateHtml(application, entity, 'draft');
     const fileName = `draft-certificate-${applicationId}-${Date.now()}.pdf`;
     const filePath = path.join(this.outputDir, fileName);
-    fs.writeFileSync(filePath, pdfBuffer);
 
-    this.logger.log(
-      `Draft certificate generated for application ${applicationId}: ${filePath}`,
-    );
+    // Render the main certificate and (if annexure is enabled) the annexure
+    // PDF in parallel — each launches its own Chromium instance, so running
+    // them concurrently roughly halves wall-clock time.
+    const [, annexurePath] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
+        fs.writeFileSync(filePath, pdfBuffer);
+        this.logger.log(
+          `Draft certificate generated for application ${applicationId}: ${filePath}`,
+        );
+      }),
+      application.annexure
+        ? this.generateAnnexurePdf(application, entity, 'draft', applicationId)
+        : Promise.resolve(''),
+    ]);
 
     const version = String(
       (application.draftCertificate?.length || 0) + 1,
+    );
+
+    // Mark every existing draft inactive before pushing the new active one
+    // so only the most recently generated draft has status: 'active'.
+    await this.applicationModel.updateOne(
+      { _id: applicationId, 'draftCertificate.0': { $exists: true } },
+      { $set: { 'draftCertificate.$[].status': 'inactive' } },
     );
 
     await this.applicationModel.findByIdAndUpdate(applicationId, {
@@ -74,7 +105,7 @@ export class CertificateService {
               s3DraftPdfxUrl: filePath,
               s3DraftDocxUrl: '',
               s3DraftAnnexureDocxUrl: '',
-              s3DraftAnnexurePdfxUrl: '',
+              s3DraftAnnexurePdfxUrl: annexurePath,
             },
           },
         },
@@ -84,8 +115,143 @@ export class CertificateService {
     return filePath;
   }
 
-  private buildCertificateHtml(application: any, entity: any): string {
-    let template = fs.readFileSync(this.templatePath, 'utf-8');
+  async generateFinalCertificate(applicationId: string): Promise<string> {
+    const application = await this.applicationModel
+      .findById(applicationId)
+      .populate('entity')
+      .exec();
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    const entity = application.entity as any;
+    if (!entity) {
+      throw new NotFoundException('Entity not found for this application');
+    }
+
+    const primaryStandard = application.standards?.[0];
+    if (!primaryStandard) {
+      throw new NotFoundException(
+        'Application has no standards; cannot generate certificate number',
+      );
+    }
+
+    const standardDoc = await this.certificationStandardModel
+      .findOne({ standardCode: primaryStandard.code })
+      .lean();
+    const mssCode = standardDoc?.mssCode || '';
+    if (!mssCode) {
+      this.logger.warn(
+        `mssCode not found for standardCode "${primaryStandard.code}"; certificate number will omit it`,
+      );
+    }
+
+    const country = entity.main_site_address?.[0]?.country;
+    const computed = generateCertificateNumber(
+      {
+        entity_id: entity.entity_id,
+        cab_code: application.cab_code,
+        type: application.type as CertificateType,
+        valid_until: application.valid_until,
+        newCertificateNo: application.certificate_number || undefined,
+      },
+      country,
+      mssCode,
+    );
+
+    // Persist the computed certificate metadata onto the application so it
+    // renders in lists and stays available for subsequent regenerations.
+    await this.applicationModel.updateOne(
+      { _id: applicationId },
+      {
+        $set: {
+          certificate_number: computed.certificationNumber,
+          initial_issue: application.initial_issue || computed.curr_date,
+          current_issue: computed.curr_date,
+          valid_until: computed.expiryDate,
+          first_surveillance: computed.firstSurvalance,
+          second_surveillance: computed.secondSurvalance,
+          recertification_due: computed.rec,
+          issue_no: application.issue_no || '01',
+          revision_no: application.revision_no || '00',
+          finalCreatedAt: application.finalCreatedAt || new Date(),
+          finalUpdatedAt: new Date(),
+        },
+      },
+    );
+
+    // Re-read so the rendered HTML reflects the persisted values.
+    const updatedApplication = await this.applicationModel
+      .findById(applicationId)
+      .populate('entity')
+      .exec();
+    const updatedEntity = updatedApplication!.entity as any;
+
+    const mainHtml = this.buildCertificateHtml(
+      updatedApplication,
+      updatedEntity,
+      'final',
+    );
+    const fileName = `final-certificate-${applicationId}-${Date.now()}.pdf`;
+    const filePath = path.join(this.outputDir, fileName);
+
+    const [, annexurePath] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
+        fs.writeFileSync(filePath, pdfBuffer);
+        this.logger.log(
+          `Final certificate generated for application ${applicationId}: ${filePath}`,
+        );
+      }),
+      updatedApplication!.annexure
+        ? this.generateAnnexurePdf(
+            updatedApplication,
+            updatedEntity,
+            'final',
+            applicationId,
+          )
+        : Promise.resolve(''),
+    ]);
+
+    const version = String(
+      (updatedApplication!.finalCertificate?.length || 0) + 1,
+    );
+
+    // Mark every existing final certificate inactive before pushing the new one.
+    await this.applicationModel.updateOne(
+      { _id: applicationId, 'finalCertificate.0': { $exists: true } },
+      { $set: { 'finalCertificate.$[].status': 'inactive' } },
+    );
+
+    await this.applicationModel.findByIdAndUpdate(applicationId, {
+      $push: {
+        finalCertificate: {
+          version,
+          status: 'active',
+          type: 'normal',
+          languages: {
+            [updatedApplication!.primary_certificate_language || 'en']: {
+              s3CertificatePdfxUrl: filePath,
+              s3CertificateDocxUrl: '',
+              s3CertificateAnnexureDocxUrl: '',
+              s3CertificateAnnexurePdfxUrl: annexurePath,
+            },
+          },
+        },
+      },
+    });
+
+    return filePath;
+  }
+
+  private buildCertificateHtml(
+    application: any,
+    entity: any,
+    mode: CertificateMode,
+  ): string {
+    const templatePath =
+      mode === 'final' ? this.finalTemplatePath : this.draftTemplatePath;
+    let template = fs.readFileSync(templatePath, 'utf-8');
 
     // Pick background image based on cab_code (e.g. TCU.png, TSI.png, GAU.png, GAI.png)
     const cabCode = (application.cab_code || '').toUpperCase();
@@ -140,22 +306,28 @@ export class CertificateService {
       application.standards || [],
     );
 
-    // Scope
-    const scope = application.scope || '';
+    // Scope — when annexure is true, the main certificate shows "Annexure 1"
+    // and the real scope text is rendered in the separate annexure PDF.
+    const scope = application.annexure
+      ? 'Annexure 1'
+      : application.scope || '';
 
-    // Draft certificate: show XXXXXXXXXX for all table values
-    // except IAF code and revision no which may have real values
+    // Draft: show XXXXXXXXXX for table values that aren't assigned yet.
+    // Final: fill every cell with the real persisted value.
     const placeholder = 'XXXXXXXXXX';
-    const certificateNumber = placeholder;
-    const initialIssue = placeholder;
-    const currentIssue = placeholder;
-    const validUntil = placeholder;
-    const firstSurveillance = placeholder;
-    const secondSurveillance = placeholder;
-    const recertificationDue = placeholder;
-    const revisionNo = application.revision_no || placeholder;
-    const issueNo = placeholder;
-    const iafCode = application.iaf_code || placeholder;
+    const orPlaceholder = (value: string | undefined): string =>
+      mode === 'final' ? (value ?? '') : value || placeholder;
+
+    const certificateNumber = orPlaceholder(application.certificate_number);
+    const initialIssue = orPlaceholder(application.initial_issue);
+    const currentIssue = orPlaceholder(application.current_issue);
+    const validUntil = orPlaceholder(application.valid_until);
+    const firstSurveillance = orPlaceholder(application.first_surveillance);
+    const secondSurveillance = orPlaceholder(application.second_surveillance);
+    const recertificationDue = orPlaceholder(application.recertification_due);
+    const revisionNo = application.revision_no || (mode === 'final' ? '' : placeholder);
+    const issueNo = orPlaceholder(application.issue_no);
+    const iafCode = application.iaf_code || (mode === 'final' ? '' : placeholder);
 
     // Bottom section
     const audit1 = application.audit1 || '';
@@ -240,6 +412,82 @@ export class CertificateService {
       '{{AUDITOR_LEADER_NAME}}',
       this.escapeHtml(auditorLeaderName),
     );
+
+    return template;
+  }
+
+  private async generateAnnexurePdf(
+    application: any,
+    entity: any,
+    mode: CertificateMode,
+    applicationId: string,
+  ): Promise<string> {
+    const html = this.buildAnnexureHtml(application, entity, mode);
+    const pdfBuffer = await this.generatePdfFromHtml(html);
+
+    const prefix = mode === 'final' ? 'final' : 'draft';
+    const fileName = `${prefix}-annexure-${applicationId}-${Date.now()}.pdf`;
+    const filePath = path.join(this.outputDir, fileName);
+    fs.writeFileSync(filePath, pdfBuffer);
+
+    this.logger.log(
+      `${mode === 'final' ? 'Final' : 'Draft'} annexure generated for application ${applicationId}: ${filePath}`,
+    );
+
+    return filePath;
+  }
+
+  private buildAnnexureHtml(
+    application: any,
+    entity: any,
+    mode: CertificateMode,
+  ): string {
+    let template = fs.readFileSync(this.annexureTemplatePath, 'utf-8');
+
+    const annexureBgPath = path.resolve(
+      process.cwd(),
+      'src',
+      'certificate',
+      'templates',
+      'darft',
+      'Annexure.png',
+    );
+    let backgroundImage = '';
+    if (fs.existsSync(annexureBgPath)) {
+      const bgBuffer = fs.readFileSync(annexureBgPath);
+      backgroundImage = `data:image/png;base64,${bgBuffer.toString('base64')}`;
+    } else {
+      this.logger.warn(
+        `Annexure background image not found at ${annexureBgPath}`,
+      );
+    }
+
+    const scope = application.scope || '';
+    const entityName = entity.entity_name || '';
+    const certificateNumber =
+      mode === 'final' ? (application.certificate_number ?? '') : 'XXXXXXXXXX';
+
+    const scopeFontSize = this.calcFontSize(scope.length, {
+      max: 16,
+      min: 10,
+      shrinkAfter: 500,
+      charsPerStep: 300,
+      stepSize: 1,
+    });
+    const watermark =
+      mode === 'draft'
+        ? '<div class="draft-watermark">Draft copy must be returned within 15 days</div>'
+        : '';
+
+    template = template.replace('{{BACKGROUND_IMAGE}}', backgroundImage);
+    template = template.replace('{{WATERMARK}}', watermark);
+    template = template.replace('{{ENTITY_NAME}}', this.escapeHtml(entityName));
+    template = template.replace(
+      '{{CERTIFICATE_NUMBER}}',
+      this.escapeHtml(certificateNumber),
+    );
+    template = template.replace('{{SCOPE_FONT_SIZE}}', `${scopeFontSize}px`);
+    template = template.replace('{{SCOPE}}', this.escapeHtml(scope));
 
     return template;
   }

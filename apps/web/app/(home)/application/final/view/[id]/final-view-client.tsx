@@ -6,6 +6,7 @@ import { ArrowLeft, Copy, MapPin, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useApplicationById } from "@/utils/apis";
 import { useAuthStore } from "@/store/auth-store";
@@ -33,9 +34,15 @@ export function FinalViewClient() {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [commentInitialized, setCommentInitialized] = useState(false);
+  const [audit1, setAudit1] = useState("");
+  const [audit2, setAudit2] = useState("");
+  const [iafCode, setIafCode] = useState("");
 
   if (app && !commentInitialized) {
     setComment(app.quality_comment || "");
+    setAudit1(app.audit1 || "");
+    setAudit2(app.audit2 || "");
+    setIafCode(app.iaf_code || "");
     setCommentInitialized(true);
   }
 
@@ -43,9 +50,11 @@ export function FinalViewClient() {
     app?.qualityStatus === "completed" ||
     app?.certificateStatus === "completed";
 
+  const fieldsEditable = app?.qualityStatus === "pending";
+
   const handleAction = async (action: "approve" | "reject") => {
     if (action === "reject" && !comment.trim()) {
-      toast.error("Comment is required for rejection");
+      toast.error("Cannot reject without a comment");
       return;
     }
 
@@ -54,6 +63,11 @@ export function FinalViewClient() {
       const res = await updateFinalApplication(params.id as string, {
         action,
         comment,
+        ...(action === "approve" && {
+          audit1,
+          audit2,
+          iaf_code: iafCode,
+        }),
       });
       if (res.ok) {
         toast.success(
@@ -182,28 +196,48 @@ export function FinalViewClient() {
             <span className="text-xs text-muted-foreground">CAB Code</span>
             <span className="text-sm font-mono">{app.cab_code || "-"}</span>
           </div>
-          {app.iaf_code && (
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">IAF Code</span>
-              <span className="text-sm">{app.iaf_code}</span>
-            </div>
-          )}
-          {app.audit1 && (
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">
-                Stage-1 Man-day
-              </span>
-              <span className="text-sm">{app.audit1}</span>
-            </div>
-          )}
-          {app.audit2 && (
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">
-                Stage-2 Man-day
-              </span>
-              <span className="text-sm">{app.audit2}</span>
-            </div>
-          )}
+          <div className="flex flex-col gap-1">
+            <Label
+              htmlFor="iaf-code"
+              className="text-xs text-muted-foreground font-normal"
+            >
+              IAF Code
+            </Label>
+            <Input
+              id="iaf-code"
+              value={iafCode}
+              onChange={(e) => setIafCode(e.target.value)}
+              disabled={!fieldsEditable}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label
+              htmlFor="audit1"
+              className="text-xs text-muted-foreground font-normal"
+            >
+              Stage-1 Man-day
+            </Label>
+            <Input
+              id="audit1"
+              value={audit1}
+              onChange={(e) => setAudit1(e.target.value)}
+              disabled={!fieldsEditable}
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <Label
+              htmlFor="audit2"
+              className="text-xs text-muted-foreground font-normal"
+            >
+              Stage-2 Man-day
+            </Label>
+            <Input
+              id="audit2"
+              value={audit2}
+              onChange={(e) => setAudit2(e.target.value)}
+              disabled={!fieldsEditable}
+            />
+          </div>
           {app.drive_link && (
             <div className="flex flex-col gap-1">
               <span className="text-xs text-muted-foreground">Drive Link</span>
