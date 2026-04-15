@@ -150,12 +150,14 @@ export function DraftViewClient() {
   }
 
   const entity = app.entity;
-  const mainAddress = entity?.main_site_address?.[0];
-  const showBa = entity && !entity.isDirectClient;
-  const baName =
-    typeof entity?.business_associate === "object"
-      ? entity?.business_associate?.username
-      : entity?.business_associate;
+  const entityName = app.entity_name || entity?.entity_name || "";
+  const entityIdStr = app.entity_id || entity?.entity_id || "";
+  const mainAddress = app.main_site_address?.[0] ?? entity?.main_site_address?.[0];
+  const additionalAddresses =
+    app.additional_site_address ?? entity?.additional_site_address ?? [];
+  const showBa = !entity?.isDirectClient;
+  const ba = app.business_associate ?? entity?.business_associate;
+  const baName = typeof ba === "object" ? ba?.username : ba;
 
   return (
     <div className="space-y-6">
@@ -170,14 +172,12 @@ export function DraftViewClient() {
         </Button>
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">
-            {entity?.entity_name || "-"}
+            {entityName || "-"}
           </h2>
           <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-            <span className="font-mono">{entity?.entity_id || "-"}</span>
+            <span className="font-mono">{entityIdStr || "-"}</span>
             <button
-              onClick={() =>
-                navigator.clipboard.writeText(entity?.entity_id || "")
-              }
+              onClick={() => navigator.clipboard.writeText(entityIdStr)}
               className="hover:text-foreground transition-colors"
               title="Copy Entity ID"
             >
@@ -210,13 +210,11 @@ export function DraftViewClient() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Entity Name</span>
-            <span className="text-sm">{entity?.entity_name || "-"}</span>
+            <span className="text-sm">{entityName || "-"}</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Entity ID</span>
-            <span className="text-sm font-mono">
-              {entity?.entity_id || "-"}
-            </span>
+            <span className="text-sm font-mono">{entityIdStr || "-"}</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">CAB Code</span>
@@ -259,14 +257,35 @@ export function DraftViewClient() {
       )}
 
       {/* Additional Sites */}
-      {entity?.additional_site_address &&
-        entity.additional_site_address.length > 0 && (
+      {additionalAddresses.length > 0 && (
+        <div>
+          <h4 className="text-sm font-semibold mb-3">
+            Additional Sites ({additionalAddresses.length})
+          </h4>
+          <div className="space-y-2">
+            {additionalAddresses.map((addr: any, i: number) => (
+              <div
+                key={i}
+                className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg"
+              >
+                <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                <span className="text-sm">{formatAddress(addr)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Additional Address (Other Language) */}
+      {app.additional_address_multiple &&
+        app.additional_address_multiple.length > 0 && (
           <div>
             <h4 className="text-sm font-semibold mb-3">
-              Additional Sites ({entity.additional_site_address.length})
+              Additional Address (Other Language) (
+              {app.additional_address_multiple.length})
             </h4>
             <div className="space-y-2">
-              {entity.additional_site_address.map((addr: any, i: number) => (
+              {app.additional_address_multiple.map((addr: any, i: number) => (
                 <div
                   key={i}
                   className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg"
@@ -313,6 +332,20 @@ export function DraftViewClient() {
           disabled={isLocked}
         />
       </div>
+
+      {/* Additional Scope (read-only, Other Language) */}
+      {app.additional_scope && (
+        <div>
+          <h4 className="text-sm font-semibold mb-3">
+            Additional Scope (Other Language)
+          </h4>
+          <Textarea
+            value={app.additional_scope}
+            rows={3}
+            disabled
+          />
+        </div>
+      )}
 
       <Separator />
 

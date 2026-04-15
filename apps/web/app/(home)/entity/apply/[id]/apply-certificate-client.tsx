@@ -7,11 +7,11 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import {
   ArrowLeft,
-  Plus,
-  Trash2,
   ChevronDown,
   ChevronUp,
   MapPin,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import {
   Form,
@@ -72,6 +72,7 @@ const applicationSchema = z
     additional_scope: z.string().optional(),
     apply_other_language: z.boolean().default(false),
     additional_site_address: z.array(addressSchema).optional(),
+    additional_address_multiple: z.array(addressSchema).optional(),
   })
   .superRefine((data, ctx) => {
     const scopeLimit = data.annexure ? 3000 : 1250;
@@ -105,12 +106,12 @@ const applicationSchema = z
         });
       }
       if (
-        !data.additional_site_address ||
-        data.additional_site_address.length === 0
+        !data.additional_address_multiple ||
+        data.additional_address_multiple.length === 0
       ) {
         ctx.addIssue({
           code: "custom",
-          path: ["additional_site_address"],
+          path: ["additional_address_multiple"],
           message: "At least one additional address is required",
         });
       }
@@ -166,6 +167,7 @@ export function ApplyCertificateClient() {
       additional_scope: "",
       apply_other_language: false,
       additional_site_address: [],
+      additional_address_multiple: [],
     },
   });
 
@@ -175,8 +177,39 @@ export function ApplyCertificateClient() {
     remove: removeAddress,
   } = useFieldArray({
     control: form.control,
-    name: "additional_site_address",
+    name: "additional_address_multiple",
   });
+
+  const selectedAdditionalAddresses =
+    form.watch("additional_site_address") ?? [];
+
+  const addressKey = (addr: {
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postal_code?: string;
+  }) =>
+    [addr.street, addr.city, addr.state, addr.country, addr.postal_code]
+      .map((v) => v ?? "")
+      .join("|");
+
+  const toggleAdditionalAddress = (addr: any) => {
+    const normalized = {
+      street: addr.street ?? "",
+      city: addr.city ?? "",
+      state: addr.state ?? "",
+      country: addr.country ?? "",
+      postal_code: addr.postal_code ?? "",
+    };
+    const key = addressKey(normalized);
+    const current = selectedAdditionalAddresses;
+    const exists = current.some((a) => addressKey(a) === key);
+    const next = exists
+      ? current.filter((a) => addressKey(a) !== key)
+      : [...current, normalized];
+    form.setValue("additional_site_address", next, { shouldValidate: true });
+  };
 
   const toggleOtherLanguage = () => {
     const next = !showOtherLanguage;
@@ -187,7 +220,7 @@ export function ApplyCertificateClient() {
         "secondary_entity_name",
         "secondary_certificate_language",
         "additional_scope",
-        "additional_site_address",
+        "additional_address_multiple",
       ]);
     }
   };
@@ -263,10 +296,7 @@ export function ApplyCertificateClient() {
       primary_certificate_language: data.primary_certificate_language,
       drive_link: data.drive_link || "",
       scope: data.scope,
-      // business_associate:
-      //   typeof entity.business_associate === "object"
-      //     ? entity.business_associate?._id
-      //     : entity.business_associate,
+      additional_site_address: data.additional_site_address ?? [],
     };
 
     if (showOtherLanguage) {
@@ -274,7 +304,8 @@ export function ApplyCertificateClient() {
       payload.secondary_certificate_language =
         data.secondary_certificate_language || "";
       payload.additional_scope = data.additional_scope || "";
-      payload.additional_site_address = data.additional_site_address || [];
+      payload.additional_address_multiple =
+        data.additional_address_multiple ?? [];
     }
 
     try {
@@ -810,36 +841,64 @@ export function ApplyCertificateClient() {
               }}
             />
 
-            {/* Additional Site Addresses from entity */}
-            {entity.additional_site_address &&
-              entity.additional_site_address.length > 0 && (
-                <div className="space-y-2">
-                  <FormLabel>Additional Site Addresses (from Entity)</FormLabel>
-                  <div className="space-y-1.5">
-                    {entity.additional_site_address.map(
-                      (addr: any, i: number) => (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2 p-2.5 bg-muted/40 rounded-md text-sm"
-                        >
-                          <span className="text-muted-foreground">
-                            {[
-                              addr.street,
-                              addr.city,
-                              addr.state,
-                              addr.postal_code,
-                              addr.country,
-                            ]
-                              .filter(Boolean)
-                              .join(", ")}
-                          </span>
-                        </div>
-                      ),
-                    )}
-                  </div>
-                </div>
-              )}
           </SectionCard>
+
+          {/* Additional Site Addresses picker (optional) */}
+          {entity.additional_site_address &&
+            entity.additional_site_address.length > 0 && (
+              <SectionCard title="Additional Site Addresses (optional)">
+                <p className="text-xs text-muted-foreground">
+                  Select additional sites from this entity to include in the
+                  application.
+                </p>
+                <div className="space-y-1.5">
+                  {entity.additional_site_address.map(
+                    (addr: any, i: number) => {
+                      const key = addressKey({
+                        street: addr.street ?? "",
+                        city: addr.city ?? "",
+                        state: addr.state ?? "",
+                        country: addr.country ?? "",
+                        postal_code: addr.postal_code ?? "",
+                      });
+                      const isSelected = selectedAdditionalAddresses.some(
+                        (a) => addressKey(a) === key,
+                      );
+                      return (
+                        <label
+                          key={i}
+                          className={`flex items-start gap-3 p-2.5 rounded-md cursor-pointer border text-sm transition-colors ${
+                            isSelected
+                              ? "bg-primary/5 border-primary/30"
+                              : "bg-muted/40 border-transparent hover:bg-muted/60"
+                          }`}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleAdditionalAddress(addr)}
+                            className="mt-0.5"
+                          />
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                            <span>
+                              {[
+                                addr.street,
+                                addr.city,
+                                addr.state,
+                                addr.postal_code,
+                                addr.country,
+                              ]
+                                .filter(Boolean)
+                                .join(", ")}
+                            </span>
+                          </div>
+                        </label>
+                      );
+                    },
+                  )}
+                </div>
+              </SectionCard>
+            )}
 
           {/* Other Language Section */}
           <div className="rounded-lg border bg-card">
@@ -847,8 +906,9 @@ export function ApplyCertificateClient() {
               type="button"
               className="flex items-center justify-between w-full p-5 cursor-pointer"
               onClick={() => {
+                const wasClosed = !showOtherLanguage;
                 toggleOtherLanguage();
-                if (!showOtherLanguage && otherLangAddresses.length === 0) {
+                if (wasClosed && otherLangAddresses.length === 0) {
                   appendAddress({
                     street: "",
                     city: "",
@@ -952,11 +1012,11 @@ export function ApplyCertificateClient() {
                         Additional Address (Other Language){" "}
                         <span className="text-destructive">*</span>
                       </h4>
-                      {form.formState.errors.additional_site_address
+                      {form.formState.errors.additional_address_multiple
                         ?.message && (
                         <p className="text-sm text-destructive mt-1">
                           {
-                            form.formState.errors.additional_site_address
+                            form.formState.errors.additional_address_multiple
                               .message as string
                           }
                         </p>
@@ -998,7 +1058,7 @@ export function ApplyCertificateClient() {
 
                       <FormField
                         control={form.control}
-                        name={`additional_site_address.${index}.street`}
+                        name={`additional_address_multiple.${index}.street`}
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Street Address</FormLabel>
@@ -1012,7 +1072,7 @@ export function ApplyCertificateClient() {
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
-                          name={`additional_site_address.${index}.city`}
+                          name={`additional_address_multiple.${index}.city`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>City</FormLabel>
@@ -1024,7 +1084,7 @@ export function ApplyCertificateClient() {
                         />
                         <FormField
                           control={form.control}
-                          name={`additional_site_address.${index}.state`}
+                          name={`additional_address_multiple.${index}.state`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>State</FormLabel>
@@ -1036,7 +1096,7 @@ export function ApplyCertificateClient() {
                         />
                         <FormField
                           control={form.control}
-                          name={`additional_site_address.${index}.country`}
+                          name={`additional_address_multiple.${index}.country`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Country</FormLabel>
@@ -1070,7 +1130,7 @@ export function ApplyCertificateClient() {
                         />
                         <FormField
                           control={form.control}
-                          name={`additional_site_address.${index}.postal_code`}
+                          name={`additional_address_multiple.${index}.postal_code`}
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Postal Code</FormLabel>

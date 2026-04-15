@@ -5,13 +5,11 @@ import { Eye } from "lucide-react";
 
 export type FinalApplicationDef = {
   _id: string;
-  entity?: {
-    _id: string;
-    entity_id: string;
-    entity_name: string;
-    isDirectClient?: boolean;
-    business_associate?: { _id: string; username: string } | string;
-  };
+  entity?: string;
+  entity_id?: string;
+  entity_name?: string;
+  isDirectClient?: boolean;
+  business_associate?: { _id: string; username: string } | string;
   cab_code: string;
   standards?: { code: string; name: string }[];
   scope: string;
@@ -47,13 +45,13 @@ export const createFinalColumns = (
   {
     id: "entity_id",
     header: "Entity ID",
-    cell: ({ row }) => <span>{row.original.entity?.entity_id ?? "-"}</span>,
+    cell: ({ row }) => <span>{row.original.entity_id ?? "-"}</span>,
   },
   {
     id: "entity_name",
     header: "Entity Name",
     cell: ({ row }) => {
-      const name = row.original.entity?.entity_name ?? "-";
+      const name = row.original.entity_name ?? "-";
       return (
         <span className="block max-w-[200px] truncate" title={name}>
           {name}
@@ -69,10 +67,9 @@ export const createFinalColumns = (
     id: "business_associate",
     header: "BA Name",
     cell: ({ row }) => {
-      const entity = row.original.entity;
-      if (entity?.isDirectClient)
+      if (row.original.isDirectClient)
         return <span className="text-muted-foreground">Direct Client</span>;
-      const ba = entity?.business_associate;
+      const ba = row.original.business_associate;
       if (!ba) return <span className="text-muted-foreground">-</span>;
       return <span>{typeof ba === "object" ? ba.username : ba}</span>;
     },

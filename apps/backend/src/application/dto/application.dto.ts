@@ -134,6 +134,13 @@ export class CreateApplicationDto {
   @ValidateNested({ each: true })
   @Type(() => AddressDto)
   additional_site_address?: AddressDto[];
+
+  @ApiPropertyOptional({ type: [AddressDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AddressDto)
+  additional_address_multiple?: AddressDto[];
 }
 
 export class UpdateApplicationDto {

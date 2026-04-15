@@ -136,6 +136,13 @@ export class ApplicationService {
       ...data,
       user: user?.userId,
       appliedBy: user?.userId,
+      business_associate: entity.business_associate,
+      entity_id: entity.entity_id,
+      entity_name: entity.entity_name,
+      entity_name_english: entity.entity_name_english,
+      entity_trading_name: entity.entity_trading_name,
+      main_site_address: entity.main_site_address,
+      additional_site_address: data.additional_site_address ?? [],
     };
 
     const createdApplication = await this.applicationModel.create(payload);
@@ -163,11 +170,11 @@ export class ApplicationService {
     }
 
     if (ba && Types.ObjectId.isValid(ba)) {
-      filter['entity.business_associate'] = new Types.ObjectId(ba);
+      filter.business_associate = new Types.ObjectId(ba);
     }
 
     if (country) {
-      filter['entity.main_site_address.0.country'] = country;
+      filter['main_site_address.0.country'] = country;
     }
 
     if (search) {
@@ -176,8 +183,8 @@ export class ApplicationService {
         ...(filter.$and || []),
         {
           $or: [
-            { 'entity.entity_name': regex },
-            { 'entity.entity_id': regex },
+            { entity_name: regex },
+            { entity_id: regex },
             { cab_code: regex },
             { 'standards.code': regex },
           ],
@@ -188,15 +195,6 @@ export class ApplicationService {
     const skip = (page - 1) * limit;
 
     const pipeline: any[] = [
-      {
-        $lookup: {
-          from: 'entities',
-          localField: 'entity',
-          foreignField: '_id',
-          as: 'entity',
-        },
-      },
-      { $unwind: { path: '$entity', preserveNullAndEmptyArrays: true } },
       { $match: filter },
       { $sort: { createdAt: -1 as const } },
     ];
@@ -209,14 +207,14 @@ export class ApplicationService {
         {
           $lookup: {
             from: 'users',
-            localField: 'entity.business_associate',
+            localField: 'business_associate',
             foreignField: '_id',
-            as: 'entity.business_associate',
+            as: 'business_associate',
           },
         },
         {
           $unwind: {
-            path: '$entity.business_associate',
+            path: '$business_associate',
             preserveNullAndEmptyArrays: true,
           },
         },
@@ -229,7 +227,6 @@ export class ApplicationService {
             scopeStatus: 1,
             baStatus: 1,
             createdAt: 1,
-            email: 1,
             audit1: 1,
             audit2: 1,
             initial_issue: 1,
@@ -238,11 +235,11 @@ export class ApplicationService {
             valid_until: 1,
             first_surveillance: 1,
             second_surveillance: 1,
-            'entity._id': 1,
-            'entity.entity_id': 1,
-            'entity.entity_name': 1,
-            'entity.business_associate._id': 1,
-            'entity.business_associate.username': 1,
+            entity: 1,
+            entity_id: 1,
+            entity_name: 1,
+            'business_associate._id': 1,
+            'business_associate.username': 1,
           },
         },
       ]),
@@ -286,34 +283,19 @@ export class ApplicationService {
     const pipeline: any[] = [
       {
         $match: {
-          ...filter
+          ...filter,
+          ...(search
+            ? {
+                $or: [
+                  { entity_name: new RegExp(escapeRegex(search), 'i') },
+                  { entity_id: new RegExp(escapeRegex(search), 'i') },
+                  { cab_code: new RegExp(escapeRegex(search), 'i') },
+                  { 'standards.code': new RegExp(escapeRegex(search), 'i') },
+                ],
+              }
+            : {}),
         },
       },
-      {
-        $lookup: {
-          from: 'entities',
-          localField: 'entity',
-          foreignField: '_id',
-          as: 'entity',
-        },
-      },
-      { $unwind: { path: '$entity', preserveNullAndEmptyArrays: true } },
-      ...(search
-        ? [
-          {
-            $match: {
-              $or: [
-                {
-                  'entity.entity_name': new RegExp(escapeRegex(search), 'i'),
-                },
-                { 'entity.entity_id': new RegExp(escapeRegex(search), 'i') },
-                { cab_code: new RegExp(escapeRegex(search), 'i') },
-                { 'standards.code': new RegExp(escapeRegex(search), 'i') },
-              ],
-            },
-          },
-        ]
-        : []),
       { $sort: { createdAt: -1 as const } },
     ];
 
@@ -325,17 +307,26 @@ export class ApplicationService {
         {
           $lookup: {
             from: 'users',
-            localField: 'entity.business_associate',
+            localField: 'business_associate',
             foreignField: '_id',
-            as: 'entity.business_associate',
+            as: 'business_associate',
           },
         },
         {
           $unwind: {
-            path: '$entity.business_associate',
+            path: '$business_associate',
             preserveNullAndEmptyArrays: true,
           },
         },
+        {
+          $lookup: {
+            from: 'entities',
+            localField: 'entity',
+            foreignField: '_id',
+            as: 'entityRef',
+          },
+        },
+        { $unwind: { path: '$entityRef', preserveNullAndEmptyArrays: true } },
         {
           $project: {
             cab_code: 1,
@@ -347,12 +338,12 @@ export class ApplicationService {
             audit2: 1,
             iaf_code: 1,
             createdAt: 1,
-            'entity._id': 1,
-            'entity.entity_id': 1,
-            'entity.entity_name': 1,
-            'entity.isDirectClient': 1,
-            'entity.business_associate._id': 1,
-            'entity.business_associate.username': 1,
+            entity: 1,
+            entity_id: 1,
+            entity_name: 1,
+            isDirectClient: '$entityRef.isDirectClient',
+            'business_associate._id': 1,
+            'business_associate.username': 1,
           },
         },
       ]),
@@ -423,12 +414,9 @@ export class ApplicationService {
       .populate({
         path: 'entity',
         select:
-          'entity_id entity_name entity_name_english entity_trading_name business_associate email website employess_count main_site_address additional_site_address isDirectClient',
-        populate: {
-          path: 'business_associate',
-          select: 'username email',
-        },
+          'email website employess_count isDirectClient',
       })
+      .populate('business_associate', 'username email')
       .populate('appliedBy', 'firstName lastName email')
       .exec();
 
@@ -512,33 +500,18 @@ export class ApplicationService {
         $match: {
           ...filter,
           scopeStatus: 'completed',
+          ...(search
+            ? {
+                $or: [
+                  { entity_name: new RegExp(escapeRegex(search), 'i') },
+                  { entity_id: new RegExp(escapeRegex(search), 'i') },
+                  { cab_code: new RegExp(escapeRegex(search), 'i') },
+                  { 'standards.code': new RegExp(escapeRegex(search), 'i') },
+                ],
+              }
+            : {}),
         },
       },
-      {
-        $lookup: {
-          from: 'entities',
-          localField: 'entity',
-          foreignField: '_id',
-          as: 'entity',
-        },
-      },
-      { $unwind: { path: '$entity', preserveNullAndEmptyArrays: true } },
-      ...(search
-        ? [
-          {
-            $match: {
-              $or: [
-                {
-                  'entity.entity_name': new RegExp(escapeRegex(search), 'i'),
-                },
-                { 'entity.entity_id': new RegExp(escapeRegex(search), 'i') },
-                { cab_code: new RegExp(escapeRegex(search), 'i') },
-                { 'standards.code': new RegExp(escapeRegex(search), 'i') },
-              ],
-            },
-          },
-        ]
-        : []),
       { $sort: { createdAt: -1 as const } },
     ];
 
@@ -550,17 +523,26 @@ export class ApplicationService {
         {
           $lookup: {
             from: 'users',
-            localField: 'entity.business_associate',
+            localField: 'business_associate',
             foreignField: '_id',
-            as: 'entity.business_associate',
+            as: 'business_associate',
           },
         },
         {
           $unwind: {
-            path: '$entity.business_associate',
+            path: '$business_associate',
             preserveNullAndEmptyArrays: true,
           },
         },
+        {
+          $lookup: {
+            from: 'entities',
+            localField: 'entity',
+            foreignField: '_id',
+            as: 'entityRef',
+          },
+        },
+        { $unwind: { path: '$entityRef', preserveNullAndEmptyArrays: true } },
         {
           $project: {
             cab_code: 1,
@@ -573,12 +555,12 @@ export class ApplicationService {
             audit2: 1,
             iaf_code: 1,
             createdAt: 1,
-            'entity._id': 1,
-            'entity.entity_id': 1,
-            'entity.entity_name': 1,
-            'entity.isDirectClient': 1,
-            'entity.business_associate._id': 1,
-            'entity.business_associate.username': 1,
+            entity: 1,
+            entity_id: 1,
+            entity_name: 1,
+            isDirectClient: '$entityRef.isDirectClient',
+            'business_associate._id': 1,
+            'business_associate.username': 1,
           },
         },
       ]),
