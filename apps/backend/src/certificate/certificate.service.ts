@@ -147,10 +147,12 @@ export class CertificateService {
       );
     }
 
-    const country = entity.main_site_address?.[0]?.country;
+    const country =
+      application.main_site_address?.[0]?.country ??
+      entity.main_site_address?.[0]?.country;
     const computed = generateCertificateNumber(
       {
-        entity_id: entity.entity_id,
+        entity_id: application.entity_id || entity.entity_id,
         cab_code: application.cab_code,
         type: application.type as CertificateType,
         valid_until: application.valid_until,
@@ -286,14 +288,16 @@ export class CertificateService {
     }
 
     // Entity Name
-    const entityName = entity.entity_name || '';
+    const entityName = application.entity_name || entity?.entity_name || '';
 
     // Main Site Address
-    const mainAddress = this.formatAddress(entity.main_site_address?.[0]);
+    const mainAddress = this.formatAddress(
+      application.main_site_address?.[0] ?? entity?.main_site_address?.[0],
+    );
 
     // Additional Site Addresses
     const additionalAddressesHtml = this.buildAdditionalAddressesSection(
-      entity.additional_site_address,
+      application.additional_site_address ?? entity?.additional_site_address,
     );
 
     // Standard names for the certify text (e.g. "Quality Management System")
@@ -463,7 +467,7 @@ export class CertificateService {
     }
 
     const scope = application.scope || '';
-    const entityName = entity.entity_name || '';
+    const entityName = application.entity_name || entity?.entity_name || '';
     const certificateNumber =
       mode === 'final' ? (application.certificate_number ?? '') : 'XXXXXXXXXX';
 

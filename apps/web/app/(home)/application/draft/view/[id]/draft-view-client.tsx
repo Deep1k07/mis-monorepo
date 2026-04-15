@@ -276,6 +276,28 @@ export function DraftViewClient() {
         </div>
       )}
 
+      {/* Additional Address (Other Language) */}
+      {app.additional_address_multiple &&
+        app.additional_address_multiple.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold mb-3">
+              Additional Address (Other Language) (
+              {app.additional_address_multiple.length})
+            </h4>
+            <div className="space-y-2">
+              {app.additional_address_multiple.map((addr: any, i: number) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg"
+                >
+                  <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                  <span className="text-sm">{formatAddress(addr)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       {/* Standards */}
       {app.standards && app.standards.length > 0 && (
         <div>
@@ -310,6 +332,20 @@ export function DraftViewClient() {
           disabled={isLocked}
         />
       </div>
+
+      {/* Additional Scope (read-only, Other Language) */}
+      {app.additional_scope && (
+        <div>
+          <h4 className="text-sm font-semibold mb-3">
+            Additional Scope (Other Language)
+          </h4>
+          <Textarea
+            value={app.additional_scope}
+            rows={3}
+            disabled
+          />
+        </div>
+      )}
 
       <Separator />
 
