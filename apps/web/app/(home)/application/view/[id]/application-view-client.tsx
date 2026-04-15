@@ -223,11 +223,13 @@ export function ApplicationViewClient() {
 
   const entity = app.entity;
   const baName =
-    typeof entity?.business_associate === "object"
-      ? entity?.business_associate?.username
-      : entity?.business_associate;
+    typeof app.business_associate === "object"
+      ? app.business_associate?.username
+      : app.business_associate;
 
-  const mainAddress = entity?.main_site_address?.[0];
+  const mainAddress = app.main_site_address?.[0] ?? entity?.main_site_address?.[0];
+  const additionalAddresses =
+    app.additional_site_address ?? entity?.additional_site_address ?? [];
 
   return (
     <>
@@ -244,13 +246,17 @@ export function ApplicationViewClient() {
             </Button>
             <div className="space-y-1">
               <h2 className="text-2xl font-bold tracking-tight">
-                {entity?.entity_name || "-"}
+                {app.entity_name || entity?.entity_name || "-"}
               </h2>
               <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
-                <span className="font-mono">{entity?.entity_id || "-"}</span>
+                <span className="font-mono">
+                  {app.entity_id || entity?.entity_id || "-"}
+                </span>
                 <button
                   onClick={() =>
-                    navigator.clipboard.writeText(entity?.entity_id || "")
+                    navigator.clipboard.writeText(
+                      app.entity_id || entity?.entity_id || "",
+                    )
                   }
                   className="hover:text-foreground transition-colors"
                   title="Copy Entity ID"
@@ -326,7 +332,7 @@ export function ApplicationViewClient() {
                 English Name
               </span>
               <span className="text-sm">
-                {entity?.entity_name_english || "-"}
+                {app.entity_name_english || entity?.entity_name_english || "-"}
               </span>
             </div>
             <div className="flex flex-col gap-1">
@@ -334,7 +340,7 @@ export function ApplicationViewClient() {
                 Trading Name
               </span>
               <span className="text-sm">
-                {entity?.entity_trading_name || "-"}
+                {app.entity_trading_name || entity?.entity_trading_name || "-"}
               </span>
             </div>
             {baName && (
@@ -469,25 +475,24 @@ export function ApplicationViewClient() {
         )}
 
         {/* Additional Addresses */}
-        {entity?.additional_site_address &&
-          entity.additional_site_address.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold mb-3">
-                Additional Sites ({entity.additional_site_address.length})
-              </h4>
-              <div className="space-y-2">
-                {entity.additional_site_address.map((addr: any, i: number) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg"
-                  >
-                    <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                    <span className="text-sm">{formatAddress(addr)}</span>
-                  </div>
-                ))}
-              </div>
+        {additionalAddresses.length > 0 && (
+          <div>
+            <h4 className="text-sm font-semibold mb-3">
+              Additional Sites ({additionalAddresses.length})
+            </h4>
+            <div className="space-y-2">
+              {additionalAddresses.map((addr: any, i: number) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg"
+                >
+                  <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                  <span className="text-sm">{formatAddress(addr)}</span>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
       </div>
 
       {/* Edit Dialog */}

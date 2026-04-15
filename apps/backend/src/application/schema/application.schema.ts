@@ -4,33 +4,33 @@ import mongoose, { HydratedDocument, Types } from 'mongoose';
 export type ApplicationDocument = HydratedDocument<Application>;
 
 export enum certificateStatusEnum {
-  'proceed',
-  'completed',
-  'hold',
-  'withdrawn',
-  'suspended',
-  'active',
-  'expired',
-  'lapsed',
-  'anulled',
-  'inactive',
-  'cancelled',
-  'hidden',
-  'terminate',
+  proceed = 'proceed',
+  completed = 'completed',
+  hold = 'hold',
+  withdrawn = 'withdrawn',
+  suspended = 'suspended',
+  active = 'active',
+  expired = 'expired',
+  lapsed = 'lapsed',
+  anulled = 'anulled',
+  inactive = 'inactive',
+  cancelled = 'cancelled',
+  hidden = 'hidden',
+  terminate = 'terminate',
 }
 
 export enum scopeStatusEnum {
-  'pending',
-  'rejected',
-  'transfer',
-  'completed',
+  pending = 'pending',
+  rejected = 'rejected',
+  transfer = 'transfer',
+  completed = 'completed',
 }
 
 export enum qualityStatusEnum {
-  'pending',
-  'rejected',
-  'proceed',
-  'completed',
+  pending = 'pending',
+  rejected = 'rejected',
+  proceed = 'proceed',
+  completed = 'completed',
 }
 
 @Schema({ _id: false })
