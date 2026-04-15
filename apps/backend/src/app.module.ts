@@ -16,6 +16,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { CertificationbodyModule } from './certificationbody/certificationbody.module';
 import { UserModule } from './user/user.module';
 import { CertificateModule } from './certificate/certificate.module';
+import { SurveillanceModule } from './surveillance/surveillance.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { CertificateModule } from './certificate/certificate.module';
     CertificationbodyModule,
     UserModule,
     CertificateModule,
+    SurveillanceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
