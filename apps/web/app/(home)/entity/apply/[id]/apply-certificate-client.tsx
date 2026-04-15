@@ -74,6 +74,14 @@ const applicationSchema = z
     additional_site_address: z.array(addressSchema).optional(),
   })
   .superRefine((data, ctx) => {
+    const scopeLimit = data.annexure ? 3000 : 1250;
+    if (data.scope && data.scope.length > scopeLimit) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["scope"],
+        message: `Scope cannot exceed ${scopeLimit} characters`,
+      });
+    }
     if (data.apply_other_language) {
       if (!data.secondary_entity_name) {
         ctx.addIssue({
@@ -268,8 +276,6 @@ export function ApplyCertificateClient() {
       payload.additional_scope = data.additional_scope || "";
       payload.additional_site_address = data.additional_site_address || [];
     }
-
-    console.log(payload);
 
     try {
       const res = await createApplication(payload);
@@ -782,23 +788,26 @@ export function ApplyCertificateClient() {
             <FormField
               control={form.control}
               name="scope"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Scope</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Enter scope details..."
-                      maxLength={1250}
-                      className="min-h-24"
-                      {...field}
-                    />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground text-right">
-                    {field.value?.length || 0}/1250
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const scopeLimit = form.watch("annexure") ? 3000 : 1250;
+                return (
+                  <FormItem>
+                    <FormLabel>Scope</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Enter scope details..."
+                        maxLength={scopeLimit}
+                        className="min-h-24"
+                        {...field}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground text-right">
+                      {field.value?.length || 0}/{scopeLimit}
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             {/* Additional Site Addresses from entity */}

@@ -25,6 +25,7 @@ export class CertificateService {
   private readonly logger = new Logger(CertificateService.name);
   private readonly draftTemplatePath: string;
   private readonly finalTemplatePath: string;
+  private readonly annexureTemplatePath: string;
   private readonly outputDir: string;
 
   constructor(
@@ -37,6 +38,11 @@ export class CertificateService {
   ) {
     this.draftTemplatePath = path.resolve(__dirname, 'templates', 'draft.html');
     this.finalTemplatePath = path.resolve(__dirname, 'templates', 'final.html');
+    this.annexureTemplatePath = path.resolve(
+      __dirname,
+      'templates',
+      'annexure.html',
+    );
     this.outputDir = path.resolve(process.cwd(), 'generated-certificates');
     if (!fs.existsSync(this.outputDir)) {
       fs.mkdirSync(this.outputDir, { recursive: true });
@@ -58,16 +64,24 @@ export class CertificateService {
       throw new NotFoundException('Entity not found for this application');
     }
 
-    const html = this.buildCertificateHtml(application, entity, 'draft');
-    const pdfBuffer = await this.generatePdfFromHtml(html);
-
+    const mainHtml = this.buildCertificateHtml(application, entity, 'draft');
     const fileName = `draft-certificate-${applicationId}-${Date.now()}.pdf`;
     const filePath = path.join(this.outputDir, fileName);
-    fs.writeFileSync(filePath, pdfBuffer);
 
-    this.logger.log(
-      `Draft certificate generated for application ${applicationId}: ${filePath}`,
-    );
+    // Render the main certificate and (if annexure is enabled) the annexure
+    // PDF in parallel — each launches its own Chromium instance, so running
+    // them concurrently roughly halves wall-clock time.
+    const [, annexurePath] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
+        fs.writeFileSync(filePath, pdfBuffer);
+        this.logger.log(
+          `Draft certificate generated for application ${applicationId}: ${filePath}`,
+        );
+      }),
+      application.annexure
+        ? this.generateAnnexurePdf(application, entity, 'draft', applicationId)
+        : Promise.resolve(''),
+    ]);
 
     const version = String(
       (application.draftCertificate?.length || 0) + 1,
@@ -91,7 +105,7 @@ export class CertificateService {
               s3DraftPdfxUrl: filePath,
               s3DraftDocxUrl: '',
               s3DraftAnnexureDocxUrl: '',
-              s3DraftAnnexurePdfxUrl: '',
+              s3DraftAnnexurePdfxUrl: annexurePath,
             },
           },
         },
@@ -174,20 +188,30 @@ export class CertificateService {
       .exec();
     const updatedEntity = updatedApplication!.entity as any;
 
-    const html = this.buildCertificateHtml(
+    const mainHtml = this.buildCertificateHtml(
       updatedApplication,
       updatedEntity,
       'final',
     );
-    const pdfBuffer = await this.generatePdfFromHtml(html);
-
     const fileName = `final-certificate-${applicationId}-${Date.now()}.pdf`;
     const filePath = path.join(this.outputDir, fileName);
-    fs.writeFileSync(filePath, pdfBuffer);
 
-    this.logger.log(
-      `Final certificate generated for application ${applicationId}: ${filePath}`,
-    );
+    const [, annexurePath] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
+        fs.writeFileSync(filePath, pdfBuffer);
+        this.logger.log(
+          `Final certificate generated for application ${applicationId}: ${filePath}`,
+        );
+      }),
+      updatedApplication!.annexure
+        ? this.generateAnnexurePdf(
+            updatedApplication,
+            updatedEntity,
+            'final',
+            applicationId,
+          )
+        : Promise.resolve(''),
+    ]);
 
     const version = String(
       (updatedApplication!.finalCertificate?.length || 0) + 1,
@@ -210,7 +234,7 @@ export class CertificateService {
               s3CertificatePdfxUrl: filePath,
               s3CertificateDocxUrl: '',
               s3CertificateAnnexureDocxUrl: '',
-              s3CertificateAnnexurePdfxUrl: '',
+              s3CertificateAnnexurePdfxUrl: annexurePath,
             },
           },
         },
@@ -282,8 +306,11 @@ export class CertificateService {
       application.standards || [],
     );
 
-    // Scope
-    const scope = application.scope || '';
+    // Scope — when annexure is true, the main certificate shows "Annexure 1"
+    // and the real scope text is rendered in the separate annexure PDF.
+    const scope = application.annexure
+      ? 'Annexure 1'
+      : application.scope || '';
 
     // Draft: show XXXXXXXXXX for table values that aren't assigned yet.
     // Final: fill every cell with the real persisted value.
@@ -385,6 +412,82 @@ export class CertificateService {
       '{{AUDITOR_LEADER_NAME}}',
       this.escapeHtml(auditorLeaderName),
     );
+
+    return template;
+  }
+
+  private async generateAnnexurePdf(
+    application: any,
+    entity: any,
+    mode: CertificateMode,
+    applicationId: string,
+  ): Promise<string> {
+    const html = this.buildAnnexureHtml(application, entity, mode);
+    const pdfBuffer = await this.generatePdfFromHtml(html);
+
+    const prefix = mode === 'final' ? 'final' : 'draft';
+    const fileName = `${prefix}-annexure-${applicationId}-${Date.now()}.pdf`;
+    const filePath = path.join(this.outputDir, fileName);
+    fs.writeFileSync(filePath, pdfBuffer);
+
+    this.logger.log(
+      `${mode === 'final' ? 'Final' : 'Draft'} annexure generated for application ${applicationId}: ${filePath}`,
+    );
+
+    return filePath;
+  }
+
+  private buildAnnexureHtml(
+    application: any,
+    entity: any,
+    mode: CertificateMode,
+  ): string {
+    let template = fs.readFileSync(this.annexureTemplatePath, 'utf-8');
+
+    const annexureBgPath = path.resolve(
+      process.cwd(),
+      'src',
+      'certificate',
+      'templates',
+      'darft',
+      'Annexure.png',
+    );
+    let backgroundImage = '';
+    if (fs.existsSync(annexureBgPath)) {
+      const bgBuffer = fs.readFileSync(annexureBgPath);
+      backgroundImage = `data:image/png;base64,${bgBuffer.toString('base64')}`;
+    } else {
+      this.logger.warn(
+        `Annexure background image not found at ${annexureBgPath}`,
+      );
+    }
+
+    const scope = application.scope || '';
+    const entityName = entity.entity_name || '';
+    const certificateNumber =
+      mode === 'final' ? (application.certificate_number ?? '') : 'XXXXXXXXXX';
+
+    const scopeFontSize = this.calcFontSize(scope.length, {
+      max: 16,
+      min: 10,
+      shrinkAfter: 500,
+      charsPerStep: 300,
+      stepSize: 1,
+    });
+    const watermark =
+      mode === 'draft'
+        ? '<div class="draft-watermark">Draft copy must be returned within 15 days</div>'
+        : '';
+
+    template = template.replace('{{BACKGROUND_IMAGE}}', backgroundImage);
+    template = template.replace('{{WATERMARK}}', watermark);
+    template = template.replace('{{ENTITY_NAME}}', this.escapeHtml(entityName));
+    template = template.replace(
+      '{{CERTIFICATE_NUMBER}}',
+      this.escapeHtml(certificateNumber),
+    );
+    template = template.replace('{{SCOPE_FONT_SIZE}}', `${scopeFontSize}px`);
+    template = template.replace('{{SCOPE}}', this.escapeHtml(scope));
 
     return template;
   }
