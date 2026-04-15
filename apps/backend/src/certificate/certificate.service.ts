@@ -15,8 +15,8 @@ import {
   generateCertificateNumber,
 } from './utils/generate-certificate-number';
 import * as puppeteer from 'puppeteer';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 type CertificateMode = 'draft' | 'final';
 
