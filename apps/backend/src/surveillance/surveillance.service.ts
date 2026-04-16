@@ -60,7 +60,7 @@ export class SurveillanceService {
     const dueDateField = this.getDueDateField(type);
 
     const filter: any = {};
-    if (!user.permissions.includes('surveillance:read:applied')) {
+    if (!user.permissions.includes('surveillance:read:all')) {
       filter.user = new Types.ObjectId(user.userId);
       // filter.Surveillancestatus = {
       //   $in: ['upcoming', 'pending', 'suspended', 'withdrawn'],
@@ -118,6 +118,10 @@ export class SurveillanceService {
             cab_code: 1,
             standards: 1,
             Surveillancestatus: 1,
+            scopeStatus: 1,
+            qualityStatus: 1,
+            certificate_number: 1,
+            old_certificate_number: 1,
             survApplied: 1,
             application_id: 1,
             createdAt: 1,

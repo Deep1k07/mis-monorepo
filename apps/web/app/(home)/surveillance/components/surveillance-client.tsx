@@ -19,7 +19,10 @@ import {
 import { useDebounce } from "@/utils/useDebounce";
 import { useQueryParams } from "@/utils/useQueryParams";
 import { SearchableSelect } from "@/components/searchable-select";
-import { createSurveillanceColumns } from "./columns";
+import {
+  createSurveillanceColumns,
+  defaultSurveillanceColumnVisibility,
+} from "./columns";
 
 type SurveillanceType = "first" | "second";
 
@@ -138,6 +141,8 @@ function SurveillanceTable({ type }: { type: SurveillanceType }) {
               />
             </div>
           }
+          initialColumnVisibility={defaultSurveillanceColumnVisibility}
+          storageKey={`surveillance-${type}-list-columns`}
         />
       )}
     </>

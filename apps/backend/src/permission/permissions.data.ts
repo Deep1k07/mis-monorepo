@@ -127,6 +127,13 @@ export const defaultPermissions = [
     type: PermissionType.DEFAULT,
   },
   {
+    name: 'surveillance:read:all',
+    description: 'Can view all surveillance records',
+    category: 'Surveillance',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
     name: 'surveillance:apply',
     description: 'Can apply for surveillance',
     category: 'Surveillance',
