@@ -173,9 +173,13 @@ export function SurveillanceViewClient() {
   const surveillanceStatus = app.Surveillancestatus ?? "upcoming";
   const applyDisabled =
     applying ||
-    ["pending", "inprogress", "completed", "suspended", "withdrawn"].includes(
-      surveillanceStatus,
-    );
+    [
+      // "pending",
+      // "inprogress",
+      "completed",
+      // "suspended",
+      // "withdrawn",
+    ].includes(surveillanceStatus);
   const canApply = hasPermission("surveillance:apply");
 
   return (

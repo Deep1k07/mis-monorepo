@@ -64,9 +64,10 @@ export class SurveillanceController {
   @ApiOperation({ summary: 'Apply for surveillance' })
   @ApiResponse({ status: 200, description: 'Surveillance applied' })
   async applySurveillance(
+    @Req() req: AuthRequest,
     @Param('type') type: SurveillanceType,
     @Param('id') id: string,
   ) {
-    return this.surveillanceService.applySurveillance(type, id);
+    return this.surveillanceService.applySurveillance(req, type, id);
   }
 }

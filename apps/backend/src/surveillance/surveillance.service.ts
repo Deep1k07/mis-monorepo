@@ -54,8 +54,11 @@ export class SurveillanceService {
     const dueDateField = this.getDueDateField(type);
 
     const filter: any = {};
-    if (!user.permissions.includes('application:read:all')) {
+    if (!user.permissions.includes('surveillance:read:applied')) {
       filter.user = new Types.ObjectId(user.userId);
+      // filter.Surveillancestatus = {
+      //   $in: ['upcoming', 'pending', 'suspended', 'withdrawn'],
+      // };
     }
     if (status) {
       filter.Surveillancestatus = status;
@@ -163,7 +166,8 @@ export class SurveillanceService {
     return surveillance;
   }
 
-  async applySurveillance(type: SurveillanceType, id: string) {
+  async applySurveillance(req: AuthRequest, type: SurveillanceType, id: string) {
+    const user = req.user;
     const model = this.getModel(type);
     const surveillance = await model.findById(id);
     if (!surveillance) {
@@ -186,8 +190,9 @@ export class SurveillanceService {
         id,
         {
           $set: {
-            Surveillancestatus: SurveillanceStatusEnum.pending,
-            survApplied: new Date(),
+            Surveillancestatus: SurveillanceStatusEnum.inprogress,
+            appliedBy: new Types.ObjectId(user?.userId),
+            survApplied: new Date(Date.now()),
           },
         },
         { returnDocument: 'after' },
