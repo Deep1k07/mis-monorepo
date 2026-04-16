@@ -149,6 +149,45 @@ export function useApplicationById(id: string | undefined) {
   };
 }
 
+// get surveillance list
+export function useSurveillanceList(
+  type: "first" | "second",
+  page: number,
+  search?: string,
+  status?: string,
+) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
+  if (status) params.set("status", status);
+  const { data, error, isLoading } = useSWR(
+    `${BASE_URL}/surveillance/${type}?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    currentPage: data?.page ?? page,
+    isLoading,
+    isError: error,
+  };
+}
+
+// get surveillance by id
+export function useSurveillanceById(
+  type: "first" | "second" | undefined,
+  id: string | undefined,
+) {
+  const { data, error, isLoading, mutate } = useSWR(
+    type && id ? `${BASE_URL}/surveillance/${type}/${id}` : null,
+  );
+  return {
+    surveillance: data as any | undefined,
+    isLoading,
+    isError: error,
+    mutate: mutate as () => Promise<any>,
+  };
+}
+
 // get all cabs
 export function useCabs(page: number, search?: string) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });

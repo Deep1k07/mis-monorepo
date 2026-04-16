@@ -91,6 +91,13 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    title: "Surveillance",
+    url: "/surveillance",
+    icon: FileText,
+    isActive: false,
+    permission: ["manage:surveillance"],
+  },
+  {
     title: "Manage CAB & Standard",
     url: "/manage-cab",
     icon: ShieldCheck,

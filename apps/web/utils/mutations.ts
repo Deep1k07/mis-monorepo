@@ -64,6 +64,22 @@ export const updateFinalApplication = async (
   return response;
 };
 
+// ─── Surveillance ───
+
+export const applySurveillance = async (
+  type: "first" | "second",
+  id: string,
+) => {
+  const response = await apiFetch(
+    `${BASE_URL}/surveillance/${type}/${id}/apply`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+  return response;
+};
+
 // ─── BA ───
 
 export const createBa = async (data: any) => {
