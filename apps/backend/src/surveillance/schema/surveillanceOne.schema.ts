@@ -2,8 +2,14 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Types } from 'mongoose';
 import { Application } from '../../application/schema/application.schema';
 
-export enum SurveillanceStatusEnum {'upcoming', 'pending', 'inprogress', 'completed', 'suspended', 'withdrawn'}
-  
+export enum SurveillanceStatusEnum {
+  upcoming = 'upcoming',
+  pending = 'pending',
+  inprogress = 'inprogress',
+  completed = 'completed',
+  suspended = 'suspended',
+  withdrawn = 'withdrawn',
+}
 
 export type SurveillanceOneDocument = HydratedDocument<SurveillanceOne>;
 
