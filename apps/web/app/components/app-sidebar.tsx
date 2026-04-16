@@ -103,6 +103,12 @@ const navItems: NavItem[] = [
         icon: List,
         permission: ["surveillance:read"],
       },
+      {
+        title: "Draft Surveillance",
+        url: "/surveillance/draft",
+        icon: List,
+        permission: ["surveillance:read:draft"],
+      },
     ]
   },
   {

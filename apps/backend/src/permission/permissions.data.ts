@@ -133,6 +133,27 @@ export const defaultPermissions = [
     status: PermissionStatus.ACTIVE,
     type: PermissionType.DEFAULT,
   },
+  {
+    name: 'surveillance:read:draft',
+    description: 'Can view draft surveillance',
+    category: 'Surveillance',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'surveillance:approve',
+    description: 'Can approve draft surveillance',
+    category: 'Surveillance',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'surveillance:reject',
+    description: 'Can reject draft surveillance',
+    category: 'Surveillance',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
 
   // Cab and Standards permissions
   {

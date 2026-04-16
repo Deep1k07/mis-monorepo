@@ -11,6 +11,14 @@ import {
   CertificationStandardDocument,
 } from '../certificationbody/schema/certificationStandards.schema';
 import {
+  SurveillanceOne,
+  SurveillanceOneDocument,
+} from '../surveillance/schema/surveillanceOne.schema';
+import {
+  SurveillanceTwo,
+  SurveillanceTwoDocument,
+} from '../surveillance/schema/surveillanceTwo.schema';
+import {
   CertificateType,
   generateCertificateNumber,
 } from './utils/generate-certificate-number';
@@ -35,6 +43,10 @@ export class CertificateService {
     private readonly entityModel: Model<Entity>, // needed for module registration
     @InjectModel(CertificationStandard.name)
     private readonly certificationStandardModel: Model<CertificationStandardDocument>,
+    @InjectModel(SurveillanceOne.name)
+    private readonly surveillanceOneModel: Model<SurveillanceOneDocument>,
+    @InjectModel(SurveillanceTwo.name)
+    private readonly surveillanceTwoModel: Model<SurveillanceTwoDocument>,
   ) {
     this.draftTemplatePath = path.resolve(__dirname, 'templates', 'draft.html');
     this.finalTemplatePath = path.resolve(__dirname, 'templates', 'final.html');
@@ -102,6 +114,76 @@ export class CertificateService {
           type: 'normal',
           languages: {
             [application.primary_certificate_language || 'en']: {
+              s3DraftPdfxUrl: filePath,
+              s3DraftDocxUrl: '',
+              s3DraftAnnexureDocxUrl: '',
+              s3DraftAnnexurePdfxUrl: annexurePath,
+            },
+          },
+        },
+      },
+    });
+
+    return filePath;
+  }
+
+  async generateSurveillanceDraftCertificate(
+    type: 'first' | 'second',
+    surveillanceId: string,
+  ): Promise<string> {
+    const model: Model<any> =
+      type === 'second' ? this.surveillanceTwoModel : this.surveillanceOneModel;
+
+    const surveillance = await model
+      .findById(surveillanceId)
+      .populate('entity')
+      .exec();
+
+    if (!surveillance) {
+      throw new NotFoundException('Surveillance record not found');
+    }
+
+    const entity = surveillance.entity as any;
+    if (!entity) {
+      throw new NotFoundException('Entity not found for this surveillance');
+    }
+
+    const mainHtml = this.buildCertificateHtml(surveillance, entity, 'draft');
+    const fileName = `draft-surveillance-${type}-${surveillanceId}-${Date.now()}.pdf`;
+    const filePath = path.join(this.outputDir, fileName);
+
+    const [, annexurePath] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
+        fs.writeFileSync(filePath, pdfBuffer);
+        this.logger.log(
+          `Draft surveillance (${type}) certificate generated for ${surveillanceId}: ${filePath}`,
+        );
+      }),
+      surveillance.annexure
+        ? this.generateAnnexurePdf(
+            surveillance,
+            entity,
+            'draft',
+            surveillanceId,
+          )
+        : Promise.resolve(''),
+    ]);
+
+    const version = String((surveillance.draftCertificate?.length || 0) + 1);
+
+    await model.updateOne(
+      { _id: surveillanceId, 'draftCertificate.0': { $exists: true } },
+      { $set: { 'draftCertificate.$[].status': 'inactive' } },
+    );
+
+    await model.findByIdAndUpdate(surveillanceId, {
+      $push: {
+        draftCertificate: {
+          version,
+          status: 'active',
+          type: 'normal',
+          languages: {
+            [surveillance.primary_certificate_language || 'en']: {
               s3DraftPdfxUrl: filePath,
               s3DraftDocxUrl: '',
               s3DraftAnnexureDocxUrl: '',

@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
@@ -19,6 +20,7 @@ import { SurveillanceService } from './surveillance.service';
 import {
   SurveillanceQueryDto,
   SurveillanceType,
+  UpdateSurveillanceDraftDto,
 } from './dto/surveillance.dto';
 
 @ApiTags('Surveillance')
@@ -26,6 +28,40 @@ import {
 @Controller('surveillance')
 export class SurveillanceController {
   constructor(private readonly surveillanceService: SurveillanceService) {}
+
+  @Get('draft/:type')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'List draft (requested) surveillance' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of draft surveillance',
+  })
+  async findDraft(
+    @Req() req: AuthRequest,
+    @Param('type') type: SurveillanceType,
+    @Query() query: SurveillanceQueryDto,
+  ) {
+    return this.surveillanceService.findDraft(
+      req,
+      type,
+      query.page,
+      query.limit,
+      query.search,
+    );
+  }
+
+  @Patch('draft/:type/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Approve or reject a draft surveillance' })
+  @ApiResponse({ status: 200, description: 'Draft surveillance updated' })
+  async updateDraft(
+    @Req() req: AuthRequest,
+    @Param('type') type: SurveillanceType,
+    @Param('id') id: string,
+    @Body() body: UpdateSurveillanceDraftDto,
+  ) {
+    return this.surveillanceService.updateDraft(req, type, id, body);
+  }
 
   @Get(':type')
   @UseGuards(JwtAuthGuard)

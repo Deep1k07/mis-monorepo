@@ -10,6 +10,14 @@ import {
   CertificationStandard,
   CertificationStandardSchema,
 } from '../certificationbody/schema/certificationStandards.schema';
+import {
+  SurveillanceOne,
+  SurveillanceOneSchema,
+} from '../surveillance/schema/surveillanceOne.schema';
+import {
+  SurveillanceTwo,
+  SurveillanceTwoSchema,
+} from '../surveillance/schema/surveillanceTwo.schema';
 import { CertificateEventListener } from './certificate.listener';
 
 @Module({
@@ -18,6 +26,8 @@ import { CertificateEventListener } from './certificate.listener';
       { name: Application.name, schema: ApplicationSchema },
       { name: Entity.name, schema: EntitySchema },
       { name: CertificationStandard.name, schema: CertificationStandardSchema },
+      { name: SurveillanceOne.name, schema: SurveillanceOneSchema },
+      { name: SurveillanceTwo.name, schema: SurveillanceTwoSchema },
     ]),
   ],
   providers: [CertificateService, CertificateEventListener],

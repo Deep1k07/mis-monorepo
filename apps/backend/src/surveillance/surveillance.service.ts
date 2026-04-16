@@ -14,9 +14,14 @@ import {
   SurveillanceTwo,
   SurveillanceTwoDocument,
 } from './schema/surveillanceTwo.schema';
-import { SurveillanceType } from './dto/surveillance.dto';
+import {
+  SurveillanceType,
+  UpdateSurveillanceDraftDto,
+} from './dto/surveillance.dto';
 import { AuthRequest } from 'src/common/interfaces/auth-request.interface';
 import { escapeRegex } from 'src/utils/escapeRegex';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SURVEILLANCE_DRAFT_APPROVED_EVENT } from 'src/certificate/certificate.listener';
 
 @Injectable()
 export class SurveillanceService {
@@ -25,6 +30,7 @@ export class SurveillanceService {
     private readonly surveillanceOneModel: Model<SurveillanceOneDocument>,
     @InjectModel(SurveillanceTwo.name)
     private readonly surveillanceTwoModel: Model<SurveillanceTwoDocument>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   private getModel(type: SurveillanceType) {
@@ -144,6 +150,150 @@ export class SurveillanceService {
     };
   }
 
+  async findDraft(
+    _req: AuthRequest,
+    type: SurveillanceType,
+    page: number = 1,
+    limit: number = 10,
+    search?: string,
+  ) {
+    const model = this.getModel(type);
+    const dueDateField = this.getDueDateField(type);
+
+    const filter: any = {
+      scopeStatus: 'pending',
+      Surveillancestatus: 'inprogress',
+      isBaManagerApproved: true,
+    };
+
+    if (search) {
+      const regex = new RegExp(escapeRegex(search), 'i');
+      filter.$or = [
+        { entity_name: regex },
+        { entity_id: regex },
+        { cab_code: regex },
+        { 'standards.code': regex },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+
+    const pipeline: any[] = [
+      { $match: filter },
+      { $sort: { survApplied: -1 as const } },
+    ];
+
+    const [data, countResult] = await Promise.all([
+      model.aggregate([
+        ...pipeline,
+        { $skip: skip },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'business_associate',
+            foreignField: '_id',
+            as: 'business_associate',
+          },
+        },
+        {
+          $unwind: {
+            path: '$business_associate',
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $lookup: {
+            from: 'entities',
+            localField: 'entity',
+            foreignField: '_id',
+            as: 'entityRef',
+          },
+        },
+        { $unwind: { path: '$entityRef', preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            entity_id: 1,
+            entity_name: 1,
+            cab_code: 1,
+            standards: 1,
+            scope: 1,
+            scopeStatus: 1,
+            Surveillancestatus: 1,
+            survApplied: 1,
+            createdAt: 1,
+            first_surveillance: 1,
+            second_surveillance: 1,
+            due_date: `$${dueDateField}`,
+            isDirectClient: '$entityRef.isDirectClient',
+            'business_associate._id': 1,
+            'business_associate.username': 1,
+          },
+        },
+      ]),
+      model.aggregate([...pipeline, { $count: 'total' }]),
+    ]);
+
+    const total = countResult[0]?.total ?? 0;
+
+    return {
+      data,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async updateDraft(
+    req: AuthRequest,
+    type: SurveillanceType,
+    id: string,
+    data: UpdateSurveillanceDraftDto,
+  ) {
+    const user = req.user;
+    const model = this.getModel(type);
+
+    const existing = await model.findById(id).exec();
+    if (!existing) {
+      throw new NotFoundException('Surveillance record not found');
+    }
+
+    if (existing.scopeStatus === 'completed') {
+      throw new BadRequestException(
+        'Scope is already approved; this surveillance can no longer be edited or re-approved.',
+      );
+    }
+
+    const update: any = {
+      scope_manager: new Types.ObjectId(user.userId),
+    };
+    if (data.scope !== undefined) update.scope = data.scope;
+    if (data.audit1 !== undefined) update.audit1 = data.audit1;
+    if (data.audit2 !== undefined) update.audit2 = data.audit2;
+    if (data.iaf_code !== undefined) update.iaf_code = data.iaf_code;
+    if (data.scope_comment !== undefined)
+      update.scope_comment = data.scope_comment;
+
+    if (data.action === 'approve') {
+      update.scopeStatus = 'completed';
+    } else {
+      update.scopeStatus = 'rejected';
+    }
+
+    const updated = await model
+      .findByIdAndUpdate(id, { $set: update }, { returnDocument: 'after' })
+      .exec();
+
+    if (data.action === 'approve') {
+      this.eventEmitter.emit(SURVEILLANCE_DRAFT_APPROVED_EVENT, {
+        type,
+        surveillanceId: id,
+      });
+    }
+
+    return updated;
+  }
+
   async findById(type: SurveillanceType, id: string) {
     const model = this.getModel(type);
     const surveillance = await model
@@ -193,6 +343,7 @@ export class SurveillanceService {
             Surveillancestatus: SurveillanceStatusEnum.inprogress,
             appliedBy: new Types.ObjectId(user?.userId),
             survApplied: new Date(Date.now()),
+            isBaManagerApproved: true,
           },
         },
         { returnDocument: 'after' },
