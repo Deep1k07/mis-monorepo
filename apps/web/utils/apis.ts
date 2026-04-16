@@ -155,10 +155,14 @@ export function useSurveillanceList(
   page: number,
   search?: string,
   status?: string,
+  cabCode?: string,
+  ba?: string,
 ) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
   if (status) params.set("status", status);
+  if (cabCode) params.set("cabCode", cabCode);
+  if (ba) params.set("ba", ba);
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/surveillance/${type}?${params}`,
   );

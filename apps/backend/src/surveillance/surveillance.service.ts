@@ -46,6 +46,8 @@ export class SurveillanceService {
     limit: number = 10,
     search?: string,
     status?: string,
+    cabCode?: string,
+    ba?: string,
   ) {
     const { user } = req;
     const model = this.getModel(type);
@@ -57,6 +59,12 @@ export class SurveillanceService {
     }
     if (status) {
       filter.Surveillancestatus = status;
+    }
+    if (cabCode) {
+      filter.cab_code = cabCode;
+    }
+    if (ba && Types.ObjectId.isValid(ba)) {
+      filter.business_associate = new Types.ObjectId(ba);
     }
     if (search) {
       const regex = new RegExp(escapeRegex(search), 'i');

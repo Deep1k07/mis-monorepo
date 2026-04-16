@@ -11,9 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSurveillanceList } from "@/utils/apis";
+import {
+  useSurveillanceList,
+  useAllCabsList,
+  useAllBa,
+} from "@/utils/apis";
 import { useDebounce } from "@/utils/useDebounce";
 import { useQueryParams } from "@/utils/useQueryParams";
+import { SearchableSelect } from "@/components/searchable-select";
 import { createSurveillanceColumns } from "./columns";
 
 type SurveillanceType = "first" | "second";
@@ -26,6 +31,11 @@ function SurveillanceTable({ type }: { type: SurveillanceType }) {
   const searchInput = get("search");
   const search = useDebounce(searchInput);
   const status = get("status");
+  const cabCode = get("cabCode");
+  const baFilter = get("ba");
+
+  const { cabs } = useAllCabsList();
+  const { bams } = useAllBa();
 
   const columns = useMemo(
     () =>
@@ -40,7 +50,14 @@ function SurveillanceTable({ type }: { type: SurveillanceType }) {
     totalPages,
     total,
     isLoading,
-  } = useSurveillanceList(type, page, search, status || undefined);
+  } = useSurveillanceList(
+    type,
+    page,
+    search,
+    status || undefined,
+    cabCode || undefined,
+    baFilter || undefined,
+  );
 
   return (
     <>
@@ -59,28 +76,67 @@ function SurveillanceTable({ type }: { type: SurveillanceType }) {
           searchValue={searchInput}
           onSearchChange={(value) => set({ search: value, page: 1 })}
           filterSlot={
-            <Select
-              value={status || null}
-              onValueChange={(val) =>
-                set({
-                  status: !val || val === "all" ? "" : val,
-                  page: 1,
-                })
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Surveillance Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="upcoming">Upcoming</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="inprogress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
-                <SelectItem value="withdrawn">Withdrawn</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={status || null}
+                onValueChange={(val) =>
+                  set({
+                    status: !val || val === "all" ? "" : val,
+                    page: 1,
+                  })
+                }
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Surveillance Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="upcoming">Upcoming</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="inprogress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="suspended">Suspended</SelectItem>
+                  <SelectItem value="withdrawn">Withdrawn</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={cabCode || null}
+                onValueChange={(val) =>
+                  set({
+                    cabCode: !val || val === "all" ? "" : val,
+                    page: 1,
+                  })
+                }
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="CAB Code" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  {cabs.map((cab: any) => (
+                    <SelectItem key={cab._id} value={cab.cabCode}>
+                      {cab.cabCode}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <SearchableSelect
+                value={baFilter}
+                onChange={(val) =>
+                  set({
+                    ba: !val || val === "all" ? "" : val,
+                    page: 1,
+                  })
+                }
+                options={
+                  bams?.map((b) => ({ value: b._id, label: b.username })) ?? []
+                }
+                placeholder="Business Associate"
+                searchPlaceholder="Search BA..."
+                allLabel="All Business Associates"
+                triggerClassName="w-[240px]"
+              />
+            </div>
           }
         />
       )}
@@ -97,7 +153,14 @@ export function SurveillanceClient() {
     <Tabs
       value={tab}
       onValueChange={(value) =>
-        set({ tab: value as string, page: 1, status: "", search: "" })
+        set({
+          tab: value as string,
+          page: 1,
+          status: "",
+          search: "",
+          cabCode: "",
+          ba: "",
+        })
       }
       className="w-full"
     >

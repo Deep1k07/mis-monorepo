@@ -43,6 +43,8 @@ export class SurveillanceController {
       query.limit,
       query.search,
       query.status,
+      query.cabCode,
+      query.ba,
     );
   }
 

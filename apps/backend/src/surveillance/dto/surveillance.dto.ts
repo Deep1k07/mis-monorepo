@@ -27,4 +27,14 @@ export class SurveillanceQueryDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiPropertyOptional({ description: 'CAB code filter' })
+  @IsOptional()
+  @IsString()
+  cabCode?: string;
+
+  @ApiPropertyOptional({ description: 'Business associate id filter' })
+  @IsOptional()
+  @IsString()
+  ba?: string;
 }
