@@ -431,6 +431,17 @@ export class ApplicationService {
   async updateAndGenerateDraft(req: AuthRequest, id: string, updateData: UpdateApplicationDto) {
     const user = req.user;
 
+    const existing = await this.applicationModel.findById(id).exec();
+    if (!existing) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (existing.scopeStatus === 'completed') {
+      throw new BadRequestException(
+        'Scope is already approved; application can no longer be edited or re-approved.',
+      );
+    }
+
     const application = await this.applicationModel
       .findByIdAndUpdate(
         id,

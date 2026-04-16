@@ -13,6 +13,8 @@ import {
   FileText,
   Shield,
   Send,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import {
   Dialog,
@@ -24,8 +26,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useApplicationById } from "@/utils/apis";
+import { useApplicationById, useCountries } from "@/utils/apis";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiFetch } from "@/lib/api-fetch";
 import toast from "react-hot-toast";
 
@@ -124,6 +134,117 @@ function formatAddress(addr: any) {
     .join(", ");
 }
 
+type AddressField = "street" | "city" | "state" | "country" | "postal_code";
+
+function AddressListEditor({
+  title,
+  list,
+  countries,
+  countriesLoading,
+  onAdd,
+  onRemove,
+  onChange,
+}: {
+  title: string;
+  list: Record<AddressField, string>[];
+  listKey: string;
+  countries: { code: string; name: string }[] | undefined;
+  countriesLoading: boolean;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  onChange: (index: number, field: AddressField, value: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-semibold">{title}</h4>
+        <Button type="button" variant="outline" size="sm" onClick={onAdd}>
+          <Plus className="h-4 w-4 mr-1" />
+          Add
+        </Button>
+      </div>
+      {list.length === 0 && (
+        <p className="text-xs text-muted-foreground">No addresses added.</p>
+      )}
+      {list.map((addr, i) => (
+        <div
+          key={i}
+          className="relative rounded-lg border bg-muted/20 p-4 space-y-3"
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onRemove(i)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+          <div className="grid gap-1.5">
+            <Label>
+              Street <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              value={addr.street ?? ""}
+              onChange={(e) => onChange(i, "street", e.target.value)}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-1.5">
+              <Label>City</Label>
+              <Input
+                value={addr.city ?? ""}
+                onChange={(e) => onChange(i, "city", e.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>State</Label>
+              <Input
+                value={addr.state ?? ""}
+                onChange={(e) => onChange(i, "state", e.target.value)}
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label>
+                Country <span className="text-destructive">*</span>
+              </Label>
+              <Select
+                value={addr.country ?? ""}
+                onValueChange={(val) =>
+                  onChange(i, "country", (val as string) ?? "")
+                }
+                disabled={countriesLoading}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      countriesLoading ? "Loading..." : "Select Country"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries?.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Postal Code</Label>
+              <Input
+                value={addr.postal_code ?? ""}
+                onChange={(e) => onChange(i, "postal_code", e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function ApplicationViewClient() {
   const params = useParams();
   const router = useRouter();
@@ -136,22 +257,121 @@ export function ApplicationViewClient() {
     isLoading: loading,
     mutate,
   } = useApplicationById(params.id as string);
+  const { countries, isLoading: countriesLoading } = useCountries();
 
   // Edit form state
   const [editData, setEditData] = useState<any>({});
+
+  const emptyAddress = {
+    street: "",
+    city: "",
+    state: "",
+    country: "",
+    postal_code: "",
+  };
+
+  const normalizeAddress = (addr: any) => ({
+    street: addr?.street ?? "",
+    city: addr?.city ?? "",
+    state: addr?.state ?? "",
+    country: addr?.country ?? "",
+    postal_code: addr?.postal_code ?? "",
+  });
 
   const openEdit = () => {
     if (!app) return;
     setEditData({
       scope: app.scope || "",
       additional_scope: app.additional_scope || "",
-      primary_certificate_language: app.primary_certificate_language || "",
-      secondary_certificate_language: app.secondary_certificate_language || "",
+      main_site_address: (app.main_site_address ?? []).map(normalizeAddress),
+      additional_site_address: (app.additional_site_address ?? []).map(
+        normalizeAddress,
+      ),
+      additional_address_multiple: (
+        app.additional_address_multiple ?? []
+      ).map(normalizeAddress),
     });
     setEditOpen(true);
   };
 
+  const updateAddressField = (
+    listKey:
+      | "main_site_address"
+      | "additional_site_address"
+      | "additional_address_multiple",
+    index: number,
+    field: keyof typeof emptyAddress,
+    value: string,
+  ) => {
+    setEditData((prev: any) => {
+      const next = [...(prev[listKey] ?? [])];
+      next[index] = { ...next[index], [field]: value };
+      return { ...prev, [listKey]: next };
+    });
+  };
+
+  const addAddressRow = (
+    listKey:
+      | "main_site_address"
+      | "additional_site_address"
+      | "additional_address_multiple",
+  ) => {
+    setEditData((prev: any) => ({
+      ...prev,
+      [listKey]: [...(prev[listKey] ?? []), { ...emptyAddress }],
+    }));
+  };
+
+  const removeAddressRow = (
+    listKey:
+      | "main_site_address"
+      | "additional_site_address"
+      | "additional_address_multiple",
+    index: number,
+  ) => {
+    setEditData((prev: any) => {
+      const next = [...(prev[listKey] ?? [])];
+      next.splice(index, 1);
+      return { ...prev, [listKey]: next };
+    });
+  };
+
+  const validateAddresses = (
+    label: string,
+    list: Record<AddressField, string>[] | undefined,
+  ): string | null => {
+    if (!list) return null;
+    for (const [i, addr] of list.entries()) {
+      if (!addr?.street?.trim()) {
+        return `${label} #${i + 1}: Street is required`;
+      }
+      if (!addr?.country?.trim()) {
+        return `${label} #${i + 1}: Country is required`;
+      }
+    }
+    return null;
+  };
+
   const handleSave = async () => {
+    if (!editData.scope?.trim()) {
+      toast.error("Scope is required");
+      return;
+    }
+    const addressError =
+      validateAddresses("Main Site Address", editData.main_site_address) ||
+      validateAddresses(
+        "Additional Site Address",
+        editData.additional_site_address,
+      ) ||
+      validateAddresses(
+        "Additional Address (Other Language)",
+        editData.additional_address_multiple,
+      );
+    if (addressError) {
+      toast.error(addressError);
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await apiFetch(
@@ -281,10 +501,14 @@ export function ApplicationViewClient() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={openEdit}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit Application
-            </Button>
+              <Button 
+              variant="outline" size="sm" 
+              onClick={openEdit}
+              disabled={app.scopeStatus === "completed"}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit Application
+              </Button>
             <Button
               variant="outline"
               size="sm"
@@ -521,16 +745,17 @@ export function ApplicationViewClient() {
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-5xl w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Application</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-1.5 sm:col-span-2">
-              <Label htmlFor="edit-scope">Scope</Label>
-              <Input
+              <Label htmlFor="edit-scope">Scope <span className="text-destructive">*</span></Label>
+              <Textarea
                 id="edit-scope"
-                value={editData.scope}
+                rows={4}
+                value={editData.scope ?? ""}
                 onChange={(e) =>
                   setEditData({ ...editData, scope: e.target.value })
                 }
@@ -538,9 +763,10 @@ export function ApplicationViewClient() {
             </div>
             <div className="grid gap-1.5 sm:col-span-2">
               <Label htmlFor="edit-additional-scope">Additional Scope</Label>
-              <Input
+              <Textarea
                 id="edit-additional-scope"
-                value={editData.additional_scope}
+                rows={3}
+                value={editData.additional_scope ?? ""}
                 onChange={(e) =>
                   setEditData({
                     ...editData,
@@ -549,37 +775,53 @@ export function ApplicationViewClient() {
                 }
               />
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="edit-primary-lang">
-                Primary Certificate Language
-              </Label>
-              <Input
-                id="edit-primary-lang"
-                value={editData.primary_certificate_language}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    primary_certificate_language: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="edit-secondary-lang">
-                Secondary Certificate Language
-              </Label>
-              <Input
-                id="edit-secondary-lang"
-                value={editData.secondary_certificate_language}
-                onChange={(e) =>
-                  setEditData({
-                    ...editData,
-                    secondary_certificate_language: e.target.value,
-                  })
-                }
-              />
-            </div>
           </div>
+
+          <AddressListEditor
+            title="Main Site Address"
+            list={editData.main_site_address ?? []}
+            listKey="main_site_address"
+            countries={countries}
+            countriesLoading={countriesLoading}
+            onAdd={() => addAddressRow("main_site_address")}
+            onRemove={(i) => removeAddressRow("main_site_address", i)}
+            onChange={(i, field, value) =>
+              updateAddressField("main_site_address", i, field, value)
+            }
+          />
+
+          <AddressListEditor
+            title="Additional Site Address"
+            list={editData.additional_site_address ?? []}
+            listKey="additional_site_address"
+            countries={countries}
+            countriesLoading={countriesLoading}
+            onAdd={() => addAddressRow("additional_site_address")}
+            onRemove={(i) => removeAddressRow("additional_site_address", i)}
+            onChange={(i, field, value) =>
+              updateAddressField("additional_site_address", i, field, value)
+            }
+          />
+
+          <AddressListEditor
+            title="Additional Address (Other Language)"
+            list={editData.additional_address_multiple ?? []}
+            listKey="additional_address_multiple"
+            countries={countries}
+            countriesLoading={countriesLoading}
+            onAdd={() => addAddressRow("additional_address_multiple")}
+            onRemove={(i) =>
+              removeAddressRow("additional_address_multiple", i)
+            }
+            onChange={(i, field, value) =>
+              updateAddressField(
+                "additional_address_multiple",
+                i,
+                field,
+                value,
+              )
+            }
+          />
           <DialogFooter showCloseButton>
             <Button onClick={handleSave} disabled={saving} size="sm">
               {saving ? "Saving..." : "Save Changes"}

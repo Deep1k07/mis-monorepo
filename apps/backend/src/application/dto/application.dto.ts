@@ -144,9 +144,46 @@ export class CreateApplicationDto {
 }
 
 export class UpdateApplicationDto {
-  @IsNotEmpty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  scope: string;
+  scope?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  additional_scope?: string;
+
+  @ApiPropertyOptional({ type: [AddressDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AddressDto)
+  main_site_address?: AddressDto[];
+
+  @ApiPropertyOptional({ type: [AddressDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AddressDto)
+  additional_site_address?: AddressDto[];
+
+  @ApiPropertyOptional({ type: [AddressDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AddressDto)
+  additional_address_multiple?: AddressDto[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  primary_certificate_language?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  secondary_certificate_language?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -158,20 +195,24 @@ export class UpdateApplicationDto {
   @IsString()
   iaf_code?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   audit1?: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  audit2: string;
+  audit2?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   isScopeModified?: number;
 
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   scopeStatus?: string;
 }
 
