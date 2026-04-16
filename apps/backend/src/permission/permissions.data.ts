@@ -111,6 +111,29 @@ export const defaultPermissions = [
     type: PermissionType.DEFAULT,
   },
 
+  // Surveillance permissions
+  {
+    name: 'manage:surveillance',
+    description: 'Can manage surveillance',
+    category: 'Surveillance',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'surveillance:read',
+    description: 'Can view surveillance records',
+    category: 'Surveillance',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+  {
+    name: 'surveillance:apply',
+    description: 'Can apply for surveillance',
+    category: 'Surveillance',
+    status: PermissionStatus.ACTIVE,
+    type: PermissionType.DEFAULT,
+  },
+
   // Cab and Standards permissions
   {
     name: 'cab-standard:read',
