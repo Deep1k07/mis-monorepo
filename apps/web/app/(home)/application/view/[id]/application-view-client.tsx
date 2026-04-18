@@ -398,7 +398,7 @@ export function ApplicationViewClient() {
     }
   };
 
-  const handleToggleBaManagerStatus = async () => {
+  const requestFinal = async () => {
     setToggling(true);
     try {
       const res = await apiFetch(
@@ -513,7 +513,7 @@ export function ApplicationViewClient() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleToggleBaManagerStatus}
+              onClick={requestFinal}
               disabled={toggling}
             >
               <Send className="h-4 w-4 mr-2" />

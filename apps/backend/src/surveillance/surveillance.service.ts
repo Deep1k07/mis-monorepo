@@ -316,6 +316,12 @@ export class SurveillanceService {
       );
     }
 
+    if (surveillance.certificateStatus === 'completed') {
+      throw new BadRequestException(
+        'Certificate is already approved; this surveillance can no longer be edited or re-approved.',
+      );
+    }
+
     const newStatus =
       surveillance.baManagerStatus === 'final' ? 'applied' : 'final';
 

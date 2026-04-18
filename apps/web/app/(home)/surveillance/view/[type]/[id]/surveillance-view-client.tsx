@@ -207,13 +207,8 @@ export function SurveillanceViewClient() {
       // "suspended",
       // "withdrawn",
     ].includes(surveillanceStatus);
-  const canApply = hasPermission("surveillance:apply");
 
   const isFinalRequested = app?.baManagerStatus === "final";
-  const canRequestFinal =
-    hasPermission("surveillance:apply") &&
-    app?.scopeStatus === "completed" &&
-    app?.Surveillancestatus === "inprogress";
 
   return (
     <div className="space-y-6">
@@ -268,7 +263,6 @@ export function SurveillanceViewClient() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {canApply && (
             <Button
               variant="outline"
               size="sm"
@@ -278,8 +272,6 @@ export function SurveillanceViewClient() {
               <Send className="h-4 w-4 mr-2" />
               {applying ? "Applying..." : "Apply Surveillance"}
             </Button>
-          )}
-          {canRequestFinal && (
             <Button
               variant={isFinalRequested ? "destructive" : "outline"}
               size="sm"
@@ -293,7 +285,6 @@ export function SurveillanceViewClient() {
                   ? "Cancel Final"
                   : "Request Final"}
             </Button>
-          )}
         </div>
       </div>
 
