@@ -328,6 +328,139 @@ export class CertificateService {
     return filePath;
   }
 
+  async generateSurveillanceFinalCertificate(
+    type: 'first' | 'second',
+    surveillanceId: string,
+  ): Promise<string> {
+    const model: Model<any> =
+      type === 'second' ? this.surveillanceTwoModel : this.surveillanceOneModel;
+
+    const surveillance = await model
+      .findById(surveillanceId)
+      .populate('entity')
+      .exec();
+
+    if (!surveillance) {
+      throw new NotFoundException('Surveillance record not found');
+    }
+
+    const entity = surveillance.entity as any;
+    if (!entity) {
+      throw new NotFoundException('Entity not found for this surveillance');
+    }
+
+    const primaryStandard = surveillance.standards?.[0];
+    if (!primaryStandard) {
+      throw new NotFoundException(
+        'Surveillance has no standards; cannot generate certificate number',
+      );
+    }
+
+    const standardDoc = await this.certificationStandardModel
+      .findOne({ standardCode: primaryStandard.code })
+      .lean();
+    const mssCode = standardDoc?.mssCode || '';
+    if (!mssCode) {
+      this.logger.warn(
+        `mssCode not found for standardCode "${primaryStandard.code}"; certificate number will omit it`,
+      );
+    }
+
+    const country =
+      surveillance.main_site_address?.[0]?.country ??
+      entity.main_site_address?.[0]?.country;
+    const computed = generateCertificateNumber(
+      {
+        entity_id: surveillance.entity_id || entity.entity_id,
+        cab_code: surveillance.cab_code,
+        type: surveillance.type as CertificateType,
+        valid_until: surveillance.valid_until,
+        newCertificateNo: surveillance.certificate_number || undefined,
+      },
+      country,
+      mssCode,
+    );
+
+    await model.updateOne(
+      { _id: surveillanceId },
+      {
+        $set: {
+          certificate_number: computed.certificationNumber,
+          initial_issue: surveillance.initial_issue || computed.curr_date,
+          current_issue: computed.curr_date,
+          valid_until: computed.expiryDate,
+          first_surveillance: computed.firstSurvalance,
+          second_surveillance: computed.secondSurvalance,
+          recertification_due: computed.rec,
+          issue_no: surveillance.issue_no || '01',
+          revision_no: surveillance.revision_no || '00',
+          finalCreatedAt: surveillance.finalCreatedAt || new Date(),
+          finalUpdatedAt: new Date(),
+        },
+      },
+    );
+
+    const updatedSurveillance = await model
+      .findById(surveillanceId)
+      .populate('entity')
+      .exec();
+    const updatedEntity = updatedSurveillance!.entity as any;
+
+    const mainHtml = this.buildCertificateHtml(
+      updatedSurveillance,
+      updatedEntity,
+      'final',
+    );
+    const fileName = `final-surveillance-${type}-${surveillanceId}-${Date.now()}.pdf`;
+    const filePath = path.join(this.outputDir, fileName);
+
+    const [, annexurePath] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
+        fs.writeFileSync(filePath, pdfBuffer);
+        this.logger.log(
+          `Final surveillance (${type}) certificate generated for ${surveillanceId}: ${filePath}`,
+        );
+      }),
+      updatedSurveillance!.annexure
+        ? this.generateAnnexurePdf(
+            updatedSurveillance,
+            updatedEntity,
+            'final',
+            surveillanceId,
+          )
+        : Promise.resolve(''),
+    ]);
+
+    const version = String(
+      (updatedSurveillance!.finalCertificate?.length || 0) + 1,
+    );
+
+    await model.updateOne(
+      { _id: surveillanceId, 'finalCertificate.0': { $exists: true } },
+      { $set: { 'finalCertificate.$[].status': 'inactive' } },
+    );
+
+    await model.findByIdAndUpdate(surveillanceId, {
+      $push: {
+        finalCertificate: {
+          version,
+          status: 'active',
+          type: 'normal',
+          languages: {
+            [updatedSurveillance!.primary_certificate_language || 'en']: {
+              s3CertificatePdfxUrl: filePath,
+              s3CertificateDocxUrl: '',
+              s3CertificateAnnexureDocxUrl: '',
+              s3CertificateAnnexurePdfxUrl: annexurePath,
+            },
+          },
+        },
+      },
+    });
+
+    return filePath;
+  }
+
   private buildCertificateHtml(
     application: any,
     entity: any,

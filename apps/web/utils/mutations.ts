@@ -103,6 +103,28 @@ export const updateDraftSurveillance = async (
   return response;
 };
 
+export const updateFinalSurveillance = async (
+  type: "first" | "second",
+  id: string,
+  data: {
+    action: "approve" | "reject";
+    comment?: string;
+    audit1?: string;
+    audit2?: string;
+    iaf_code?: string;
+  },
+) => {
+  const response = await apiFetch(
+    `${BASE_URL}/surveillance/final/${type}/${id}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+  return response;
+};
+
 // ─── BA ───
 
 export const createBa = async (data: any) => {

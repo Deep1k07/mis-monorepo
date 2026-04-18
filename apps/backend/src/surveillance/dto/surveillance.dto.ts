@@ -69,3 +69,29 @@ export class UpdateSurveillanceDraftDto {
   @IsString()
   scope_comment?: string;
 }
+
+export class UpdateSurveillanceFinalDto {
+  @ApiPropertyOptional({ enum: ['approve', 'reject'] })
+  @IsIn(['approve', 'reject'])
+  action: 'approve' | 'reject';
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  comment?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  audit1?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  audit2?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  iaf_code?: string;
+}

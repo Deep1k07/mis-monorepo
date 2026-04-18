@@ -21,6 +21,7 @@ import {
   SurveillanceQueryDto,
   SurveillanceType,
   UpdateSurveillanceDraftDto,
+  UpdateSurveillanceFinalDto,
 } from './dto/surveillance.dto';
 
 @ApiTags('Surveillance')
@@ -61,6 +62,41 @@ export class SurveillanceController {
     @Body() body: UpdateSurveillanceDraftDto,
   ) {
     return this.surveillanceService.updateDraft(req, type, id, body);
+  }
+
+  @Get('final/:type')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'List final surveillance for quality review' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of final surveillance',
+  })
+  async findFinal(
+    @Req() req: AuthRequest,
+    @Param('type') type: SurveillanceType,
+    @Query() query: SurveillanceQueryDto,
+  ) {
+    return this.surveillanceService.findFinal(
+      req,
+      type,
+      query.page,
+      query.limit,
+      query.search,
+      query.status,
+    );
+  }
+
+  @Patch('final/:type/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Approve or reject a final surveillance' })
+  @ApiResponse({ status: 200, description: 'Final surveillance updated' })
+  async updateFinal(
+    @Req() req: AuthRequest,
+    @Param('type') type: SurveillanceType,
+    @Param('id') id: string,
+    @Body() body: UpdateSurveillanceFinalDto,
+  ) {
+    return this.surveillanceService.updateFinal(req, type, id, body);
   }
 
   @Get(':type')

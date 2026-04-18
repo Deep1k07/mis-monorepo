@@ -197,6 +197,29 @@ export function useDraftSurveillanceList(
   };
 }
 
+// get final surveillance list
+export function useFinalSurveillanceList(
+  type: "first" | "second",
+  page: number,
+  search?: string,
+  qualityStatus?: string,
+) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
+  if (qualityStatus) params.set("status", qualityStatus);
+  const { data, error, isLoading } = useSWR(
+    `${BASE_URL}/surveillance/final/${type}?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    currentPage: data?.page ?? page,
+    isLoading,
+    isError: error,
+  };
+}
+
 // get surveillance by id
 export function useSurveillanceById(
   type: "first" | "second" | undefined,
