@@ -302,6 +302,34 @@ export class SurveillanceService {
     return updated;
   }
 
+  async requestFinal(type: SurveillanceType, id: string) {
+    const model = this.getModel(type);
+    const surveillance = await model.findById(id).exec();
+
+    if (!surveillance) {
+      throw new NotFoundException('Surveillance record not found');
+    }
+
+    if (surveillance.scopeStatus !== 'completed') {
+      throw new BadRequestException(
+        'Scope must be approved before requesting final review',
+      );
+    }
+
+    const newStatus =
+      surveillance.baManagerStatus === 'final' ? 'applied' : 'final';
+
+    const updated = await model
+      .findByIdAndUpdate(
+        id,
+        { $set: { baManagerStatus: newStatus } },
+        { returnDocument: 'after' },
+      )
+      .exec();
+
+    return updated;
+  }
+
   async findFinal(
     _req: AuthRequest,
     type: SurveillanceType,
@@ -322,6 +350,7 @@ export class SurveillanceService {
       scopeStatus: 'completed',
       qualityStatus: qualityFilter ?? 'pending',
       Surveillancestatus: 'inprogress',
+      baManagerStatus: 'final',
     };
 
     if (qualityFilter) {

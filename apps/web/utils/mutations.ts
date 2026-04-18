@@ -80,6 +80,20 @@ export const applySurveillance = async (
   return response;
 };
 
+export const requestFinalSurveillance = async (
+  type: "first" | "second",
+  id: string,
+) => {
+  const response = await apiFetch(
+    `${BASE_URL}/surveillance/request-final/${type}/${id}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+  return response;
+};
+
 export const updateDraftSurveillance = async (
   type: "first" | "second",
   id: string,

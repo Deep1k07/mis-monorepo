@@ -64,6 +64,19 @@ export class SurveillanceController {
     return this.surveillanceService.updateDraft(req, type, id, body);
   }
 
+  @Patch('request-final/:type/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Toggle baManagerStatus between applied and final',
+  })
+  @ApiResponse({ status: 200, description: 'BA Manager status toggled' })
+  async requestFinal(
+    @Param('type') type: SurveillanceType,
+    @Param('id') id: string,
+  ) {
+    return this.surveillanceService.requestFinal(type, id);
+  }
+
   @Get('final/:type')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'List final surveillance for quality review' })
