@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiFetch } from "@/lib/api-fetch";
+import { CertificateLinks } from "@/components/certificate-links";
 import toast from "react-hot-toast";
 
 function StatusBadge({
@@ -741,6 +742,11 @@ export function ApplicationViewClient() {
               </div>
             </div>
           )}
+        {/* Certificates */}
+        <CertificateLinks
+          draftCertificates={app.draftCertificate}
+          finalCertificates={app.finalCertificate}
+        />
       </div>
 
       {/* Edit Dialog */}

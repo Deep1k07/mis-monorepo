@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { CertificateLinks } from "@/components/certificate-links";
 import { useSurveillanceById } from "@/utils/apis";
 import {
   applySurveillance,
@@ -519,6 +520,12 @@ export function SurveillanceViewClient() {
             </div>
           </div>
         )}
+
+      {/* Certificates */}
+      <CertificateLinks
+        draftCertificates={app.draftCertificate}
+        finalCertificates={app.finalCertificate}
+      />
     </div>
   );
 }

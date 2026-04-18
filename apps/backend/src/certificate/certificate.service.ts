@@ -22,6 +22,7 @@ import {
   CertificateType,
   generateCertificateNumber,
 } from './utils/generate-certificate-number';
+import { S3Service } from './s3.service';
 import * as puppeteer from 'puppeteer';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -34,7 +35,6 @@ export class CertificateService {
   private readonly draftTemplatePath: string;
   private readonly finalTemplatePath: string;
   private readonly annexureTemplatePath: string;
-  private readonly outputDir: string;
 
   constructor(
     @InjectModel(Application.name)
@@ -47,6 +47,7 @@ export class CertificateService {
     private readonly surveillanceOneModel: Model<SurveillanceOneDocument>,
     @InjectModel(SurveillanceTwo.name)
     private readonly surveillanceTwoModel: Model<SurveillanceTwoDocument>,
+    private readonly s3Service: S3Service,
   ) {
     this.draftTemplatePath = path.resolve(__dirname, 'templates', 'draft.html');
     this.finalTemplatePath = path.resolve(__dirname, 'templates', 'final.html');
@@ -55,10 +56,10 @@ export class CertificateService {
       'templates',
       'annexure.html',
     );
-    this.outputDir = path.resolve(process.cwd(), 'generated-certificates');
-    if (!fs.existsSync(this.outputDir)) {
-      fs.mkdirSync(this.outputDir, { recursive: true });
-    }
+  }
+
+  private buildS3Key(name: string, type: string): string {
+    return `certificates/${name}-${type}-${Date.now()}.pdf`;
   }
 
   async generateDraftCertificate(applicationId: string): Promise<string> {
@@ -77,18 +78,15 @@ export class CertificateService {
     }
 
     const mainHtml = this.buildCertificateHtml(application, entity, 'draft');
-    const fileName = `draft-certificate-${applicationId}-${Date.now()}.pdf`;
-    const filePath = path.join(this.outputDir, fileName);
+    const s3Key = this.buildS3Key(`draft-certificate-${applicationId}`, 'draft');
 
-    // Render the main certificate and (if annexure is enabled) the annexure
-    // PDF in parallel — each launches its own Chromium instance, so running
-    // them concurrently roughly halves wall-clock time.
-    const [, annexurePath] = await Promise.all([
-      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
-        fs.writeFileSync(filePath, pdfBuffer);
+    const [mainS3Key, annexureS3Key] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then(async (pdfBuffer) => {
+        await this.s3Service.upload(pdfBuffer, s3Key, 'application/pdf');
         this.logger.log(
-          `Draft certificate generated for application ${applicationId}: ${filePath}`,
+          `Draft certificate uploaded to S3 for application ${applicationId}: ${s3Key}`,
         );
+        return s3Key;
       }),
       application.annexure
         ? this.generateAnnexurePdf(application, entity, 'draft', applicationId)
@@ -114,17 +112,17 @@ export class CertificateService {
           type: 'normal',
           languages: {
             [application.primary_certificate_language || 'en']: {
-              s3DraftPdfxUrl: filePath,
+              s3DraftPdfxUrl: mainS3Key,
               s3DraftDocxUrl: '',
               s3DraftAnnexureDocxUrl: '',
-              s3DraftAnnexurePdfxUrl: annexurePath,
+              s3DraftAnnexurePdfxUrl: annexureS3Key,
             },
           },
         },
       },
     });
 
-    return filePath;
+    return mainS3Key;
   }
 
   async generateSurveillanceDraftCertificate(
@@ -149,15 +147,15 @@ export class CertificateService {
     }
 
     const mainHtml = this.buildCertificateHtml(surveillance, entity, 'draft');
-    const fileName = `draft-surveillance-${type}-${surveillanceId}-${Date.now()}.pdf`;
-    const filePath = path.join(this.outputDir, fileName);
+    const s3Key = this.buildS3Key(`draft-surveillance-${type}-${surveillanceId}`, 'draft');
 
-    const [, annexurePath] = await Promise.all([
-      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
-        fs.writeFileSync(filePath, pdfBuffer);
+    const [mainS3Key, annexureS3Key] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then(async (pdfBuffer) => {
+        await this.s3Service.upload(pdfBuffer, s3Key, 'application/pdf');
         this.logger.log(
-          `Draft surveillance (${type}) certificate generated for ${surveillanceId}: ${filePath}`,
+          `Draft surveillance (${type}) certificate uploaded to S3 for ${surveillanceId}: ${s3Key}`,
         );
+        return s3Key;
       }),
       surveillance.annexure
         ? this.generateAnnexurePdf(
@@ -184,17 +182,17 @@ export class CertificateService {
           type: 'normal',
           languages: {
             [surveillance.primary_certificate_language || 'en']: {
-              s3DraftPdfxUrl: filePath,
+              s3DraftPdfxUrl: mainS3Key,
               s3DraftDocxUrl: '',
               s3DraftAnnexureDocxUrl: '',
-              s3DraftAnnexurePdfxUrl: annexurePath,
+              s3DraftAnnexurePdfxUrl: annexureS3Key,
             },
           },
         },
       },
     });
 
-    return filePath;
+    return mainS3Key;
   }
 
   async generateFinalCertificate(applicationId: string): Promise<string> {
@@ -277,15 +275,15 @@ export class CertificateService {
       updatedEntity,
       'final',
     );
-    const fileName = `final-certificate-${applicationId}-${Date.now()}.pdf`;
-    const filePath = path.join(this.outputDir, fileName);
+    const s3Key = this.buildS3Key(`final-certificate-${applicationId}`, 'final');
 
-    const [, annexurePath] = await Promise.all([
-      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
-        fs.writeFileSync(filePath, pdfBuffer);
+    const [mainS3Key, annexureS3Key] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then(async (pdfBuffer) => {
+        await this.s3Service.upload(pdfBuffer, s3Key, 'application/pdf');
         this.logger.log(
-          `Final certificate generated for application ${applicationId}: ${filePath}`,
+          `Final certificate uploaded to S3 for application ${applicationId}: ${s3Key}`,
         );
+        return s3Key;
       }),
       updatedApplication!.annexure
         ? this.generateAnnexurePdf(
@@ -315,17 +313,17 @@ export class CertificateService {
           type: 'normal',
           languages: {
             [updatedApplication!.primary_certificate_language || 'en']: {
-              s3CertificatePdfxUrl: filePath,
+              s3CertificatePdfxUrl: mainS3Key,
               s3CertificateDocxUrl: '',
               s3CertificateAnnexureDocxUrl: '',
-              s3CertificateAnnexurePdfxUrl: annexurePath,
+              s3CertificateAnnexurePdfxUrl: annexureS3Key,
             },
           },
         },
       },
     });
 
-    return filePath;
+    return mainS3Key;
   }
 
   async generateSurveillanceFinalCertificate(
@@ -411,15 +409,15 @@ export class CertificateService {
       updatedEntity,
       'final',
     );
-    const fileName = `final-surveillance-${type}-${surveillanceId}-${Date.now()}.pdf`;
-    const filePath = path.join(this.outputDir, fileName);
+    const s3Key = this.buildS3Key(`final-surveillance-${type}-${surveillanceId}`, 'final');
 
-    const [, annexurePath] = await Promise.all([
-      this.generatePdfFromHtml(mainHtml).then((pdfBuffer) => {
-        fs.writeFileSync(filePath, pdfBuffer);
+    const [mainS3Key, annexureS3Key] = await Promise.all([
+      this.generatePdfFromHtml(mainHtml).then(async (pdfBuffer) => {
+        await this.s3Service.upload(pdfBuffer, s3Key, 'application/pdf');
         this.logger.log(
-          `Final surveillance (${type}) certificate generated for ${surveillanceId}: ${filePath}`,
+          `Final surveillance (${type}) certificate uploaded to S3 for ${surveillanceId}: ${s3Key}`,
         );
+        return s3Key;
       }),
       updatedSurveillance!.annexure
         ? this.generateAnnexurePdf(
@@ -448,17 +446,17 @@ export class CertificateService {
           type: 'normal',
           languages: {
             [updatedSurveillance!.primary_certificate_language || 'en']: {
-              s3CertificatePdfxUrl: filePath,
+              s3CertificatePdfxUrl: mainS3Key,
               s3CertificateDocxUrl: '',
               s3CertificateAnnexureDocxUrl: '',
-              s3CertificateAnnexurePdfxUrl: annexurePath,
+              s3CertificateAnnexurePdfxUrl: annexureS3Key,
             },
           },
         },
       },
     });
 
-    return filePath;
+    return mainS3Key;
   }
 
   private buildCertificateHtml(
@@ -531,22 +529,21 @@ export class CertificateService {
       ? 'Annexure 1'
       : application.scope || '';
 
-    // Draft: show XXXXXXXXXX for table values that aren't assigned yet.
+    // Draft: always show XXXXXXXXXX for table fields (dates, cert number, etc.)
+    // so they never leak real values into a draft certificate.
     // Final: fill every cell with the real persisted value.
     const placeholder = 'XXXXXXXXXX';
-    const orPlaceholder = (value: string | undefined): string =>
-      mode === 'final' ? (value ?? '') : value || placeholder;
 
-    const certificateNumber = orPlaceholder(application.certificate_number);
-    const initialIssue = orPlaceholder(application.initial_issue);
-    const currentIssue = orPlaceholder(application.current_issue);
-    const validUntil = orPlaceholder(application.valid_until);
-    const firstSurveillance = orPlaceholder(application.first_surveillance);
-    const secondSurveillance = orPlaceholder(application.second_surveillance);
-    const recertificationDue = orPlaceholder(application.recertification_due);
-    const revisionNo = application.revision_no || (mode === 'final' ? '' : placeholder);
-    const issueNo = orPlaceholder(application.issue_no);
-    const iafCode = application.iaf_code || (mode === 'final' ? '' : placeholder);
+    const certificateNumber = mode === 'final' ? (application.certificate_number ?? '') : placeholder;
+    const initialIssue = mode === 'final' ? (application.initial_issue ?? '') : placeholder;
+    const currentIssue = mode === 'final' ? (application.current_issue ?? '') : placeholder;
+    const validUntil = mode === 'final' ? (application.valid_until ?? '') : placeholder;
+    const firstSurveillance = mode === 'final' ? (application.first_surveillance ?? '') : placeholder;
+    const secondSurveillance = mode === 'final' ? (application.second_surveillance ?? '') : placeholder;
+    const recertificationDue = mode === 'final' ? (application.recertification_due ?? '') : placeholder;
+    const revisionNo = mode === 'final' ? (application.revision_no ?? '') : placeholder;
+    const issueNo = mode === 'final' ? (application.issue_no ?? '') : placeholder;
+    const iafCode = mode === 'final' ? (application.iaf_code ?? '') : placeholder;
 
     // Bottom section
     const audit1 = application.audit1 || '';
@@ -645,15 +642,14 @@ export class CertificateService {
     const pdfBuffer = await this.generatePdfFromHtml(html);
 
     const prefix = mode === 'final' ? 'final' : 'draft';
-    const fileName = `${prefix}-annexure-${applicationId}-${Date.now()}.pdf`;
-    const filePath = path.join(this.outputDir, fileName);
-    fs.writeFileSync(filePath, pdfBuffer);
+    const s3Key = this.buildS3Key(`${prefix}-annexure-${applicationId}`, prefix);
+    await this.s3Service.upload(pdfBuffer, s3Key, 'application/pdf');
 
     this.logger.log(
-      `${mode === 'final' ? 'Final' : 'Draft'} annexure generated for application ${applicationId}: ${filePath}`,
+      `${mode === 'final' ? 'Final' : 'Draft'} annexure uploaded to S3 for ${applicationId}: ${s3Key}`,
     );
 
-    return filePath;
+    return s3Key;
   }
 
   private buildAnnexureHtml(

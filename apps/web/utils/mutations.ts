@@ -139,6 +139,19 @@ export const updateFinalSurveillance = async (
   return response;
 };
 
+// ─── Certificate ───
+
+export const getCertificatePresignedUrl = async (
+  key: string,
+): Promise<string | null> => {
+  const response = await apiFetch(
+    `${BASE_URL}/certificate/presign?key=${encodeURIComponent(key)}`,
+  );
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data.url;
+};
+
 // ─── BA ───
 
 export const createBa = async (data: any) => {

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CertificateService } from './certificate.service';
+import { CertificateController } from './certificate.controller';
+import { S3Service } from './s3.service';
 import {
   Application,
   ApplicationSchema,
@@ -19,9 +21,11 @@ import {
   SurveillanceTwoSchema,
 } from '../surveillance/schema/surveillanceTwo.schema';
 import { CertificateEventListener } from './certificate.listener';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     MongooseModule.forFeature([
       { name: Application.name, schema: ApplicationSchema },
       { name: Entity.name, schema: EntitySchema },
@@ -30,7 +34,8 @@ import { CertificateEventListener } from './certificate.listener';
       { name: SurveillanceTwo.name, schema: SurveillanceTwoSchema },
     ]),
   ],
-  providers: [CertificateService, CertificateEventListener],
-  exports: [CertificateService],
+  controllers: [CertificateController],
+  providers: [CertificateService, CertificateEventListener, S3Service],
+  exports: [CertificateService, S3Service],
 })
 export class CertificateModule {}
