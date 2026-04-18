@@ -5,12 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Copy, MapPin, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useApplicationById } from "@/utils/apis";
+import { useSurveillanceById, useStandardCodes } from "@/utils/apis";
 import { useAuthStore } from "@/store/auth-store";
-import { updateFinalApplication } from "@/utils/mutations";
+import { updateDraftSurveillance } from "@/utils/mutations";
 import toast from "react-hot-toast";
 
 function formatAddress(addr: any) {
@@ -20,63 +20,95 @@ function formatAddress(addr: any) {
     .join(", ");
 }
 
-export function FinalViewClient() {
+export function DraftSurveillanceViewClient() {
   const params = useParams();
   const router = useRouter();
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
+  const type = (params.type as "first" | "second") ?? "first";
+  const id = params.id as string;
+
   const {
-    application: app,
+    surveillance: app,
     isLoading: loading,
     mutate,
-  } = useApplicationById(params.id as string);
+  } = useSurveillanceById(type, id);
 
-  const [comment, setComment] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [commentInitialized, setCommentInitialized] = useState(false);
+  const { standardCodes } = useStandardCodes();
+
+  const [scope, setScope] = useState("");
+  const [originalScope, setOriginalScope] = useState("");
   const [audit1, setAudit1] = useState("");
   const [audit2, setAudit2] = useState("");
   const [iafCode, setIafCode] = useState("");
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
-  if (app && !commentInitialized) {
-    setComment(app.quality_comment || "");
+  if (app && !initialized) {
+    setScope(app.scope || "");
+    setOriginalScope(app.scope || "");
     setAudit1(app.audit1 || "");
     setAudit2(app.audit2 || "");
     setIafCode(app.iaf_code || "");
-    setCommentInitialized(true);
+    setComment(app.scope_comment || "");
+    setInitialized(true);
   }
 
-  const isLocked =
-    app?.qualityStatus === "completed" ||
-    app?.certificateStatus === "completed";
+  const isLocked = app?.scopeStatus === "completed";
 
-  const fieldsEditable = app?.qualityStatus === "pending";
+  const applicationStandardCode = app?.standards?.[0]?.code || "";
+  const matchedStandard = standardCodes.find((s) =>
+    s.standardCode
+      ?.toLowerCase()
+      .includes(applicationStandardCode.split(":")[0].toLowerCase()),
+  );
+  const codeType = (matchedStandard?.code || "iaf").toLowerCase();
+  const codeLabelMap: Record<string, string> = {
+    iaf: "IAF Code / FCC",
+    soa: "SOA",
+    samp: "SAMP",
+  };
+  const codeLabel = codeLabelMap[codeType] || "IAF Code / FCC";
 
   const handleAction = async (action: "approve" | "reject") => {
+    if (!audit1.trim()) {
+      toast.error("Stage-1 Man-day is required");
+      return;
+    }
+    if (!audit2.trim()) {
+      toast.error("Stage-2 Man-day is required");
+      return;
+    }
+    if (!iafCode.trim()) {
+      toast.error(`${codeLabel} is required`);
+      return;
+    }
     if (action === "reject" && !comment.trim()) {
-      toast.error("Cannot reject without a comment");
+      toast.error("Comment is required for rejection");
       return;
     }
 
     setSubmitting(true);
     try {
-      const res = await updateFinalApplication(params.id as string, {
+      const payload = {
         action,
-        comment,
-        ...(action === "approve" && {
-          audit1,
-          audit2,
-          iaf_code: iafCode,
-        }),
-      });
+        scope,
+        audit1,
+        audit2,
+        iaf_code: iafCode,
+        scope_comment: comment,
+      };
+
+      const res = await updateDraftSurveillance(type, id, payload);
       if (res.ok) {
         toast.success(
           action === "approve"
-            ? "Application approved"
-            : "Application rejected",
+            ? "Surveillance scope approved"
+            : "Surveillance scope rejected",
         );
         mutate();
-        router.push("/application/final");
+        router.push("/surveillance/draft");
       } else {
         const data = await res.json();
         toast.error(data.message || "Failed to update");
@@ -99,13 +131,13 @@ export function FinalViewClient() {
   if (!app) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <p className="text-muted-foreground">Application not found</p>
+        <p className="text-muted-foreground">Surveillance record not found</p>
         <Button
           variant="outline"
-          onClick={() => router.push("/application/final")}
+          onClick={() => router.push("/surveillance/draft")}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Final Applications
+          Back to Draft Surveillance
         </Button>
       </div>
     );
@@ -114,12 +146,16 @@ export function FinalViewClient() {
   const entity = app.entity;
   const entityName = app.entity_name || entity?.entity_name || "";
   const entityIdStr = app.entity_id || entity?.entity_id || "";
-  const mainAddress = app.main_site_address?.[0] ?? entity?.main_site_address?.[0];
+  const mainAddress =
+    app.main_site_address?.[0] ?? entity?.main_site_address?.[0];
   const additionalAddresses =
     app.additional_site_address ?? entity?.additional_site_address ?? [];
   const showBa = !entity?.isDirectClient;
   const ba = app.business_associate ?? entity?.business_associate;
   const baName = typeof ba === "object" ? ba?.username : ba;
+
+  // Prevent losing unrelated scope change count (optional info)
+  void originalScope;
 
   return (
     <div className="space-y-6">
@@ -128,7 +164,7 @@ export function FinalViewClient() {
         <Button
           variant="outline"
           size="icon"
-          onClick={() => router.push("/application/final")}
+          onClick={() => router.push("/surveillance/draft")}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -149,26 +185,25 @@ export function FinalViewClient() {
               <>
                 <span className="mx-1">|</span>
                 <span className="font-mono">{app.cab_code}</span>
+              </>
+            )}
+            <span className="mx-1">|</span>
+            <span className="font-medium capitalize">
+              {type === "first" ? "1st" : "2nd"} Surveillance
+            </span>
+            {app.scopeStatus && (
+              <>
                 <span className="mx-1">|</span>
                 <span
                   className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-                    app.qualityStatus === "rejected"
+                    app.scopeStatus === "rejected"
                       ? "bg-red-50 text-red-700 ring-red-600/20"
-                      : app.qualityStatus === "completed"
+                      : app.scopeStatus === "completed"
                         ? "bg-green-50 text-green-700 ring-green-600/20"
                         : "bg-amber-50 text-amber-700 ring-amber-600/20"
                   }`}
                 >
-                  Quality: {app.qualityStatus || "pending"}
-                </span>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-                    app.certificateStatus === "completed"
-                      ? "bg-green-50 text-green-700 ring-green-600/20"
-                      : "bg-blue-50 text-blue-700 ring-blue-600/20"
-                  }`}
-                >
-                  Cert: {app.certificateStatus}
+                  {app.scopeStatus}
                 </span>
               </>
             )}
@@ -178,9 +213,9 @@ export function FinalViewClient() {
 
       <Separator />
 
-      {/* Application Details */}
+      {/* Details */}
       <div>
-        <h4 className="text-sm font-semibold mb-3">Application Details</h4>
+        <h4 className="text-sm font-semibold mb-3">Surveillance Details</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Entity Name</span>
@@ -193,48 +228,6 @@ export function FinalViewClient() {
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">CAB Code</span>
             <span className="text-sm font-mono">{app.cab_code || "-"}</span>
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label
-              htmlFor="iaf-code"
-              className="text-xs text-muted-foreground font-normal"
-            >
-              IAF Code/SOA/SAMP/FCC
-            </Label>
-            <Input
-              id="iaf-code"
-              value={iafCode}
-              onChange={(e) => setIafCode(e.target.value)}
-              disabled={!fieldsEditable}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label
-              htmlFor="audit1"
-              className="text-xs text-muted-foreground font-normal"
-            >
-              Stage-1 Man-day
-            </Label>
-            <Input
-              id="audit1"
-              value={audit1}
-              onChange={(e) => setAudit1(e.target.value)}
-              disabled={!fieldsEditable}
-            />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label
-              htmlFor="audit2"
-              className="text-xs text-muted-foreground font-normal"
-            >
-              Stage-2 Man-day
-            </Label>
-            <Input
-              id="audit2"
-              value={audit2}
-              onChange={(e) => setAudit2(e.target.value)}
-              disabled={!fieldsEditable}
-            />
           </div>
           {app.drive_link && (
             <div className="flex flex-col gap-1">
@@ -256,6 +249,14 @@ export function FinalViewClient() {
                 Business Associate
               </span>
               <span className="text-sm">{baName}</span>
+            </div>
+          )}
+          {app.survApplied && (
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">Applied On</span>
+              <span className="text-sm">
+                {String(app.survApplied).split("T")[0]}
+              </span>
             </div>
           )}
         </div>
@@ -311,32 +312,85 @@ export function FinalViewClient() {
 
       {/* Scope */}
       <div>
-        <h4 className="text-sm font-semibold mb-3">Scope</h4>
-        <div className="p-3 bg-muted/40 rounded-lg">
-          <span className="text-sm">{app.scope || "-"}</span>
-        </div>
+        <h4 className="text-sm font-semibold mb-3">
+          Scope <span className="text-red-500">*</span>
+        </h4>
+        <Textarea
+          value={scope}
+          onChange={(e) => setScope(e.target.value)}
+          rows={3}
+          placeholder="Enter scope"
+          disabled={isLocked}
+        />
       </div>
+
+      {app.additional_scope && (
+        <div>
+          <h4 className="text-sm font-semibold mb-3">
+            Additional Scope (Other Language)
+          </h4>
+          <Textarea value={app.additional_scope} rows={3} disabled />
+        </div>
+      )}
 
       <Separator />
 
-      {/* Quality Review Form */}
+      {/* Scope Review */}
       <div>
-        <h4 className="text-lg font-semibold mb-4">Quality Review</h4>
-        <div className="grid gap-1.5">
-          <Label htmlFor="comment">Quality Comment</Label>
-          <Textarea
-            id="comment"
-            placeholder="Enter comment (required for rejection)"
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            rows={3}
-            disabled={isLocked}
-          />
+        <h4 className="text-lg font-semibold mb-4">Scope Review</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid gap-1.5">
+            <Label htmlFor="audit1">
+              Stage-1 Man-day <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="audit1"
+              placeholder="Enter stage-1 man-day"
+              value={audit1}
+              onChange={(e) => setAudit1(e.target.value)}
+              disabled={isLocked}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="audit2">
+              Stage-2 Man-day <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="audit2"
+              placeholder="Enter stage-2 man-day"
+              value={audit2}
+              onChange={(e) => setAudit2(e.target.value)}
+              disabled={isLocked}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="iafCode">
+              {codeLabel} <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="iafCode"
+              placeholder={`Enter ${codeLabel}`}
+              value={iafCode}
+              onChange={(e) => setIafCode(e.target.value)}
+              disabled={isLocked}
+            />
+          </div>
+          <div className="grid gap-1.5 sm:col-span-2">
+            <Label htmlFor="comment">Scope Comment</Label>
+            <Textarea
+              id="comment"
+              placeholder="Enter comment (required for rejection)"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              rows={3}
+              disabled={isLocked}
+            />
+          </div>
         </div>
 
         {!isLocked && (
           <div className="flex gap-3 mt-6">
-            {hasPermission("application:approve:final") && (
+            {hasPermission("surveillance:approve") && (
               <Button
                 onClick={() => handleAction("approve")}
                 disabled={submitting}
@@ -345,7 +399,7 @@ export function FinalViewClient() {
                 {submitting ? "Processing..." : "Approve"}
               </Button>
             )}
-            {hasPermission("application:reject:final") && (
+            {hasPermission("surveillance:reject") && (
               <Button
                 variant="destructive"
                 onClick={() => handleAction("reject")}

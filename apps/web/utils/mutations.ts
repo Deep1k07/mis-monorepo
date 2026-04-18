@@ -80,6 +80,78 @@ export const applySurveillance = async (
   return response;
 };
 
+export const requestFinalSurveillance = async (
+  type: "first" | "second",
+  id: string,
+) => {
+  const response = await apiFetch(
+    `${BASE_URL}/surveillance/request-final/${type}/${id}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+  return response;
+};
+
+export const updateDraftSurveillance = async (
+  type: "first" | "second",
+  id: string,
+  data: {
+    action: "approve" | "reject";
+    scope?: string;
+    audit1?: string;
+    audit2?: string;
+    iaf_code?: string;
+    scope_comment?: string;
+  },
+) => {
+  const response = await apiFetch(
+    `${BASE_URL}/surveillance/draft/${type}/${id}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+  return response;
+};
+
+export const updateFinalSurveillance = async (
+  type: "first" | "second",
+  id: string,
+  data: {
+    action: "approve" | "reject";
+    comment?: string;
+    audit1?: string;
+    audit2?: string;
+    iaf_code?: string;
+  },
+) => {
+  const response = await apiFetch(
+    `${BASE_URL}/surveillance/final/${type}/${id}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+  return response;
+};
+
+// ─── Certificate ───
+
+export const getCertificatePresignedUrl = async (
+  key: string,
+): Promise<string | null> => {
+  const response = await apiFetch(
+    `${BASE_URL}/certificate/presign?key=${encodeURIComponent(key)}`,
+  );
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data.url;
+};
+
 // ─── BA ───
 
 export const createBa = async (data: any) => {

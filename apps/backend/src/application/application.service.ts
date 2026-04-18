@@ -492,7 +492,6 @@ export class ApplicationService {
       if(qualityStatusFilter){
         filter.qualityStatus = qualityStatusFilter ?? 'pending';
         delete filter.certificateStatus;
-        // delete filter.baManagerStatus;
       }
     } else {
       filter.user = new Types.ObjectId(user.userId);

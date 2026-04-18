@@ -12,11 +12,16 @@ import {
   FileText,
   Shield,
   Send,
+  FileCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { CertificateLinks } from "@/components/certificate-links";
 import { useSurveillanceById } from "@/utils/apis";
-import { applySurveillance } from "@/utils/mutations";
+import {
+  applySurveillance,
+  requestFinalSurveillance,
+} from "@/utils/mutations";
 import { useAuthStore } from "@/store/auth-store";
 import toast from "react-hot-toast";
 
@@ -113,6 +118,7 @@ export function SurveillanceViewClient() {
   const type = (params.type as "first" | "second") ?? "first";
   const id = params.id as string;
   const [applying, setApplying] = useState(false);
+  const [requestingFinal, setRequestingFinal] = useState(false);
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const {
@@ -136,6 +142,27 @@ export function SurveillanceViewClient() {
       toast.error("Something went wrong");
     } finally {
       setApplying(false);
+    }
+  };
+
+  const handleRequestFinal = async () => {
+    setRequestingFinal(true);
+    try {
+      const res = await requestFinalSurveillance(type, id);
+      if (res.ok) {
+        const isFinal = app?.baManagerStatus === "final";
+        toast.success(
+          isFinal ? "Final request cancelled" : "Final review requested",
+        );
+        mutate();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Failed to update");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setRequestingFinal(false);
     }
   };
 
@@ -173,10 +200,15 @@ export function SurveillanceViewClient() {
   const surveillanceStatus = app.Surveillancestatus ?? "upcoming";
   const applyDisabled =
     applying ||
-    ["pending", "inprogress", "completed", "suspended", "withdrawn"].includes(
-      surveillanceStatus,
-    );
-  const canApply = hasPermission("surveillance:apply");
+    [
+      // "pending",
+      // "inprogress",
+      "completed",
+      // "suspended",
+      // "withdrawn",
+    ].includes(surveillanceStatus);
+
+  const isFinalRequested = app?.baManagerStatus === "final";
 
   return (
     <div className="space-y-6">
@@ -231,7 +263,6 @@ export function SurveillanceViewClient() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {canApply && (
             <Button
               variant="outline"
               size="sm"
@@ -241,7 +272,19 @@ export function SurveillanceViewClient() {
               <Send className="h-4 w-4 mr-2" />
               {applying ? "Applying..." : "Apply Surveillance"}
             </Button>
-          )}
+            <Button
+              variant={isFinalRequested ? "destructive" : "outline"}
+              size="sm"
+              onClick={handleRequestFinal}
+              disabled={requestingFinal}
+            >
+              <FileCheck className="h-4 w-4 mr-2" />
+              {requestingFinal
+                ? "Processing..."
+                : isFinalRequested
+                  ? "Cancel Final"
+                  : "Request Final"}
+            </Button>
         </div>
       </div>
 
@@ -468,6 +511,12 @@ export function SurveillanceViewClient() {
             </div>
           </div>
         )}
+
+      {/* Certificates */}
+      <CertificateLinks
+        draftCertificates={app.draftCertificate}
+        finalCertificates={app.finalCertificate}
+      />
     </div>
   );
 }

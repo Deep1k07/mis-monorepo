@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiFetch } from "@/lib/api-fetch";
+import { CertificateLinks } from "@/components/certificate-links";
 import toast from "react-hot-toast";
 
 function StatusBadge({
@@ -397,7 +398,7 @@ export function ApplicationViewClient() {
     }
   };
 
-  const handleToggleBaManagerStatus = async () => {
+  const requestFinal = async () => {
     setToggling(true);
     try {
       const res = await apiFetch(
@@ -512,7 +513,7 @@ export function ApplicationViewClient() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleToggleBaManagerStatus}
+              onClick={requestFinal}
               disabled={toggling}
             >
               <Send className="h-4 w-4 mr-2" />
@@ -741,6 +742,11 @@ export function ApplicationViewClient() {
               </div>
             </div>
           )}
+        {/* Certificates */}
+        <CertificateLinks
+          draftCertificates={app.draftCertificate}
+          finalCertificates={app.finalCertificate}
+        />
       </div>
 
       {/* Edit Dialog */}

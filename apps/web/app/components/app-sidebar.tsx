@@ -96,6 +96,26 @@ const navItems: NavItem[] = [
     icon: FileText,
     isActive: false,
     permission: ["manage:surveillance"],
+    children: [
+      {
+        title: "All Surveillance",
+        url: "/surveillance",
+        icon: List,
+        permission: ["surveillance:read"],
+      },
+      {
+        title: "Draft Surveillance",
+        url: "/surveillance/draft",
+        icon: List,
+        permission: ["surveillance:read:draft"],
+      },
+      {
+        title: "Final Surveillance",
+        url: "/surveillance/final",
+        icon: List,
+        permission: ["surveillance:read:final"],
+      },
+    ]
   },
   {
     title: "Manage CAB & Standard",

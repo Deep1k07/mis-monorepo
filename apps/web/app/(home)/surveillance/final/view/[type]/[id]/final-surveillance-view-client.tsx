@@ -8,9 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useApplicationById } from "@/utils/apis";
+import { useSurveillanceById } from "@/utils/apis";
 import { useAuthStore } from "@/store/auth-store";
-import { updateFinalApplication } from "@/utils/mutations";
+import { updateFinalSurveillance } from "@/utils/mutations";
 import toast from "react-hot-toast";
 
 function formatAddress(addr: any) {
@@ -20,16 +20,19 @@ function formatAddress(addr: any) {
     .join(", ");
 }
 
-export function FinalViewClient() {
+export function FinalSurveillanceViewClient() {
   const params = useParams();
   const router = useRouter();
   const hasPermission = useAuthStore((s) => s.hasPermission);
 
+  const type = (params.type as "first" | "second") ?? "first";
+  const id = params.id as string;
+
   const {
-    application: app,
+    surveillance: app,
     isLoading: loading,
     mutate,
-  } = useApplicationById(params.id as string);
+  } = useSurveillanceById(type, id);
 
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -47,12 +50,25 @@ export function FinalViewClient() {
   }
 
   const isLocked =
-    app?.qualityStatus === "completed" ||
-    app?.certificateStatus === "completed";
+    app?.qualityStatus === "completed" || app?.qualityStatus === "rejected";
 
   const fieldsEditable = app?.qualityStatus === "pending";
 
   const handleAction = async (action: "approve" | "reject") => {
+    if (action === "approve") {
+      if (!iafCode.trim()) {
+        toast.error("IAF Code/SOA/SAMP/FCC is required");
+        return;
+      }
+      if (!audit1.trim()) {
+        toast.error("Stage-1 Man-day is required");
+        return;
+      }
+      if (!audit2.trim()) {
+        toast.error("Stage-2 Man-day is required");
+        return;
+      }
+    }
     if (action === "reject" && !comment.trim()) {
       toast.error("Cannot reject without a comment");
       return;
@@ -60,7 +76,7 @@ export function FinalViewClient() {
 
     setSubmitting(true);
     try {
-      const res = await updateFinalApplication(params.id as string, {
+      const res = await updateFinalSurveillance(type, id, {
         action,
         comment,
         ...(action === "approve" && {
@@ -72,11 +88,11 @@ export function FinalViewClient() {
       if (res.ok) {
         toast.success(
           action === "approve"
-            ? "Application approved"
-            : "Application rejected",
+            ? "Surveillance approved"
+            : "Surveillance rejected",
         );
         mutate();
-        router.push("/application/final");
+        router.push("/surveillance/final");
       } else {
         const data = await res.json();
         toast.error(data.message || "Failed to update");
@@ -99,13 +115,13 @@ export function FinalViewClient() {
   if (!app) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <p className="text-muted-foreground">Application not found</p>
+        <p className="text-muted-foreground">Surveillance record not found</p>
         <Button
           variant="outline"
-          onClick={() => router.push("/application/final")}
+          onClick={() => router.push("/surveillance/final")}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Final Applications
+          Back to Final Surveillance
         </Button>
       </div>
     );
@@ -114,7 +130,8 @@ export function FinalViewClient() {
   const entity = app.entity;
   const entityName = app.entity_name || entity?.entity_name || "";
   const entityIdStr = app.entity_id || entity?.entity_id || "";
-  const mainAddress = app.main_site_address?.[0] ?? entity?.main_site_address?.[0];
+  const mainAddress =
+    app.main_site_address?.[0] ?? entity?.main_site_address?.[0];
   const additionalAddresses =
     app.additional_site_address ?? entity?.additional_site_address ?? [];
   const showBa = !entity?.isDirectClient;
@@ -128,7 +145,7 @@ export function FinalViewClient() {
         <Button
           variant="outline"
           size="icon"
-          onClick={() => router.push("/application/final")}
+          onClick={() => router.push("/surveillance/final")}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -149,6 +166,14 @@ export function FinalViewClient() {
               <>
                 <span className="mx-1">|</span>
                 <span className="font-mono">{app.cab_code}</span>
+              </>
+            )}
+            <span className="mx-1">|</span>
+            <span className="font-medium capitalize">
+              {type === "first" ? "1st" : "2nd"} Surveillance
+            </span>
+            {app.qualityStatus && (
+              <>
                 <span className="mx-1">|</span>
                 <span
                   className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
@@ -159,16 +184,7 @@ export function FinalViewClient() {
                         : "bg-amber-50 text-amber-700 ring-amber-600/20"
                   }`}
                 >
-                  Quality: {app.qualityStatus || "pending"}
-                </span>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-                    app.certificateStatus === "completed"
-                      ? "bg-green-50 text-green-700 ring-green-600/20"
-                      : "bg-blue-50 text-blue-700 ring-blue-600/20"
-                  }`}
-                >
-                  Cert: {app.certificateStatus}
+                  Quality: {app.qualityStatus}
                 </span>
               </>
             )}
@@ -178,9 +194,9 @@ export function FinalViewClient() {
 
       <Separator />
 
-      {/* Application Details */}
+      {/* Surveillance Details */}
       <div>
-        <h4 className="text-sm font-semibold mb-3">Application Details</h4>
+        <h4 className="text-sm font-semibold mb-3">Surveillance Details</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1">
             <span className="text-xs text-muted-foreground">Entity Name</span>
@@ -336,7 +352,7 @@ export function FinalViewClient() {
 
         {!isLocked && (
           <div className="flex gap-3 mt-6">
-            {hasPermission("application:approve:final") && (
+            {hasPermission("surveillance:approve:final") && (
               <Button
                 onClick={() => handleAction("approve")}
                 disabled={submitting}
@@ -345,7 +361,7 @@ export function FinalViewClient() {
                 {submitting ? "Processing..." : "Approve"}
               </Button>
             )}
-            {hasPermission("application:reject:final") && (
+            {hasPermission("surveillance:reject:final") && (
               <Button
                 variant="destructive"
                 onClick={() => handleAction("reject")}

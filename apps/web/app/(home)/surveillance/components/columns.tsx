@@ -11,6 +11,10 @@ export type SurveillanceDef = {
   cab_code: string;
   standards?: { code: string; name: string }[];
   Surveillancestatus?: string;
+  scopeStatus?: string;
+  qualityStatus?: string;
+  certificate_number?: string;
+  old_certificate_number?: string;
   due_date?: string;
   remainingDays?: number | null;
   first_surveillance?: string;
@@ -25,6 +29,11 @@ const statusBadge = (status: string) => {
     completed: "bg-green-50 text-green-700 ring-green-600/20",
     suspended: "bg-red-50 text-red-700 ring-red-600/20",
     withdrawn: "bg-red-50 text-red-700 ring-red-600/20",
+    rejected: "bg-red-50 text-red-700 ring-red-600/20",
+    active: "bg-green-50 text-green-700 ring-green-600/20",
+    proceed: "bg-blue-50 text-blue-700 ring-blue-600/20",
+    applied: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    hold: "bg-gray-50 text-gray-700 ring-gray-600/20",
   };
   const style = styles[status] ?? "bg-gray-50 text-gray-700 ring-gray-600/20";
   return (
@@ -124,6 +133,42 @@ export const createSurveillanceColumns = (
       statusBadge(row.original.Surveillancestatus ?? "upcoming"),
   },
   {
+    accessorKey: "scopeStatus",
+    header: "Scope Status",
+    cell: ({ row }) => {
+      const value = row.original.scopeStatus;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return statusBadge(value);
+    },
+  },
+  {
+    accessorKey: "qualityStatus",
+    header: "Quality Status",
+    cell: ({ row }) => {
+      const value = row.original.qualityStatus;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return statusBadge(value);
+    },
+  },
+  {
+    accessorKey: "certificate_number",
+    header: "Certificate No.",
+    cell: ({ row }) => {
+      const value = row.original.certificate_number;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value}</span>;
+    },
+  },
+  {
+    accessorKey: "old_certificate_number",
+    header: "Old Certificate No.",
+    cell: ({ row }) => {
+      const value = row.original.old_certificate_number;
+      if (!value) return <span className="text-muted-foreground">-</span>;
+      return <span>{value}</span>;
+    },
+  },
+  {
     id: "actions",
     header: "",
     enableHiding: false,
@@ -141,3 +186,18 @@ export const createSurveillanceColumns = (
     },
   },
 ];
+
+export const defaultSurveillanceColumnVisibility: Record<string, boolean> = {
+  entity_id: true,
+  entity_name: true,
+  business_associate: true,
+  cab_code: true,
+  standards: true,
+  remainingDays: true,
+  due_date: true,
+  Surveillancestatus: true,
+  scopeStatus: false,
+  qualityStatus: false,
+  certificate_number: false,
+  old_certificate_number: false,
+};

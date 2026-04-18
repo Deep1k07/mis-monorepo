@@ -155,12 +155,60 @@ export function useSurveillanceList(
   page: number,
   search?: string,
   status?: string,
+  cabCode?: string,
+  ba?: string,
 ) {
   const params = new URLSearchParams({ page: String(page), limit: "10" });
   if (search) params.set("search", search);
   if (status) params.set("status", status);
+  if (cabCode) params.set("cabCode", cabCode);
+  if (ba) params.set("ba", ba);
   const { data, error, isLoading } = useSWR(
     `${BASE_URL}/surveillance/${type}?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    currentPage: data?.page ?? page,
+    isLoading,
+    isError: error,
+  };
+}
+
+// get draft surveillance list
+export function useDraftSurveillanceList(
+  type: "first" | "second",
+  page: number,
+  search?: string,
+) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
+  const { data, error, isLoading } = useSWR(
+    `${BASE_URL}/surveillance/draft/${type}?${params}`,
+  );
+  return {
+    data: data?.data ?? [],
+    totalPages: data?.totalPages ?? 1,
+    total: data?.total ?? 0,
+    currentPage: data?.page ?? page,
+    isLoading,
+    isError: error,
+  };
+}
+
+// get final surveillance list
+export function useFinalSurveillanceList(
+  type: "first" | "second",
+  page: number,
+  search?: string,
+  qualityStatus?: string,
+) {
+  const params = new URLSearchParams({ page: String(page), limit: "10" });
+  if (search) params.set("search", search);
+  if (qualityStatus) params.set("status", qualityStatus);
+  const { data, error, isLoading } = useSWR(
+    `${BASE_URL}/surveillance/final/${type}?${params}`,
   );
   return {
     data: data?.data ?? [],
